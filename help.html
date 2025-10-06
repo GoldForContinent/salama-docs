@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Center - Salama Docs</title>
+  <!-- Reusing the same styles from homepage -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/help.css">
+</head>
+<body>
+  <!-- Header (Same as homepage) -->
+  <header id="header">
+    <div class="container">
+      <nav>
+        <a href="homepage.html" class="logo">
+          <img src="assets/logo.png" alt="Salama Docs Logo">
+          Salama Docs
+        </a>
+        <div class="nav-links">
+          <a href="homepage.html">Home</a>
+          <a href="about.html">About Us</a>
+        
+          <!-- Services Dropdown -->
+          <div class="services-dropdown">
+            <a href="services.html">
+              Services
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <div class="dropdown-menu">
+              <div class="dropdown-header">Core Services</div>
+              <a href="report-lost.html">
+                <i class="fas fa-exclamation-triangle"></i>
+                Report Lost Document
+              </a>
+              <a href="register-found.html">
+                <i class="fas fa-search"></i>
+                Register Found Document
+              </a>
+              <a href="track-recovery.html">
+                <i class="fas fa-eye"></i>
+                Track Your Recovery
+              </a>
+              <a href="delivery-services.html">
+                <i class="fas fa-truck"></i>
+                Delivery Services
+              </a>
+            </div>
+          </div>
+
+          <a href="contact.html">Contact</a>
+          <a href="help.html" class="active">Help Center</a>
+          <a href="loginpage.html">Login</a>
+          <a href="signuppage.html" class="cta">Sign Up</a>
+        </div>
+        <div class="hamburger" onclick="toggleMobileNav()">
+          <i class="fas fa-bars"></i>
+        </div>
+      </nav>
+    </div>
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+      <a href="homepage.html">Home</a>
+      <a href="about.html">About Us</a>
+      
+      <!-- Mobile Services Dropdown -->
+      <div class="mobile-services-dropdown">
+        <div class="mobile-services-toggle" onclick="toggleMobileServices()">
+          Services
+          <i class="fas fa-chevron-down" id="mobileServicesArrow"></i>
+        </div>
+        <div class="mobile-services-menu" id="mobileServicesMenu">
+          <a href="report-lost.html">
+            <i class="fas fa-exclamation-triangle"></i>
+            Report Lost Document
+          </a>
+          <a href="register-found.html">
+            <i class="fas fa-search"></i>
+            Register Found Document
+          </a>
+          <a href="track-recovery.html">
+            <i class="fas fa-eye"></i>
+            Track Your Recovery
+          </a>
+          <a href="delivery-services.html">
+            <i class="fas fa-truck"></i>
+            Delivery Services
+          </a>
+        </div>
+      </div>
+
+      <a href="contact.html">Contact</a>
+      <a href="help.html" class="active">Help Center</a>
+      <a href="loginpage.html">Login</a>
+      <a href="signuppage.html" class="cta">Sign Up</a>
+    </div>
+  </header>
+
+  <!-- Help Hero Section -->
+  <section class="help-hero" data-aos="fade">
+    <div class="container help-hero-content">
+      <h1 data-aos="fade-up">Help Center</h1>
+      <p data-aos="fade-up" data-aos-delay="100">Find answers to common questions or get in touch with our support team</p>
+      
+      <div class="search-container" data-aos="fade-up" data-aos-delay="200">
+        <form>
+          <input type="text" class="search-input" placeholder="Search help articles...">
+          <button type="submit" class="search-button">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Help Categories -->
+  <section class="help-categories">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Browse by <span>Category</span></h2>
+        <p>Select a category to find relevant help articles</p>
+        <div class="title-decoration"></div>
+      </div>
+      
+      <div class="categories-grid">
+        <div class="category-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="category-icon">
+            <i class="fas fa-exclamation-circle"></i>
+          </div>
+          <h3>Reporting Lost Documents</h3>
+          <p>Learn how to report and track your lost identification documents</p>
+          <a href="#" class="category-link">
+            View Articles
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        
+        <div class="category-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="category-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>Found Documents</h3>
+          <p>What to do when you find someone else's identification</p>
+          <a href="#" class="category-link">
+            View Articles
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        
+        <div class="category-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="category-icon">
+            <i class="fas fa-truck"></i>
+          </div>
+          <h3>Delivery Services</h3>
+          <p>Information about our document delivery options and fees</p>
+          <a href="#" class="category-link">
+            View Articles
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        
+        <div class="category-card" data-aos="fade-up" data-aos-delay="400">
+          <div class="category-icon">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <h3>Account & Security</h3>
+          <p>Managing your account and security settings</p>
+          <a href="#" class="category-link">
+            View Articles
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        
+        <div class="category-card" data-aos="fade-up" data-aos-delay="500">
+          <div class="category-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <h3>Document Types</h3>
+          <p>Information about the different documents we handle</p>
+          <a href="#" class="category-link">
+            View Articles
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        
+        <div class="category-card" data-aos="fade-up" data-aos-delay="600">
+          <div class="category-icon">
+            <i class="fas fa-question-circle"></i>
+          </div>
+          <h3>General Questions</h3>
+          <p>Common questions about our services and processes</p>
+          <a href="#" class="category-link">
+            View Articles
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Popular Articles -->
+  <section class="popular-articles">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Popular <span>Articles</span></h2>
+        <p>Frequently viewed help articles from our community</p>
+        <div class="title-decoration"></div>
+      </div>
+      
+      <div class="articles-container">
+        <div class="article-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="article-image">
+            <i class="fas fa-id-card"></i>
+          </div>
+          <div class="article-content">
+            <div class="article-meta">
+              <span><i class="far fa-clock"></i> 5 min read</span>
+              <span><i class="far fa-eye"></i> 1,245 views</span>
+            </div>
+            <h3>How to Report a Lost National ID</h3>
+            <p>A step-by-step guide to reporting your lost Kenyan national identity card through our platform.</p>
+            <a href="#" class="article-link">
+              Read Article
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="article-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="article-image">
+            <i class="fas fa-passport"></i>
+          </div>
+          <div class="article-content">
+            <div class="article-meta">
+              <span><i class="far fa-clock"></i> 7 min read</span>
+              <span><i class="far fa-eye"></i> 892 views</span>
+            </div>
+            <h3>Passport Recovery Process</h3>
+            <p>What to expect when recovering a lost passport through Salama Docs.</p>
+            <a href="#" class="article-link">
+              Read Article
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="article-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="article-image">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="article-content">
+            <div class="article-meta">
+              <span><i class="far fa-clock"></i> 4 min read</span>
+              <span><i class="far fa-eye"></i> 1,532 views</span>
+            </div>
+            <h3>Security & Privacy Measures</h3>
+            <p>How we protect your personal information during the recovery process.</p>
+            <a href="#" class="article-link">
+              Read Article
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Help CTA -->
+  <section class="help-cta">
+    <div class="container help-cta-content">
+      <h2 data-aos="fade-up">Still Need Help?</h2>
+      <p data-aos="fade-up" data-aos-delay="100">Our support team is available 24/7 to assist you with any questions or issues.</p>
+      
+      <div class="help-cta-buttons" data-aos="fade-up" data-aos-delay="200">
+        <a href="contact.html" class="btn btn-accent">
+          <i class="fas fa-headset"></i> Contact Support
+        </a>
+        <a href="tel:+254700123456" class="btn btn-hero-secondary">
+          <i class="fas fa-phone-alt"></i> Call Now
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer (Same as homepage) -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-about">
+            <a href="homepage.html" class="logo">
+              <img src="assets/logo-white.png" alt="Salama Docs Logo">
+              Salama Docs
+            </a>
+            <p>Kenya's most trusted platform for recovering lost identification documents safely and securely.</p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h3>Quick Links</h3>
+              <ul>
+                <li><a href="homepage.html"><i class="fas fa-chevron-right"></i> Home</a></li>
+                <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                <li><a href="services.html"><i class="fas fa-chevron-right"></i> Services</a></li>
+                <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>Support</h3>
+              <ul>
+                <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQ</a></li>
+                <li><a href="privacy.html"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+                <li><a href="terms.html"><i class="fas fa-chevron-right"></i> Terms of Service</a></li>
+                <li><a href="help.html"><i class="fas fa-chevron-right"></i> Help Center</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>Contact</h3>
+              <ul>
+                <li><a href="#"><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</a></li>
+                <li><a href="tel:+254700123456"><i class="fas fa-phone"></i> +254 700 123456</a></li>
+                <li><a href="mailto:info@salamadocs.co.ke"><i class="fas fa-envelope"></i> info@salamadocs.co.ke</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="copyright">&copy; 2025 Salama Docs. All rights reserved. Proudly Kenyan.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript Libraries -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- Main JavaScript -->
+  <script src="js/help.js"></script>
+</body>
+</html>

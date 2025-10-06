@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salama Docs - Recover Lost IDs & Passports</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Animate on Scroll -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+  <!-- Header -->
+  <header id="header">
+    <div class="container">
+      <nav>
+        <a href="homepage.html" class="logo">
+          <img src="assets/logo.png" alt="Salama Docs Logo">
+          Salama Docs
+        </a>
+        <div class="nav-links">
+          <a href="homepage.html">Home</a>
+          <a href="about.html">About Us</a>
+        
+          <!-- Services Dropdown -->
+          <div class="services-dropdown">
+            <a href="services.html">
+              Services
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <div class="dropdown-menu">
+              <div class="dropdown-header">Core Services</div>
+              <a href="report-lost.html">
+                <i class="fas fa-exclamation-triangle"></i>
+                Report Lost Document
+              </a>
+              <a href="register-found.html">
+                <i class="fas fa-search"></i>
+                Register Found Document
+              </a>
+              <a href="track-recovery.html">
+                <i class="fas fa-eye"></i>
+                Track Your Recovery
+              </a>
+              <a href="delivery-services.html">
+                <i class="fas fa-truck"></i>
+                Delivery Services
+              </a>
+            </div>
+          </div>
+
+          <a href="loginpage.html">Login</a>
+          <a href="signup.html" class="cta">Sign Up</a>
+        </div>
+        <div class="hamburger" onclick="toggleMobileNav()">
+          <i class="fas fa-bars"></i>
+        </div>
+      </nav>
+    </div>
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+      <a href="homepage.html">Home</a>
+      <a href="about.html">About Us</a>
+      
+      <!-- Mobile Services Dropdown -->
+      <div class="mobile-services-dropdown">
+        <div class="mobile-services-toggle" onclick="toggleMobileServices()">
+          Services
+          <i class="fas fa-chevron-down" id="mobileServicesArrow"></i>
+        </div>
+        <div class="mobile-services-menu" id="mobileServicesMenu">
+          <a href="report-lost.html">
+            <i class="fas fa-exclamation-triangle"></i>
+            Report Lost Document
+          </a>
+          <a href="register-found.html">
+            <i class="fas fa-search"></i>
+            Register Found Document
+          </a>
+          <a href="track-recovery.html">
+            <i class="fas fa-eye"></i>
+            Track Your Recovery
+          </a>
+          <a href="delivery-services.html">
+            <i class="fas fa-truck"></i>
+            Delivery Services
+          </a>
+        </div>
+      </div>
+
+      <a href="loginpage.html">Login</a>
+      <a href="signup.html" class="cta">Sign Up</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content" data-aos="fade-up" data-aos-duration="1000">
+      <div class="partner-badge" data-aos="fade-up" data-aos-delay="200">
+        <i class="fas fa-handshake"></i> Proudly Kenyan
+      </div>
+      <h1 data-aos="fade-up" data-aos-delay="300">Recover Your Lost IDs & Passports</h1>
+      <p data-aos="fade-up" data-aos-delay="400">Kenya's most trusted platform for reporting and recovering lost identification documents with 98% recovery success rate.</p>
+      <div class="hero-buttons" data-aos="fade-up" data-aos-delay="500">
+        <a href="loginpage.html" class="btn btn-hero btn-hero-primary">Report Lost Document</a>
+        <a href="about.html" class="btn btn-hero btn-hero-secondary">Learn More</a>
+      </div>
+    </div>
+    <a href="#stats-section" class="scroll-down" data-aos="fade-up" data-aos-delay="600">
+      <i class="fas fa-chevron-down"></i>
+    </a>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats" id="stats-section">
+    <div class="container stats-container">
+      <div class="stat-item" data-target="15000" data-suffix="+">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Documents Recovered</div>
+      </div>
+      <div class="stat-item" data-target="98" data-suffix="%">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Recovery Rate</div>
+      </div>
+      <div class="stat-item" data-target="24" data-suffix="">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Hour Average Recovery</div>
+      </div>
+      <div class="stat-item" data-target="47" data-suffix="">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Recovery Centers</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section steps">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>How It <span>Works</span></h2>
+        <p>Our simple 3-step process makes recovering your lost documents quick and hassle-free</p>
+        <div class="title-decoration"></div>
+      </div>
+      <div class="step-cards">
+        <div class="step-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="step-number">1</div>
+          <div class="step-icon">
+            <i class="fas fa-edit"></i>
+          </div>
+          <h3>Report</h3>
+          <p>Register and submit details of your lost document through our secure platform in under 2 minutes.</p>
+        </div>
+        <div class="step-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="step-number">2</div>
+          <div class="step-icon">
+            <i class="fas fa-bell"></i>
+          </div>
+          <h3>Notify</h3>
+          <p>Receive instant SMS and email alerts when your document is found and verified by our team.</p>
+        </div>
+        <div class="step-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="step-number">3</div>
+          <div class="step-icon">
+            <i class="fas fa-id-card"></i>
+          </div>
+          <h3>Recover</h3>
+          <p>Collect your document from our verified recovery centers nationwide or request delivery.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Document Types -->
+  <section class="section documents">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Supported <span>Documents</span></h2>
+        <p>We help recover all major Kenyan identification documents and more</p>
+        <div class="title-decoration"></div>
+      </div>
+      <div class="document-grid">
+        <div class="document-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="document-icon">
+            <i class="fas fa-id-card"></i>
+          </div>
+          <h3>National ID</h3>
+          <p>Kenyan National Identity Card</p>
+        </div>
+        <div class="document-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="document-icon">
+            <i class="fas fa-passport"></i>
+          </div>
+          <h3>Passport</h3>
+          <p>All passport types including diplomatic</p>
+        </div>
+        <div class="document-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="document-icon">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <h3>Academic Certificates</h3>
+          <p>KCSE, KCPE, Diplomas, Degrees</p>
+        </div>
+        <div class="document-card" data-aos="fade-up" data-aos-delay="400">
+          <div class="document-icon">
+            <i class="fas fa-car"></i>
+          </div>
+          <h3>Driving License</h3>
+          <p>All classes of Kenyan driving licenses</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Features -->
+  <section class="section security-features">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Our Security Promise</h2>
+        <p>We use military-grade security measures to protect your identity and ensure safe document recovery</p>
+        <div class="title-decoration"></div>
+      </div>
+      <div class="features-grid">
+        <div class="feature" data-aos="fade-up" data-aos-delay="100">
+          <i class="fas fa-fingerprint"></i>
+          <h3>Biometric Verification</h3>
+          <p>All documents verified through government-approved biometric checks before release</p>
+        </div>
+        <div class="feature" data-aos="fade-up" data-aos-delay="200">
+          <i class="fas fa-lock"></i>
+          <h3>End-to-End Encryption</h3>
+          <p>Your personal data is protected with AES-256 encryption at all times</p>
+        </div>
+        <div class="feature" data-aos="fade-up" data-aos-delay="300">
+          <i class="fas fa-user-shield"></i>
+          <h3>Anonymous Returns</h3>
+          <p>Finders never see your personal contact information during recovery</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section testimonials">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Success Stories</h2>
+        <p>Hear from Kenyans who have recovered their documents through our platform</p>
+        <div class="title-decoration"></div>
+      </div>
+      <div class="testimonial-slider" data-aos="fade-up">
+        <!-- Slides -->
+        <div class="testimonial-slides">
+          <!-- Slide 1 -->
+          <div class="testimonial-slide active">
+            <div class="testimonial-content">
+              <img src="assets/wanjiku..jpg" alt="Wanjiku" class="testimonial-img">
+              <div class="testimonial-text">
+                <p class="quote">"Salama Docs helped me recover my lost ID in just 2 days! I got an SMS when it was found at a police station in Nairobi. The process was so smooth and secure."</p>
+                <div class="testimonial-author">
+                  <span class="name">Wanjiku M.</span>
+                  <span class="title">Student, University of Nairobi</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Slide 2 -->
+          <div class="testimonial-slide">
+            <div class="testimonial-content">
+              <img src="assets/jamali.jpg" alt="Jamal" class="testimonial-img">
+              <div class="testimonial-text">
+                <p class="quote">"As a matatu driver, I find many IDs left in my vehicle. Now I use Salama Docs to return them quickly and securely. It's a game-changer for honest Kenyans!"</p>
+                <div class="testimonial-author">
+                  <span class="name">Jamal K.</span>
+                  <span class="title">Driver, City Shuttle</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Slide 3 -->
+          <div class="testimonial-slide">
+            <div class="testimonial-content">
+              <img src="assets/Aisha.jpg" alt="Aisha" class="testimonial-img">
+              <div class="testimonial-text">
+                <p class="quote">"I lost my passport before an international business trip. Thanks to Salama Docs, it was returned within 24 hours! Their service saved me thousands in replacement fees."</p>
+                <div class="testimonial-author">
+                  <span class="name">Aisha N.</span>
+                  <span class="title">Business Owner, Mombasa</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Navigation Dots -->
+        <div class="slider-dots">
+          <span class="dot active" data-slide="0"></span>
+          <span class="dot" data-slide="1"></span>
+          <span class="dot" data-slide="2"></span>
+        </div>
+        <!-- Navigation Arrows -->
+        <button class="slider-arrow prev" aria-label="Previous testimonial">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="slider-arrow next" aria-label="Next testimonial">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="section cta-section">
+    <div class="container">
+      <div class="cta-content" data-aos="zoom-in">
+        <h2>Ready to Recover Your Lost Document?</h2>
+        <p>Join thousands of Kenyans who have safely recovered their lost documents through our secure platform</p>
+        <div class="cta-buttons">
+          <a href="signup.html" class="btn btn-primary">Sign Up Now <i class="fas fa-user-plus"></i></a>
+          <a href="loginpage.html" class="btn btn-secondary">Login <i class="fas fa-sign-in-alt"></i></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-about">
+            <a href="homepage.html" class="logo">
+              <img src="assets/logo-white.png" alt="Salama Docs Logo">
+              Salama Docs
+            </a>
+            <p>Kenya's most trusted platform for recovering lost identification documents safely and securely.</p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h3>Quick Links</h3>
+              <ul>
+                <li><a href="homepage.html"><i class="fas fa-chevron-right"></i> Home</a></li>
+                <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                <li><a href="services.html"><i class="fas fa-chevron-right"></i> Services</a></li>
+                <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>Support</h3>
+              <ul>
+                <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQ</a></li>
+                <li><a href="privacy.html"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+                <li><a href="terms.html"><i class="fas fa-chevron-right"></i> Terms of Service</a></li>
+                <li><a href="help.html"><i class="fas fa-chevron-right"></i> Help Center</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>Contact</h3>
+              <ul>
+                <li><a href="#"><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</a></li>
+                <li><a href="tel:+254700123456"><i class="fas fa-phone"></i> +254 700 123456</a></li>
+                <li><a href="mailto:info@salamadocs.co.ke"><i class="fas fa-envelope"></i> info@salamadocs.co.ke</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="copyright">&copy; 2025 Salama Docs. All rights reserved. Proudly Kenyan.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript Libraries -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- Main JavaScript -->
+  <script src="js/index.js"></script>
+</body>
+</html>

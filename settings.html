@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salama Docs - Settings</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/settings.css">
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1><i class="fas fa-cog"></i> Account Settings</h1>
+            <p>Manage your Salama Docs profile, security, and document preferences</p>
+        </div>
+        
+        <div class="settings-tabs">
+            <button class="tab-btn active" onclick="openTab('profile')">
+                <i class="fas fa-user"></i> Profile
+            </button>
+            <button class="tab-btn" onclick="openTab('security')">
+                <i class="fas fa-shield-alt"></i> Security
+            </button>
+            <button class="tab-btn" onclick="openTab('documents')">
+                <i class="fas fa-folder"></i> Documents
+            </button>
+            <button class="tab-btn" onclick="openTab('notifications')">
+                <i class="fas fa-bell"></i> Notifications
+            </button>
+            <button class="tab-btn" onclick="openTab('emergency')">
+                <i class="fas fa-exclamation-triangle"></i> Emergency
+            </button>
+        </div>
+        
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content active">
+            <div class="settings-card">
+                <h3><i class="fas fa-user-edit"></i> Personal Information</h3>
+                <div class="form-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" value="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" value="john.doe@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" value="0712345678">
+                </div>
+                <button class="btn btn-primary">Update Profile</button>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-language"></i> Language & Region</h3>
+                <div class="form-group">
+                    <label for="language">Language</label>
+                    <select id="language">
+                        <option value="en">English</option>
+                        <option value="sw">Swahili</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="region">Region</label>
+                    <select id="region">
+                        <option value="nairobi">Nairobi</option>
+                        <option value="mombasa">Mombasa</option>
+                        <option value="kisumu">Kisumu</option>
+                        <option value="nakuru">Nakuru</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary">Save Preferences</button>
+            </div>
+        </div>
+        
+        <!-- Security Tab -->
+        <div id="security" class="tab-content">
+            <div class="settings-card">
+                <h3><i class="fas fa-lock"></i> Password & Authentication</h3>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Two-Factor Authentication</strong>
+                        <small>Add extra security with SMS or authenticator app</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Biometric Login</strong>
+                        <small>Use fingerprint or face recognition</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px;">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-shield-halved"></i> Security Alerts <span class="security-badge">ACTIVE</span></h3>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Dark Web Monitoring</strong>
+                        <small>Alert me if my ID appears in data breaches</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Suspicious Activity Alerts</strong>
+                        <small>Get notified of unusual login attempts</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-laptop"></i> Active Sessions</h3>
+                <p>You're currently logged in on:</p>
+                <div style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                    <strong>Safari on iPhone</strong> (Nairobi, Kenya)
+                    <small style="display: block; color: #666;">Last active: 5 minutes ago</small>
+                </div>
+                <button class="btn btn-danger" style="margin-top: 15px;">
+                    <i class="fas fa-sign-out-alt"></i> Log Out All Other Devices
+                </button>
+            </div>
+        </div>
+        
+        <!-- Documents Tab -->
+        <div id="documents" class="tab-content">
+            <div class="settings-card">
+                <h3><i class="fas fa-cloud-upload-alt"></i> Document Backup</h3>
+                <p>Automatically backup your important documents to secure cloud storage</p>
+                
+                <div class="document-backup">
+                    <div class="backup-info">
+                        <h4>Automatic Backups</h4>
+                        <p>Last backup: 2 hours ago</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="document-backup">
+                    <div class="backup-info">
+                        <h4>Backup Frequency</h4>
+                        <p>Daily at 2:00 AM</p>
+                    </div>
+                    <select style="width: auto; padding: 5px;">
+                        <option>Daily</option>
+                        <option>Weekly</option>
+                        <option>Monthly</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" style="margin-top: 15px;">
+                    <i class="fas fa-sync"></i> Backup Now
+                </button>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-trash-alt"></i> Document Recovery</h3>
+                <p>Manage your deleted documents (kept for 30 days)</p>
+                <button class="btn btn-primary">
+                    <i class="fas fa-trash-restore"></i> View Recovery Bin
+                </button>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-file-export"></i> Export Documents</h3>
+                <p>Download all your documents as a secure ZIP file</p>
+                <button class="btn btn-primary">
+                    <i class="fas fa-download"></i> Request Export
+                </button>
+            </div>
+        </div>
+        
+        <!-- Notifications Tab -->
+        <div id="notifications" class="tab-content">
+            <div class="settings-card">
+                <h3><i class="fas fa-bell"></i> Notification Preferences</h3>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>SMS Alerts</strong>
+                        <small>Get important updates via text message</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Email Notifications</strong>
+                        <small>Receive weekly summaries and alerts</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Push Notifications</strong>
+                        <small>Instant alerts on your device</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-envelope"></i> Alert Types</h3>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Document Found Alerts</strong>
+                        <small>When your lost documents are recovered</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Security Alerts</strong>
+                        <small>Important security notifications</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-label">
+                    <div class="toggle-text">
+                        <strong>Community Updates</strong>
+                        <small>News and success stories</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Emergency Tab -->
+        <div id="emergency" class="tab-content">
+            <div class="settings-card">
+                <h3><i class="fas fa-user-shield"></i> Emergency Contacts</h3>
+                <p>Add trusted contacts who can verify your identity in emergencies</p>
+                
+                <div class="contact-item">
+                    <i class="fas fa-user"></i>
+                    <div class="contact-info">
+                        <strong>Jane Muthoni</strong>
+                        <small>0722123456 (Wife)</small>
+                    </div>
+                    <div class="contact-actions">
+                        <button class="btn btn-sm btn-primary">Edit</button>
+                        <button class="btn btn-sm btn-danger">Remove</button>
+                    </div>
+                </div>
+                
+                <div class="contact-item">
+                    <i class="fas fa-user"></i>
+                    <div class="contact-info">
+                        <strong>David Kimani</strong>
+                        <small>0733123456 (Brother)</small>
+                    </div>
+                    <div class="contact-actions">
+                        <button class="btn btn-sm btn-primary">Edit</button>
+                        <button class="btn btn-sm btn-danger">Remove</button>
+                    </div>
+                </div>
+                
+                <div class="add-contact">
+                    <input type="text" placeholder="Name">
+                    <input type="tel" placeholder="Phone">
+                    <button><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-lock"></i> Emergency Lock</h3>
+                <p>Immediately lock access to all your documents if you suspect fraud</p>
+                <button class="btn btn-danger">
+                    <i class="fas fa-lock"></i> Lock All Documents
+                </button>
+                <small style="display: block; margin-top: 10px; color: #666;">This will require identity verification to unlock</small>
+            </div>
+            
+            <div class="settings-card">
+                <h3><i class="fas fa-file-export"></i> Emergency Document Kit</h3>
+                <p>Download a printable emergency kit with all your document details</p>
+                <button class="btn btn-primary">
+                    <i class="fas fa-download"></i> Generate Emergency Kit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/settings.js"></script>
+</body>
+</html>

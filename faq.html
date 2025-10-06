@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQs - Salama Docs</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+ <link rel="stylesheet" href="css/faq.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav>
+        <div class="logo">
+          <img src="assets/logo.png" alt="Salama Docs Logo">
+          Salama Docs
+        </div>
+        <div class="nav-links">
+          <a href="homepage.html">Home</a>
+          <a href="about.html">About Us</a>
+          
+          <!-- Services Dropdown -->
+          <div class="services-dropdown">
+            <a href="services.html">
+              Services
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <div class="dropdown-menu">
+              <div class="dropdown-header">Core Services</div>
+              <a href="report-lost.html">
+                <i class="fas fa-exclamation-triangle"></i>
+                Report Lost Document
+              </a>
+              <a href="register-found.html">
+                <i class="fas fa-search"></i>
+                Register Found Document
+              </a>
+              <a href="track-recovery.html">
+                <i class="fas fa-tracking"></i>
+                Track Your Recovery
+              </a>
+              <a href="delivery-services.html">
+                <i class="fas fa-truck"></i>
+                Delivery Services
+              </a>
+            </div>
+          </div>
+          
+          <a href="faq.html" class="active">FAQ</a>
+          <a href="loginpage.html">Login</a>
+          <a href="signuppage.html" class="cta">Sign Up</a>
+        </div>
+        <div class="hamburger">
+          <i class="fas fa-bars"></i>
+        </div>
+      </nav>
+    </div>
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+      <a href="homepage.html">Home</a>
+      <a href="about.html">About Us</a>
+      
+      <!-- Mobile Services Dropdown -->
+      <div class="mobile-services-dropdown">
+        <div class="mobile-services-toggle" onclick="toggleMobileServices()">
+          Services
+          <i class="fas fa-chevron-down" id="mobileServicesArrow"></i>
+        </div>
+        <div class="mobile-services-menu" id="mobileServicesMenu">
+          <a href="report-lost.html">
+            <i class="fas fa-exclamation-triangle"></i>
+            Report Lost Document
+          </a>
+          <a href="register-found.html">
+            <i class="fas fa-search"></i>
+            Register Found Document
+          </a>
+          <a href="track-recovery.html">
+            <i class="fas fa-tracking"></i>
+            Track Your Recovery
+          </a>
+          <a href="delivery-services.html">
+            <i class="fas fa-truck"></i>
+            Delivery Services
+          </a>
+        </div>
+      </div>
+      
+      <a href="faq.html" class="active">FAQ</a>
+      <a href="loginpage.html">Login</a>
+      <a href="signuppage.html" class="cta">Sign Up</a>
+    </div>
+  </header>
+
+  <!-- FAQ Hero Section -->
+  <section class="faq-hero">
+    <div class="container">
+      <div class="faq-hero-content">
+        <h1>Frequently Asked Questions</h1>
+        <p>Find answers to common questions about our document recovery services. Can't find what you're looking for? Contact our support team.</p>
+        <div class="search-box">
+          <input type="text" placeholder="Search our FAQs...">
+          <button><i class="fas fa-search"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Categories -->
+  <section class="faq-categories">
+    <div class="container">
+      <h2>Browse by <span>Category</span></h2>
+      <div class="category-grid">
+        <div class="category-card" onclick="scrollToCategory('reporting')">
+          <i class="fas fa-exclamation-circle"></i>
+          <h3>Reporting Lost</h3>
+          <p>Questions about reporting lost documents</p>
+        </div>
+        <div class="category-card" onclick="scrollToCategory('recovery')">
+          <i class="fas fa-id-card"></i>
+          <h3>Document Recovery</h3>
+          <p>How we recover and verify documents</p>
+        </div>
+        <div class="category-card" onclick="scrollToCategory('security')">
+          <i class="fas fa-lock"></i>
+          <h3>Security & Privacy</h3>
+          <p>How we protect your information</p>
+        </div>
+        <div class="category-card" onclick="scrollToCategory('delivery')">
+          <i class="fas fa-truck"></i>
+          <h3>Delivery Options</h3>
+          <p>Getting your document back safely</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Accordion -->
+  <section class="faq-section">
+    <div class="container">
+      <h2>Common <span>Questions</span></h2>
+      <div class="faq-container">
+        <!-- Reporting Lost -->
+        <h3 id="reporting" class="faq-category-title">Reporting Lost Documents</h3>
+        <div class="faq-item">
+          <div class="faq-question">
+            How do I report a lost document?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>To report a lost document, simply log in to your Salama Docs account and navigate to the "Report Lost Document" section. Fill in the required details about your lost document, including the type of document, last known location, and any identifying information. Once submitted, our system will immediately begin searching our database and alerting our network of partners.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">
+            What information do I need to provide when reporting?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>When reporting a lost document, you'll need to provide:</p>
+            <ul>
+              <li>Type of document (ID, passport, etc.)</li>
+              <li>Document number (if known)</li>
+              <li>Your full name as it appears on the document</li>
+              <li>Approximate date and location where it was lost</li>
+              <li>Any distinguishing features (special endorsements, stickers, etc.)</li>
+            </ul>
+            <p>The more details you provide, the better our chances of recovering your document.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">
+            Is there a fee to report a lost document?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>No, reporting a lost document is completely free. You only pay a small recovery fee if we successfully locate and return your document to you. This fee varies depending on the document type and delivery method you choose.</p>
+          </div>
+        </div>
+        
+        <!-- Document Recovery -->
+        <h3 id="recovery" class="faq-category-title">Document Recovery Process</h3>
+        <div class="faq-item">
+          <div class="faq-question">
+            How does Salama Docs recover lost documents?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>We use a multi-pronged approach to recover lost documents:</p>
+            <ol>
+              <li><strong>Database Matching:</strong> We check all newly registered found documents against our database of reported losses.</li>
+              <li><strong>Partner Network:</strong> We work with police stations, transport companies, hotels, and other institutions where documents are commonly found.</li>
+              <li><strong>Community Alerts:</strong> When appropriate, we alert our network of trusted community members in the area where your document was lost.</li>
+              <li><strong>Verification:</strong> All potential matches undergo rigorous verification to ensure we're returning documents to their rightful owners.</li>
+            </ol>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">
+            How long does recovery usually take?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Recovery times vary depending on several factors:</p>
+            <ul>
+              <li><strong>Document Type:</strong> IDs are typically recovered faster than passports or academic certificates.</li>
+              <li><strong>Location:</strong> Documents lost in urban areas with more of our partners tend to be recovered faster.</li>
+              <li><strong>Reporting Time:</strong> The sooner you report after losing your document, the better your chances of quick recovery.</li>
+            </ul>
+            <p>On average, 65% of documents are recovered within 72 hours, and 85% within one week.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">
+            How will I know if my document is found?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>When your document is found and verified, you'll receive:</p>
+            <ul>
+              <li>An immediate SMS notification to your registered phone number</li>
+              <li>An email with detailed instructions for recovery</li>
+              <li>A notification in your Salama Docs account dashboard</li>
+              <li>Follow-up reminders if you don't respond within 24 hours</li>
+            </ul>
+            <p>You can also check your recovery status anytime by logging into your account.</p>
+          </div>
+        </div>
+        
+        <!-- Security & Privacy -->
+        <h3 id="security" class="faq-category-title">Security & Privacy</h3>
+        <div class="faq-item">
+          <div class="faq-question">
+            Is my personal information secure with Salama Docs?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Absolutely. We take your privacy and security very seriously:</p>
+            <ul>
+              <li>All data is encrypted using military-grade AES-256 encryption</li>
+              <li>We never share your full personal details with finders</li>
+              <li>Document verification is done through secure, government-approved methods</li>
+              <li>Our systems undergo regular security audits by independent firms</li>
+            </ul>
+            <p>You can review our full <a href="privacy.html">Privacy Policy</a> for more details.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">
+            How do you verify document ownership?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>We use multiple verification methods to ensure documents are returned to their rightful owners:</p>
+            <ul>
+              <li><strong>Biometric Matching:</strong> For IDs and passports, we verify against government databases when possible.</li>
+              <li><strong>Security Questions:</strong> We ask questions only the true owner would know about the document.</li>
+              <li><strong>Document Features:</strong> We verify unique features like signatures, stamps, or markings.</li>
+              <li><strong>Secondary Verification:</strong> In some cases, we may request additional documentation.</li>
+            </ul>
+            <p>This rigorous process ensures no document is ever returned to the wrong person.</p>
+          </div>
+        </div>
+        
+        <!-- Delivery Options -->
+        <h3 id="delivery" class="faq-category-title">Delivery & Collection</h3>
+        <div class="faq-item">
+          <div class="faq-question">
+            How can I get my document back once it's found?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>We offer several convenient options for document recovery:</p>
+            <ol>
+              <li><strong>Pickup Centers:</strong> Collect from one of our 47 verified recovery centers nationwide.</li>
+              <li><strong>Secure Delivery:</strong> Have your document delivered to your home or office (additional fee applies).</li>
+              <li><strong>Agent Collection:</strong> Authorize a trusted person to collect on your behalf with proper verification.</li>
+              <li><strong>Partner Locations:</strong> Some documents can be collected from our partner institutions like police stations.</li>
+            </ol>
+            <p>You'll be able to choose your preferred method when we notify you that your document has been found.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">
+            What are your delivery fees and timelines?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Our delivery options and fees are as follows:</p>
+            <table>
+              <tr>
+                <th>Service</th>
+                <th>Fee</th>
+                <th>Timeline</th>
+              </tr>
+              <tr>
+                <td>Standard Delivery</td>
+                <td>KSh 300</td>
+                <td>2-3 business days</td>
+              </tr>
+              <tr>
+                <td>Express Delivery</td>
+                <td>KSh 600</td>
+                <td>24 hours (Nairobi), 48 hours (other cities)</td>
+              </tr>
+              <tr>
+                <td>Self Collection</td>
+                <td>Free</td>
+                <td>Immediate upon verification</td>
+              </tr>
+            </table>
+            <p>Fees are payable upon confirmation of delivery method.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">
+            What if I'm not in Kenya when my document is found?
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>We have special procedures for international recovery:</p>
+            <ul>
+              <li>Documents can be held securely at our Nairobi headquarters for up to 90 days</li>
+              <li>We offer international courier services (DHL, FedEx) at competitive rates</li>
+              <li>You can authorize someone to collect on your behalf with proper documentation</li>
+              <li>For passports, we can coordinate with embassies when appropriate</li>
+            </ul>
+            <p>Contact our support team for personalized assistance with international recoveries.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact CTA -->
+  <section class="contact-cta">
+    <div class="container">
+      <h2>Still Have Questions?</h2>
+      <p>Our support team is available 24/7 to assist you with any questions about document recovery.</p>
+      <a href="contact.html" class="cta-button">Contact Support <i class="fas fa-headset"></i></a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-column main-column">
+          <h3>Salama Docs</h3>
+          <p>Kenya's most trusted platform for recovering lost identification documents safely and securely.</p>
+          <div class="social-icons">
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+        <div class="footer-columns-container">
+          <div class="footer-column">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="homepage.html">Home</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="services.html">Services</a></li>
+              <li><a href="contact.html">Contact</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="faq.html">FAQ</a></li>
+              <li><a href="privacy.html">Privacy Policy</a></li>
+              <li><a href="terms.html">Terms of Service</a></li>
+              <li><a href="help.html">Help Center</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>Contact</h3>
+            <ul>
+              <li><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</li>
+              <li><i class="fas fa-phone"></i> +254 700 123456</li>
+              <li><i class="fas fa-envelope"></i> info@salamadocs.co.ke</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="copyright">&copy; 2025 Salama Docs. All rights reserved. Proudly Kenyan.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="js/faq.js"></script>
+</body>
+</html>

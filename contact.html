@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - Salama Docs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/contact.css">
+</head>
+<body>
+  <!-- Header -->
+  <header id="header">
+    <div class="container">
+      <nav>
+        <a href="homepage.html" class="logo">
+          <img src="assets/logo.png" alt="Salama Docs Logo">
+          Salama Docs
+        </a>
+        <div class="nav-links">
+          <a href="homepage.html">Home</a>
+          <a href="about.html">About Us</a>
+        
+          <!-- Services Dropdown -->
+          <div class="services-dropdown">
+            <a href="services.html">
+              Services
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <div class="dropdown-menu">
+              <div class="dropdown-header">Core Services</div>
+              <a href="report-lost.html">
+                <i class="fas fa-exclamation-triangle"></i>
+                Report Lost Document
+              </a>
+              <a href="register-found.html">
+                <i class="fas fa-search"></i>
+                Register Found Document
+              </a>
+              <a href="track-recovery.html">
+                <i class="fas fa-eye"></i>
+                Track Your Recovery
+              </a>
+              <a href="delivery-services.html">
+                <i class="fas fa-truck"></i>
+                Delivery Services
+              </a>
+            </div>
+          </div>
+
+          <a href="contact.html" class="active">Contact</a>
+          <a href="loginpage.html">Login</a>
+          <a href="signuppage.html" class="cta">Sign Up</a>
+        </div>
+        <div class="hamburger" onclick="toggleMobileNav()">
+          <i class="fas fa-bars"></i>
+        </div>
+      </nav>
+    </div>
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+      <a href="homepage.html">Home</a>
+      <a href="about.html">About Us</a>
+      
+      <!-- Mobile Services Dropdown -->
+      <div class="mobile-services-dropdown">
+        <div class="mobile-services-toggle" onclick="toggleMobileServices()">
+          Services
+          <i class="fas fa-chevron-down" id="mobileServicesArrow"></i>
+        </div>
+        <div class="mobile-services-menu" id="mobileServicesMenu">
+          <a href="report-lost.html">
+            <i class="fas fa-exclamation-triangle"></i>
+            Report Lost Document
+          </a>
+          <a href="register-found.html">
+            <i class="fas fa-search"></i>
+            Register Found Document
+          </a>
+          <a href="track-recovery.html">
+            <i class="fas fa-eye"></i>
+            Track Your Recovery
+          </a>
+          <a href="delivery-services.html">
+            <i class="fas fa-truck"></i>
+            Delivery Services
+          </a>
+        </div>
+      </div>
+
+      <a href="contact.html" class="active">Contact</a>
+      <a href="loginpage.html">Login</a>
+      <a href="signuppage.html" class="cta">Sign Up</a>
+    </div>
+  </header>
+
+  <!-- Contact Hero Section -->
+  <section class="contact-hero" data-aos="fade">
+    <div class="container">
+      <h1 data-aos="fade-up">We're Here to Help</h1>
+      <p data-aos="fade-up" data-aos-delay="100">Have questions about document recovery? Our team is ready to assist you with any inquiries.</p>
+    </div>
+  </section>
+
+  <!-- Contact Content -->
+  <section class="section">
+    <div class="container">
+      <div class="contact-container">
+        <!-- Contact Information -->
+        <div class="contact-info" data-aos="fade-right">
+          <h2>Get In Touch</h2>
+          
+          <div class="contact-method">
+            <div class="contact-icon">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="contact-details">
+              <h3>Our Office</h3>
+              <p>Salama Plaza, 3rd Floor<br>Moi Avenue, Nairobi, Kenya</p>
+            </div>
+          </div>
+          
+          <div class="contact-method">
+            <div class="contact-icon">
+              <i class="fas fa-phone-alt"></i>
+            </div>
+            <div class="contact-details">
+              <h3>Call Us</h3>
+              <p>
+                <a href="tel:+254700123456">+254 700 123 456</a><br>
+                <a href="tel:+254711987654">+254 711 987 654</a>
+              </p>
+            </div>
+          </div>
+          
+          <div class="contact-method">
+            <div class="contact-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="contact-details">
+              <h3>Email Us</h3>
+              <p>
+                <a href="mailto:info@salamadocs.co.ke">info@salamadocs.co.ke</a><br>
+                <a href="mailto:support@salamadocs.co.ke">support@salamadocs.co.ke</a>
+              </p>
+            </div>
+          </div>
+          
+          <div class="contact-method">
+            <div class="contact-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="contact-details">
+              <h3>Working Hours</h3>
+              <p>
+                Monday - Friday: 8:00 AM - 5:00 PM<br>
+                Saturday: 9:00 AM - 2:00 PM<br>
+                Sunday: Closed
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contact Form -->
+        <div class="contact-form-container" data-aos="fade-left">
+          <form class="contact-form" id="contactForm">
+            <h2>Send Us a Message</h2>
+            
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <select id="subject" class="form-control" required>
+                <option value="">Select a subject</option>
+                <option value="lost-document">Lost Document Inquiry</option>
+                <option value="found-document">Found Document</option>
+                <option value="account-help">Account Help</option>
+                <option value="general">General Inquiry</option>
+                <option value="feedback">Feedback</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="message">Your Message</label>
+              <textarea id="message" class="form-control" required></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+              Send Message
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Map Section -->
+      <div class="map-container" data-aos="zoom-in">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8085599999996!2d36.82154531533089!3d-1.2868266359762265!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f10d664f3d6d9%3A0x9e5e3b6a6a1e3b1!2sNairobi%20City%20Hall!5e0!3m2!1sen!2ske!4v1620000000000!5m2!1sen!2ske" allowfullscreen="" loading="lazy"></iframe>
+        <div class="map-overlay"></div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- FAQ Section -->
+  <section class="faq-section">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Frequently Asked Questions</h2>
+        <p>Find quick answers to common questions about our document recovery services</p>
+        <div class="title-decoration"></div>
+      </div>
+      
+      <div class="faq-container">
+        <div class="faq-item" data-aos="fade-up" data-aos-delay="100">
+          <div class="faq-question">
+            <span>How do I report a lost document?</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>You can report a lost document by logging into your account and filling out the lost document form. If you don't have an account yet, you can sign up first. The process takes less than 2 minutes and you'll receive a confirmation with your tracking number.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item" data-aos="fade-up" data-aos-delay="150">
+          <div class="faq-question">
+            <span>What should I do if I find someone's ID?</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>If you find any identification document, you can bring it to any of our recovery centers or register it on our website. We'll notify the owner immediately while keeping your information confidential. You can also drop it at any police station.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
+          <div class="faq-question">
+            <span>How long does recovery typically take?</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Our average recovery time is 24 hours, with 98% of documents being recovered within this timeframe. However, recovery times can vary depending on where the document was lost and how quickly it's found by someone.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item" data-aos="fade-up" data-aos-delay="250">
+          <div class="faq-question">
+            <span>Is there a fee for document recovery?</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Basic recovery services are free of charge. However, if you require express delivery or special handling, there may be a small fee. Any potential costs will always be communicated to you upfront before proceeding.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item" data-aos="fade-up" data-aos-delay="300">
+          <div class="faq-question">
+            <span>How do I know my personal information is safe?</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>We use military-grade encryption to protect all your data. Finders never see your personal contact information - all communication is handled through our secure platform. We also comply with all Kenyan data protection regulations.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-about">
+            <a href="homepage.html" class="logo">
+              <img src="assets/logo-white.png" alt="Salama Docs Logo">
+              Salama Docs
+            </a>
+            <p>Kenya's most trusted platform for recovering lost identification documents safely and securely.</p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h3>Quick Links</h3>
+              <ul>
+                <li><a href="homepage.html"><i class="fas fa-chevron-right"></i> Home</a></li>
+                <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                <li><a href="services.html"><i class="fas fa-chevron-right"></i> Services</a></li>
+                <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>Support</h3>
+              <ul>
+                <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQ</a></li>
+                <li><a href="privacy.html"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+                <li><a href="terms.html"><i class="fas fa-chevron-right"></i> Terms of Service</a></li>
+                <li><a href="help.html"><i class="fas fa-chevron-right"></i> Help Center</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>Contact</h3>
+              <ul>
+                <li><a href="#"><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</a></li>
+                <li><a href="tel:+254700123456"><i class="fas fa-phone"></i> +254 700 123456</a></li>
+                <li><a href="mailto:info@salamadocs.co.ke"><i class="fas fa-envelope"></i> info@salamadocs.co.ke</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="copyright">&copy; 2025 Salama Docs. All rights reserved. Proudly Kenyan.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript Libraries -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- Main JavaScript -->
+  <script src="js/contact.js"></script>
+</body>
+</html>

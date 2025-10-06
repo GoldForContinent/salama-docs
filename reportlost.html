@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salama Docs - Report Lost Document</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/reportlost.css">
+</head>
+<body>
+    <div class="container">
+        <div class="african-pattern"></div>
+        
+        <div class="header">
+          <!--  <div class="logo">
+                <i class="fas fa-search"></i>
+            </div> -->
+            <h1>Report Lost Documents</h1>
+            <p>Help us reunite you with your important documents quickly and securely</p>
+            
+            <div class="pricing-notice">
+                <p><i class="fas fa-info-circle"></i> <strong>Recovery Fee Notice:</strong> Once your document(s) are found, you'll need to pay a small recovery fee to reveal the exact pickup location and claim your documents.</p>
+            </div>
+        </div>
+        
+        <form id="lost-form">
+            <!-- Personal Information -->
+            <div class="form-group">
+                <label for="full-name">Your Full Name (as it appears on documents)</label>
+                <input type="text" id="full-name" placeholder="e.g. John Kimani Doe" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Your Phone Number (M-Pesa registered)</label>
+                <input type="tel" id="phone" placeholder="e.g. 0712345678" required>
+                <p class="small">We'll send SMS notifications when documents are found</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Your Email Address</label>
+                <input type="email" id="email" placeholder="your@email.com" required>
+                <p class="small">Email notifications and updates will be sent here</p>
+            </div>
+            
+            <!-- Documents Section -->
+            <div class="documents-section">
+                <h3><i class="fas fa-file-alt"></i> Lost Documents</h3>
+                <p class="small">Add all documents you lost on the same day or occasion</p>
+                
+                <div id="documents-container">
+                    <!-- First document (default) -->
+                    <div class="document-item" data-document-index="1">
+                        <h4><span class="document-counter">1</span> Document Details</h4>
+                        
+                        <div class="form-group">
+                            <label>What type of document did you lose? 
+                                <span class="recovery-fee document-fee">KSh 200</span>
+                            </label>
+                            <select class="document-type" required>
+                                <option value="">Select document type</option>
+                                
+                                <!-- Government Identification -->
+                                <optgroup label="🆔 Government Identification">
+                                    <option value="national_id" data-fee="300" data-category="Gov ID">National ID Card</option>
+                                    <option value="passport" data-fee="800" data-category="Gov ID">Kenyan Passport</option>
+                                    <option value="alien_id" data-fee="400" data-category="Gov ID">Alien ID Card</option>
+                                    <option value="refugee_id" data-fee="350" data-category="Gov ID">Refugee ID</option>
+                                    <option value="military_id" data-fee="500" data-category="Gov ID">Military ID</option>
+                                </optgroup>
+                                
+                                <!-- Driving & Vehicle -->
+                                <optgroup label="🚗 Driving & Vehicle">
+                                    <option value="driving_license" data-fee="400" data-category="Transport">Driving License</option>
+                                    <option value="logbook" data-fee="1500" data-category="Transport">Vehicle Logbook</option>
+                                    <option value="psi_certificate" data-fee="300" data-category="Transport">PSI Certificate</option>
+                                    <option value="towing_permit" data-fee="200" data-category="Transport">Towing Permit</option>
+                                    <option value="badge" data-fee="250" data-category="Transport">PSV Badge</option>
+                                </optgroup>
+                                
+                                <!-- Education -->
+                                <optgroup label="🎓 Educational Documents">
+                                    <option value="kcpe_certificate" data-fee="300" data-category="Education">KCPE Certificate</option>
+                                    <option value="kcse_certificate" data-fee="400" data-category="Education">KCSE Certificate</option>
+                                    <option value="university_degree" data-fee="800" data-category="Education">University Degree</option>
+                                    <option value="college_diploma" data-fee="600" data-category="Education">College Diploma/Certificate</option>
+                                    <option value="transcript" data-fee="500" data-category="Education">Official Transcript</option>
+                                    <option value="student_id" data-fee="150" data-category="Education">Student ID Card</option>
+                                </optgroup>
+                                
+                                <!-- Professional -->
+                                <optgroup label="💼 Professional Documents">
+                                    <option value="work_permit" data-fee="800" data-category="Professional">Work Permit</option>
+                                    <option value="professional_license" data-fee="600" data-category="Professional">Professional License</option>
+                                    <option value="practicing_certificate" data-fee="700" data-category="Professional">Practicing Certificate</option>
+                                    <option value="tax_pin" data-fee="200" data-category="Professional">KRA PIN Certificate</option>
+                                    <option value="business_permit" data-fee="500" data-category="Professional">Business Permit</option>
+                                </optgroup>
+                                
+                                <!-- Property & Legal -->
+                                <optgroup label="🏠 Property & Legal">
+                                    <option value="title_deed" data-fee="2000" data-category="Property">Title Deed</option>
+                                    <option value="lease_agreement" data-fee="600" data-category="Property">Lease Agreement</option>
+                                    <option value="allotment_letter" data-fee="800" data-category="Property">Land Allotment Letter</option>
+                                    <option value="court_order" data-fee="1000" data-category="Legal">Court Order</option>
+                                    <option value="power_attorney" data-fee="700" data-category="Legal">Power of Attorney</option>
+                                </optgroup>
+                                
+                                <!-- Financial -->
+                                <optgroup label="💳 Financial Documents">
+                                    <option value="bank_card" data-fee="200" data-category="Financial">Bank/ATM Card</option>
+                                    <option value="checkbook" data-fee="300" data-category="Financial">Checkbook</option>
+                                    <option value="loan_agreement" data-fee="400" data-category="Financial">Loan Agreement</option>
+                                    <option value="insurance_policy" data-fee="350" data-category="Financial">Insurance Policy</option>
+                                </optgroup>
+                                
+                                <!-- Health -->
+                                <optgroup label="🏥 Health Documents">
+                                    <option value="birth_certificate" data-fee="400" data-category="Health">Birth Certificate</option>
+                                    <option value="death_certificate" data-fee="500" data-category="Health">Death Certificate</option>
+                                    <option value="marriage_certificate" data-fee="600" data-category="Health">Marriage Certificate</option>
+                                    <option value="medical_report" data-fee="250" data-category="Health">Medical Report</option>
+                                    <option value="nhif_card" data-fee="150" data-category="Health">NHIF Card</option>
+                                </optgroup>
+                                
+                                <!-- Other Important -->
+                                <optgroup label="📄 Other Important">
+                                    <option value="will" data-fee="1200" data-category="Legal">Will/Testament</option>
+                                    <option value="adoption_papers" data-fee="800" data-category="Legal">Adoption Papers</option>
+                                    <option value="guardianship" data-fee="700" data-category="Legal">Guardianship Papers</option>
+                                    <option value="other" data-fee="100" data-category="Other">Other Document</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Document Number (if known)</label>
+                            <input type="text" class="document-number" placeholder="e.g. 12345678 or any visible number">
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="add-document-btn" id="add-document">
+                    <i class="fas fa-plus"></i> Add Another Lost Document
+                </button>
+                
+                <div class="total-fee" id="total-fee">
+                    <h3>Total Recovery Fee</h3>
+                    <div class="amount">KSh 200</div>
+                    <p class="small">For <span id="document-count">1</span> document(s) - Payable only when found</p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>When did you last have the document(s)?</label>
+                <div class="timeline">
+                    <div class="timeline-step active" onclick="setTimeline('today')">
+                        <i class="fas fa-calendar-day"></i> Today
+                    </div>
+                    <div class="timeline-step" onclick="setTimeline('yesterday')">
+                        <i class="fas fa-calendar-minus"></i> Yesterday
+                    </div>
+                    <div class="timeline-step" onclick="setTimeline('week')">
+                        <i class="fas fa-calendar-week"></i> This Week
+                    </div>
+                    <div class="timeline-step" onclick="setTimeline('month')">
+                        <i class="fas fa-calendar"></i> This Month
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="last-seen-location">Where did you last see/use the document(s)?</label>
+                <input type="text" id="last-seen-location" placeholder="e.g. Nairobi CBD near Hilton Hotel, or Nakuru Town Municipal Market" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="last-seen-details">Describe the circumstances (Optional but helpful)</label>
+                <textarea id="last-seen-details" placeholder="e.g. Was in a brown wallet when withdrawing money from ATM, or suspect it was stolen on matatu from Nakuru to Nairobi"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="additional-info">Any Additional Information That Might Help?</label>
+                <textarea id="additional-info" placeholder="e.g. Distinctive wallet/bag it was in, people you were with, specific time of day"></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-paper-plane"></i> Submit Lost Document Report
+            </button>
+        </form>
+        
+        <div class="confirmation" id="confirmation">
+            <i class="fas fa-check-circle"></i>
+            <h2>Report Submitted Successfully!</h2>
+            <p>We've received your lost document report and have started searching our database for matches.</p>
+            
+            <div class="documents-summary" id="documents-summary">
+                <h4><i class="fas fa-list"></i> Documents Reported</h4>
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="contact-info">
+                <p><strong>📱 Phone:</strong> <span id="confirm-phone"></span></p>
+                <p><strong>📧 Email:</strong> <span id="confirm-email"></span></p>
+            </div>
+            
+            <div class="recovery-instructions">
+                <h3><i class="fas fa-info-circle"></i> What Happens Next?</h3>
+                <ul>
+                    <li>You'll receive SMS and email notifications immediately when any of your documents are found</li>
+                    <li>Check your dashboard daily at <strong>salamadocs.co.ke</strong> to see if documents have been found</li>
+                    <li>When found, you'll pay the recovery fee via M-Pesa to reveal the pickup location</li>
+                    <li>Documents will be available for collection at the designated Chief's Office</li>
+                    <li>Our system continuously matches new reports with your lost documents</li>
+                    <li>Keep your phone and email active for instant notifications</li>
+                </ul>
+            </div>
+            
+            <p style="margin: 20px 0; font-weight: 600; color: var(--kenya-red);">
+                💰 <strong>Total Recovery Fee:</strong> <span id="confirm-total-fee">KSh 0</span> 
+                <em>(Only payable when documents are found)</em>
+            </p>
+            
+            <button type="button" class="submit-btn" onclick="window.location.href='dashboard.html'" style="background: linear-gradient(135deg, var(--kenya-red), var(--african-brown));">
+                <i class="fas fa-home"></i> Go to Dashboard
+            </button>
+            
+            <button type="button" class="submit-btn" onclick="reportAnother()" style="background: linear-gradient(135deg, var(--african-orange), var(--african-yellow)); margin-top: 15px;">
+                <i class="fas fa-plus"></i> Report Another Document
+            </button>
+        </div>
+    </div>
+<script type="module" src="./js/supabase.js"></script>
+    <script type="module" src="./js/reportlost.js"></script>
+</body>
+</html>

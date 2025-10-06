@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salama Docs - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-id-card"></i>
+                <h2>Salama Docs</h2>
+            </div>
+            
+            <div class="nav-menu">
+                <div class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-section="reports">
+                    <i class="fas fa-file-alt"></i>
+                    <span>My Reports</span>
+                </div>
+                <div class="nav-item" data-section="profile">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </div>
+                <div class="nav-item" data-section="payments">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Payments</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="content-section">
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="welcome-message">
+                        <h1>Welcome back, <span id="userName">John Doe</span>!</h1>
+                        <p>Here's your document recovery dashboard</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 18px;">
+                        <div style="position: relative;">
+                            <button id="topNotificationBell" aria-label="Notifications" style="background: none; border: none; cursor: pointer; font-size: 1.5em; position: relative;">
+                                <i class="fas fa-bell"></i>
+                                <span id="topNotificationCount" style="position: absolute; top: -8px; right: -8px; background: #c1121f; color: #fff; border-radius: 50%; padding: 2px 7px; font-size: 12px; font-weight: bold; min-width: 20px; text-align: center;">0</span>
+                            </button>
+                        </div>
+                        <div class="user-profile" id="profileDropdownBtn">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User Profile" id="userAvatar">
+                            <span><span id="userDisplayName">John Doe</span> <i class="fas fa-chevron-down"></i></span>
+                            <button id="themeToggleBtn" aria-label="Toggle dark mode" style="background:none;border:none;cursor:pointer;margin-left:10px;font-size:1.3em;display:flex;align-items:center;">
+                                <i class="fas fa-moon" id="themeToggleIcon"></i>
+                            </button>
+                            <div class="profile-dropdown" id="profileDropdown">
+                                <a href="#" onclick="showSection('profile')"><i class="fas fa-user"></i> My Profile</a>
+                                <a href="#" onclick="openModal('editProfileModal')"><i class="fas fa-edit"></i> Edit Profile</a>
+                                <a href="#" onclick="openModal('changePasswordModal')"><i class="fas fa-key"></i> Change Password</a>
+                                <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Statistics Section -->
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3 id="lostReportsCount">3</h3>
+                            <p>Lost Reports</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-hand-holding-heart"></i>
+                            <h3 id="foundReportsCount">2</h3>
+                            <p>Found Reports</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-check-circle"></i>
+                            <h3 id="completedReportsCount">5</h3>
+                            <p>Completed</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-undo-alt"></i>
+                            <h3 id="recoveredReportsCount">0</h3>
+                            <p>Recovered</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions Section -->
+                <div class="quick-actions">
+                    <h2>Quick Actions</h2>
+                    <div class="actions-grid">
+                        <a href="reportlost.html" class="action-card">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Report Lost Document</h3>
+                            <p>Submit details of your lost document to begin recovery process</p>
+                        </a>
+                        
+                        <a href="reportfound.html" class="action-card">
+                            <i class="fas fa-hand-holding-heart"></i>
+                            <h3>Report Found Document</h3>
+                            <p>Found someone's document? Report it here to help reunite it</p>
+                        </a>
+                        
+                        <a href="#" class="action-card" onclick="showSection('reports')">
+                            <i class="fas fa-folder-open"></i>
+                            <h3>My Reports</h3>
+                            <p>View and manage all your lost and found document reports</p>
+                        </a>
+                        
+                        <a href="#" class="action-card" onclick="showSection('payments')">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <h3>Payments</h3>
+                            <p>Manage payments, rewards, and view transaction history</p>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="reports-section">
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <button class="action-btn btn-primary" onclick="showSection('reports')">View All</button>
+                    </div>
+                    
+                    <div id="recentReports">
+                        <!-- Reports will be populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Digital Locker Section -->
+                <div class="locker-section" id="digital-locker">
+                    <h2>My Digital Locker</h2>
+                    <button class="locker-btn" onclick="openUploadModal()">
+                        <i class="fas fa-upload"></i> Upload Document
+                    </button>
+                    <button class="locker-btn" onclick="window.location.href='digital-locker.html'">
+                        <i class="fas fa-eye"></i> View All Documents
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Reports Section -->
+            <div id="reports-section" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2>My Reports</h2>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="lost">Lost</button>
+                        <button class="filter-tab" data-filter="found">Found</button>
+                        <button class="filter-tab" data-filter="recovered">Recovered</button>
+                        <button class="filter-tab" data-filter="completed">Completed</button>
+                    </div>
+                </div>
+                
+                <div class="reports-section">
+                    <div id="allReports">
+                        <!-- Reports will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Section -->
+            <div id="profile-section" class="content-section" style="display: none;">
+                <div class="profile-section">
+                    <h2>Profile Information</h2>
+                    <div class="profile-content">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="profile-avatar" id="profileAvatar">
+                        <div class="profile-details">
+                            <h3 id="profileName">John Doe</h3>
+                            <p><i class="fas fa-id-card"></i> ID: <span id="profileId">12345678</span> <small>(Contact admin to change)</small></p>
+                            <p><i class="fas fa-envelope"></i> <span id="profileEmail">john.doe@email.com</span></p>
+                            <p><i class="fas fa-phone"></i> <span id="profilePhone">+254 700 123 456</span></p>
+                            <p><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">Nairobi, Kenya</span></p>
+                            <p><i class="fas fa-calendar"></i> Member since: <span id="profileJoined">January 2024</span></p>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="action-btn btn-primary" onclick="openModal('editProfileModal')">Edit Profile</button>
+                            <button class="action-btn btn-success" onclick="openModal('changePasswordModal')">Change Password</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payments Section -->
+            <div id="payments-section" class="content-section" style="display: none;">
+                <div class="reports-section">
+                    <h2>Payment Management</h2>
+                    <div class="payment-summary-cards">
+                        <div class="payment-summary-card">
+                            <i class="fas fa-wallet"></i>
+                            <div class="summary-label">Total Transacted</div>
+                            <div class="summary-value" id="totalTransacted">KES 0</div>
+                        </div>
+                        <div class="payment-summary-card">
+                            <i class="fas fa-clock"></i>
+                            <div class="summary-label">Pending Payments</div>
+                            <div class="summary-value" id="pendingPayments">0</div>
+                        </div>
+                        <div class="payment-summary-card">
+                            <i class="fas fa-gift"></i>
+                            <div class="summary-label">Pending Rewards</div>
+                            <div class="summary-value" id="pendingRewards">0</div>
+                        </div>
+                    </div>
+                    <div class="payment-filters" style="margin: 24px 0 12px 0; display: flex; flex-wrap: wrap; gap: 18px; align-items: center;">
+                        <select class="payment-filter-select">
+                            <option value="all">All Types</option>
+                            <option value="recovery">Recovery Payments</option>
+                            <option value="reward">Rewards</option>
+                        </select>
+                        <select class="payment-filter-select">
+                            <option value="all">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                        <input class="payment-search-input" type="text" placeholder="Search by document or phone..." style="flex:1;min-width:180px;">
+                    </div>
+                    <div class="payment-table-container">
+                        <table class="payment-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Provider</th>
+                                    <th>Status</th>
+                                    <th>Document</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Payment rows will be dynamically populated by payments.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div id="notifications-section" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Notifications</h2>
+                    <button class="action-btn btn-primary" id="markAllReadBtn">Mark All as Read</button>
+                </div>
+            
+                <div class="notifications-container">
+                    <div id="notificationsList">
+                        <!-- Notifications will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <!-- Upload Document Modal -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <i class="fas fa-upload" style="color: var(--kenya-green);"></i>
+                <h3>Upload Document to Digital Locker</h3>
+                <p>Store a secure digital copy of your document</p>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="uploadDocumentType">Document Type</label>
+                        <select class="form-control" id="uploadDocumentType" required>
+                            <option value="">Select document type</option>
+                            <option value="national_id">National ID</option>
+                            <option value="passport">Passport</option>
+                            <option value="driving_license">Driving License</option>
+                            <option value="kra_pin">KRA PIN Certificate</option>
+                            <option value="birth_certificate">Birth Certificate</option>
+                            <option value="school_certificate">School Certificate</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="uploadDocumentNumber">Document Number</label>
+                        <input type="text" class="form-control" id="uploadDocumentNumber" placeholder="Enter document number" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="documentFile">Upload Document</label>
+                        <input type="file" class="form-control" id="documentFile" required>
+                        <small>Max file size: 5MB (JPEG, PNG or PDF)</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="handleUpload()">Upload Document</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('editProfileModal')">&times;</span>
+            <div class="modal-header">
+                <i class="fas fa-user-edit"></i>
+                <h3>Edit Profile</h3>
+                <p>Update your profile information</p>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editFirstName">First Name</label>
+                            <input type="text" class="form-control" id="editFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLastName">Last Name</label>
+                            <input type="text" class="form-control" id="editLastName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editEmail">Email Address</label>
+                        <input type="email" class="form-control" id="editEmail" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editPhone">Phone Number</label>
+                            <input type="tel" class="form-control" id="editPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLocation">Location</label>
+                            <input type="text" class="form-control" id="editLocation" placeholder="City, County">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profilePicture">Profile Picture</label>
+                        <input type="file" class="form-control" id="profilePicture" accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="window.updateProfile()">Update Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('changePasswordModal')">&times;</span>
+            <div class="modal-header">
+                <i class="fas fa-lock"></i>
+                <h3>Change Password</h3>
+                <p>Update your account password</p>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="changePassword()">Change Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('paymentModal')">&times;</span>
+            <div class="modal-header">
+                <i class="fas fa-credit-card"></i>
+                <h3>Make Payment</h3>
+                <p>Pay to reveal document location</p>
+            </div>
+            <div class="modal-body">
+                <div id="paymentDetails">
+                    <div class="form-group">
+                        <label>Document Information</label>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                            <p><strong>Document:</strong> <span id="paymentDocType">Driving License</span></p>
+                            <p><strong>Found by:</strong> <span id="paymentFoundBy">Jane W.</span></p>
+                            <p><strong>Amount:</strong> KES <span id="paymentAmount">200</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <div class="payment-options">
+                            <div class="payment-option selected" data-method="mpesa">
+                                <i class="fas fa-mobile-alt"></i>
+                                <h4>M-Pesa</h4>
+                                <p>Pay via M-Pesa</p>
+                            </div>
+                            <div class="payment-option" data-method="card">
+                                <i class="fas fa-credit-card"></i>
+                                <h4>Card</h4>
+                                <p>Debit/Credit Card</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="mpesaDetails">
+                        <label for="mpesaNumber">M-Pesa Number</label>
+                        <input type="tel" class="form-control" id="mpesaNumber" placeholder="+254 7XX XXX XXX" required>
+                    </div>
+                    
+                    <!-- Location reveal after payment -->
+                    <div id="locationReveal" class="location-reveal" style="display: none;">
+                        <h4><i class="fas fa-map-marker-alt"></i> Document Location</h4>
+                        <p id="revealedLocation">The document is currently at Central Police Station, Nairobi CBD. Please bring your ID for collection.</p>
+                        <p><strong>Contact:</strong> <span id="revealedContact">Jane W. (0722 123 456)</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('paymentModal')">Cancel</button>
+                <button class="modal-btn primary" id="payNowBtn" onclick="processPayment()">Pay Now</button>
+                <button class="modal-btn btn-success" id="viewLocationBtn" style="display: none;" onclick="showLocation()">View Location</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="notification-close" onclick="toggleNotificationPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notification-content">
+            <ul id="notificationList">
+                <!-- Notifications will be populated dynamically -->
+            </ul>
+        </div>
+        <div class="notification-footer">
+            <button class="notification-action-btn" id="markAllReadBtn">Mark All as Read</button>
+            <button class="notification-action-btn" onclick="openModal('notificationSettingsModal')" style="margin-top: 8px; background-color: #6b7280;">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Settings Modal -->
+    <div class="modal" id="notificationSettingsModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('notificationSettingsModal')">&times;</span>
+            <div class="modal-header">
+                <i class="fas fa-bell"></i>
+                <h3>Notification Settings</h3>
+                <p>Customize your notification preferences</p>
+            </div>
+            <div class="modal-body">
+                <form id="notificationSettingsForm">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="notificationSound" checked>
+                            <span class="checkmark"></span>
+                            Enable notification sounds
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="desktopNotifications">
+                            <span class="checkmark"></span>
+                            Enable desktop notifications
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="emailNotifications" checked>
+                            <span class="checkmark"></span>
+                            Enable email notifications
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="smsNotifications" checked>
+                            <span class="checkmark"></span>
+                            Enable SMS notifications
+                        </label>
+                    </div>
+                    
+                    <hr style="margin: 20px 0;">
+                    
+                    <h4>Notification Types</h4>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="reportSubmissionNotifications" checked>
+                            <span class="checkmark"></span>
+                            Report submissions
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="statusUpdateNotifications" checked>
+                            <span class="checkmark"></span>
+                            Status updates
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="matchNotifications" checked>
+                            <span class="checkmark"></span>
+                            Document matches
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="paymentNotifications" checked>
+                            <span class="checkmark"></span>
+                            Payment updates
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="systemNotifications" checked>
+                            <span class="checkmark"></span>
+                            System notifications
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('notificationSettingsModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="saveNotificationSettingsFromForm()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+   <script type="module" src="./js/supabase.js"></script>
+<script type="module" src="./js/dashboard.js"></script>
+<script type="module" src="./js/payments.js"></script>
+<script type="module" src="./js/notification.js"></script>
+</body>
+</html>

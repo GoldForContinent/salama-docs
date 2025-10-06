@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salama Admin - Secure Login</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin-login.css">
+</head>
+<body>
+    <!-- Success Popup (Hidden by default) -->
+    <div class="popup-overlay" id="successPopup">
+        <div class="popup">
+            <i class="fas fa-check-circle popup-icon"></i>
+            <h2>Welcome Back!</h2>
+            <p id="successMessage">You have successfully logged in. Redirecting to your admin dashboard...</p>
+            <div class="popup-btn" id="continueBtn">Continue</div>
+        </div>
+    </div>
+
+    <div class="login-container">
+        <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon light-mode-toggle"></i>
+            <i class="fas fa-sun dark-mode-toggle"></i>
+        </button>
+        
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1>Admin Portal</h1>
+            <p>Secure access to Salama administration</p>
+        </div>
+        
+        <div class="login-form">
+            <div class="security-tip">
+                <i class="fas fa-shield-alt"></i>
+                <span>Enhanced security enabled. Please authenticate with your admin credentials.</span>
+            </div>
+            
+            <form id="adminSignInForm">
+                <div id="errorMessage" class="error-message"></div>
+                
+                <div class="input-group">
+                    <label for="adminEmail">Admin Email</label>
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="adminEmail" name="adminEmail" placeholder="admin@salama.com" required autocomplete="email">
+                </div>
+                
+                <div class="input-group">
+                    <label for="adminPassword">Password</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="adminPassword" name="adminPassword" placeholder="Enter your password" required autocomplete="current-password">
+                    <span class="password-toggle" id="passwordToggle">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+                
+                <div class="options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <div class="forgot-password">
+                        <a href="#" id="forgotPassword">Forgot password?</a>
+                    </div>
+                </div>
+                
+                <button type="submit" class="login-btn" id="signinBtn">
+                    <span class="btn-text">SIGN IN TO DASHBOARD</span>
+                    <div class="spinner" id="spinner">
+                        <i class="fas fa-circle-notch"></i>
+                    </div>
+                </button>
+            </form>
+            
+            <div class="admin-features">
+                <div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics Dashboard</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-users"></i>
+                    <span>User Management</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-cog"></i>
+                    <span>System Settings</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/supabase.js"></script>
+    <script type="module" src="./js/admin-login-new.js"></script>
+</body>
+</html>

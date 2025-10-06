@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salama Docs - Digital Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/digital-locker.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-id-card"></i>
+                <h1>Digital Locker</h1>
+            </div>
+            <div class="user-profile">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="actions">
+            <button class="btn" onclick="window.location.href='dashboard.html'">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <button class="btn" onclick="window.location.href='upload.html'">
+                <i class="fas fa-plus"></i> Add Document
+            </button>
+        </div>
+        
+        <div class="documents-grid" id="documentsContainer">
+            <!-- Documents will be loaded here -->
+        </div>
+        
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-folder-open"></i>
+            <h3>Your digital locker is empty</h3>
+            <p>Upload your first document to get started</p>
+            <button class="btn" onclick="window.location.href='upload.html'">
+                <i class="fas fa-upload"></i> Upload Document
+            </button>
+        </div>
+    </main>
+
+    <script src="js/digital-locker.js"></script>
+</body>
+</html>

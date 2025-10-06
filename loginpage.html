@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salama Docs - Secure Login</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<link rel="stylesheet" href="css/loginpage.css">
+
+
+
+</head>
+<body>
+    <!-- Welcome Back Popup (Hidden by default) -->
+    <div class="popup-overlay" id="welcomePopup">
+        <div class="popup">
+            <i class="fas fa-check-circle popup-icon"></i>
+            <h2>Welcome Back!</h2>
+            <p>You have successfully logged in. Redirecting to your dashboard...</p>
+            <div class="popup-btn" id="continueBtn">Continue</div>
+        </div>
+    </div>
+
+    <div class="login-container">
+        <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon light-mode-toggle"></i>
+            <i class="fas fa-sun dark-mode-toggle"></i>
+        </button>
+        
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <h1>Welcome Back!</h1>
+            <p>Securely access your Salama Docs account</p>
+        </div>
+        
+        <div class="login-form">
+            <div class="security-tip">
+                <i class="fas fa-shield-alt"></i>
+                <span>We've enhanced your security. Please log in with your credentials.</span>
+            </div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">ID Number/Email</label>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" placeholder="Enter your ID or email" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                    <span class="password-toggle" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                    <div class="password-strength">
+                        <div class="strength-meter" id="strengthMeter"></div>
+                    </div>
+                </div>
+                
+                <div class="options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <div class="forgot-password">
+                        <a href="#" id="forgotPassword">Forgot password?</a>
+                    </div>
+                </div>
+                
+                <!-- CAPTCHA -->
+                <div class="captcha-container">
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginButton">
+                    LOG IN
+                    <div class="spinner">
+                        <i class="fas fa-circle-notch"></i>
+                    </div>
+                </button>
+                
+               
+                
+                <div class="social-login">
+                    <p>Or continue with</p>
+                    <div class="social-icons">
+                        <div class="social-icon facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </div>
+                        <div class="social-icon google">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="social-icon twitter">
+                            <i class="fab fa-twitter"></i>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="register-link">
+                Don't have an account? <a href="signup.html">Register here</a>
+            </div>
+        </div>
+    </div>
+    <!-- In your login.html file -->
+<script type="module" src="./js/supabase.js"></script>
+<script type="module" src="./js/loginpage.js"></script>  
+</body>
+</html>
+
+
+

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salama Docs - Sign Up</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome (for icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="css/signup.css">
+  
+</head>
+<body>
+  <div class="container">
+    <div class="form-header">
+      <h1>Create Your Salama Docs Account</h1>
+      <p>Join Kenya's trusted document recovery platform</p>
+    </div>
+    
+    <form id="signup-form" class="form-container">
+      <!-- Citizen/Non-Citizen Toggle -->
+      <div class="form-group full-width">
+        <label>Are you a Kenyan citizen?</label>
+        <div class="citizen-toggle">
+          <div class="toggle-option active" id="citizen-yes">Yes</div>
+          <div class="toggle-option" id="citizen-no">No</div>
+        </div>
+      </div>
+
+      <!-- ID Number (Kenyan) or Passport (Non-Kenyan) -->
+      <div class="form-group" id="id-number-group">
+        <label for="id-number">National ID Number</label>
+        <input type="text" id="id-number" placeholder="e.g., 12345678" required>
+        <div id="id-error" style="color: #BB0000; font-size: 14px; display: none;">
+          This ID is already registered. <a href="loginpage.html">Login instead</a>.
+        </div>
+      </div>
+
+      <div class="form-group" id="passport-group" style="display: none;">
+        <label for="passport">Passport Number</label>
+        <input type="text" id="passport" placeholder="e.g., A1234567">
+      </div>
+
+      <!-- Personal Details -->
+      <div class="form-group">
+        <label for="full-name">Full Name</label>
+        <input type="text" id="full-name" placeholder="As it appears on your ID" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="example@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Primary Phone Number</label>
+        <input type="tel" id="phone" placeholder="e.g., 0712345678" required>
+      </div>
+
+      <div class="form-group">
+        <label for="alt-phone">Alternative Phone Number</label>
+        <input type="tel" id="alt-phone" placeholder="e.g., 0722123456">
+      </div>
+
+      
+
+      <!-- Residence Details -->
+      <div class="form-group autocomplete">
+        <label for="county">County of Residence</label>
+        <input type="text" id="county" placeholder="Start typing your county..." required>
+      </div>
+
+      <div class="form-group">
+        <label for="address">Physical Address</label>
+        <input type="text" id="address" placeholder="e.g., 123 Main St, Kileleshwa" required>
+      </div>
+
+      <!-- Emergency Contact -->
+      <div class="form-group">
+        <label for="emergency-name">Emergency Contact Name</label>
+        <input type="text" id="emergency-name" placeholder="e.g., John Doe" required>
+      </div>
+
+      <div class="form-group">
+        <label for="emergency-phone">Emergency Contact Phone</label>
+        <input type="tel" id="emergency-phone" placeholder="e.g., 0722123456" required>
+      </div>
+
+      <!-- Profile Photo -->
+      <div class="form-group full-width photo-upload">
+        <label for="photo">Upload Passport Photo</label>
+        <div class="photo-preview">
+          <i class="fas fa-user"></i>
+          <img id="photo-preview" style="display: none;">
+        </div>
+        <input type="file" id="photo" accept="image/*" required>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Create Password</label>
+        <input type="password" id="password" required>
+        <div class="password-criteria">
+          Password must contain:
+          <ul style="list-style: none; padding-left: 5px;">
+            <li id="length">At least 8 characters</li>
+            <li id="number">At least 1 number</li>
+            <li id="special">At least 1 special character (!@#$%^&*)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm-password">Confirm Password</label>
+        <input type="password" id="confirm-password" required>
+      </div>
+
+      <div class="form-group full-width">
+        <button type="submit">Register Now</button>
+      </div>
+
+      <div class="login-link">
+        Already have an account? <a href="loginpage.html">Login here</a>.
+      </div>
+    </form>
+  </div>
+
+  <!-- Success Popup -->
+  <div class="popup-overlay" id="success-popup">
+    <div class="popup success">
+      <i class="fas fa-check-circle popup-icon"></i>
+      <h2>Registration Successful!</h2>
+      <p>Thank you for joining Salama Docs. Please check your email for verification</p>
+      <a href="loginpage.html" class="popup-btn">Continue to Login</a>
+    </div>
+  </div>
+
+  <!-- Error Popup (for existing users) -->
+  <div class="popup-overlay" id="error-popup">
+    <div class="popup error">
+      <i class="fas fa-exclamation-circle popup-icon"></i>
+      <h2>Account Exists</h2>
+      <p>This ID is already registered with Salama Docs.</p>
+      <a href="loginpage.html" class="popup-btn">Go to Login</a>
+    </div>
+  </div>
+<!-- Load Supabase first, then your signup script -->
+<script type="module" src="./js/supabase.js"></script>
+<script type="module" src="./js/signup.js"></script>
+</body>
+</html>
