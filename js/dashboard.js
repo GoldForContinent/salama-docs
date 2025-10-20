@@ -1264,22 +1264,22 @@ async function populateMyReportsSection(filter = 'all') {
         let docImage = '';
         let docNumber = '';
         let docTypeShort = '';
+        let docPhotoUrl = '';
         if (report.report_documents && report.report_documents.length > 0) {
             const doc = report.report_documents[0];
             docTypes = getReadableDocType(doc.document_type);
             docNumber = doc.document_number || '';
             // Short badge (first word or abbreviation)
             docTypeShort = (docTypes.split(' ')[0] || 'DOC').toUpperCase();
-            if (doc.photo_url) {
-                docImage = `<img src="${doc.photo_url}" class="report-doc-image" alt="Document Image">`;
-            } else {
-                docImage = `
-                  <div class="modern-doc-icon">
-                    <span class="icon-bg"><i class="fas fa-file-alt"></i></span>
-                    <span class="doc-type-badge">${docTypeShort}</span>
-                  </div>
-                `;
-            }
+            docPhotoUrl = doc.photo_url || '';
+            
+            // Always show icon, add View Image button if photo exists
+            docImage = `
+              <div class="modern-doc-icon">
+                <span class="icon-bg"><i class="fas fa-file-alt"></i></span>
+                <span class="doc-type-badge">${docTypeShort}</span>
+              </div>
+            `;
         } else {
             docImage = `
               <div class="modern-doc-icon">
@@ -1333,6 +1333,7 @@ async function populateMyReportsSection(filter = 'all') {
                 <div class="report-details">
                     <div class="report-doc-type">${docTypes}</div>
                     ${docNumber ? `<div class="report-doc-number">${docNumber}</div>` : ''}
+                    ${docPhotoUrl ? `<button onclick="window.openImageViewer('${docPhotoUrl}', '${docTypes}')" class="view-image-btn" style="margin-top:8px;background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:all 0.3s ease;"><i class="fas fa-eye"></i> View Image</button>` : ''}
                     ${report.collection_point ? `
                         <div style="font-size:14px;color:#4b5563;margin-top:8px;">
                             <i class="fas fa-map-marker-alt" style="color:#BB0000;"></i>
@@ -1408,7 +1409,8 @@ async function populateMyReportsSection(filter = 'all') {
 
 // ... existing code after populateMyReportsSection ...
 
-// Add event listeners for filter tabs
+// Add event listeners for filter tabs with debouncing
+let filterDebounceTimer = null;
 function setupReportFilters() {
     const tabs = document.querySelectorAll('.filter-tab');
     tabs.forEach(tab => {
@@ -1416,7 +1418,18 @@ function setupReportFilters() {
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
             const filter = this.getAttribute('data-filter');
-            populateMyReportsSection(filter);
+            
+            // Show loading indicator
+            const container = document.getElementById('allReports');
+            if (container) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;"><div style="display:inline-block;width:40px;height:40px;border:4px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;"></div><p style="margin-top:16px;color:#666;">Loading reports...</p></div>';
+            }
+            
+            // Debounce filter changes
+            clearTimeout(filterDebounceTimer);
+            filterDebounceTimer = setTimeout(() => {
+                populateMyReportsSection(filter);
+            }, 100);
         });
     });
 }
@@ -2204,3 +2217,166 @@ window.checkDataCounts = async function() {
     console.error('❌ Error in checkDataCounts:', error);
   }
 };
+
+// Polished Image Viewer Popup
+window.openImageViewer = function(imageUrl, documentType) {
+    // Remove existing viewer if any
+    const existingViewer = document.getElementById('imageViewerModal');
+    if (existingViewer) existingViewer.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'imageViewerModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.3s ease-in-out;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+        ">
+            <!-- Close Button -->
+            <button onclick="document.getElementById('imageViewerModal').remove()" style="
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                background: rgba(255, 255, 255, 0.95);
+                border: none;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                color: #333;
+                z-index: 10001;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            " onmouseover="this.style.background='white';this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)';this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.15)'">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <!-- Header -->
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 16px 24px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            ">
+                <i class="fas fa-image" style="font-size: 20px;"></i>
+                <div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 600;">${documentType}</h3>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">Document Image</p>
+                </div>
+            </div>
+            
+            <!-- Image Container -->
+            <div style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f5f5f5;
+                padding: 20px;
+                max-height: calc(90vh - 120px);
+                overflow: auto;
+            ">
+                <img src="${imageUrl}" alt="${documentType}" style="
+                    max-width: 100%;
+                    max-height: 100%;
+                    border-radius: 8px;
+                    object-fit: contain;
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                " onerror="this.parentElement.innerHTML='<div style=\"text-align:center;color:#999;padding:40px;\"><i class=\"fas fa-exclamation-circle\" style=\"font-size:48px;margin-bottom:16px;display:block;\"></i><p>Failed to load image</p></div>'">
+            </div>
+            
+            <!-- Footer -->
+            <div style="
+                background: #f9f9f9;
+                padding: 16px 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-top: 1px solid #e5e7eb;
+            ">
+                <p style="margin: 0; color: #666; font-size: 13px;">
+                    <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                    Click the X button or press ESC to close
+                </p>
+                <a href="${imageUrl}" target="_blank" download style="
+                    background: #3b82f6;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-size: 13px;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                " onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                    <i class="fas fa-download"></i> Download
+                </a>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on ESC key
+    const closeOnEsc = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', closeOnEsc);
+        }
+    };
+    document.addEventListener('keydown', closeOnEsc);
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            document.removeEventListener('keydown', closeOnEsc);
+        }
+    });
+};
+
+// Add animations
+const animationStyle = document.createElement('style');
+animationStyle.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .view-image-btn:hover {
+        background: #2563eb !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    }
+`;
+document.head.appendChild(animationStyle);
