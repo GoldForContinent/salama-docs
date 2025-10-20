@@ -75,6 +75,7 @@ let currentUser = null;
 let currentProfile = null;
 
 // Initialize the dashboard
+let hasRunInitialMatching = false;
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('🚀 Initializing dashboard...');
@@ -84,27 +85,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         showSection('dashboard');
         setupReportFilters();
         
-        // Run automated matching on dashboard load
-        if (typeof window.runAutomatedMatching === 'function') {
+        // Run automated matching ONCE on dashboard load (not multiple times)
+        if (typeof window.runAutomatedMatching === 'function' && !hasRunInitialMatching) {
             console.log('🔍 Running initial automated matching on dashboard load...');
+            hasRunInitialMatching = true;
             await window.runAutomatedMatching();
         }
         
-        // Set up periodic automated matching every 2 minutes (more frequent)
+        // Set up periodic automated matching every 2 minutes
         setInterval(async () => {
             if (typeof window.runAutomatedMatching === 'function') {
                 console.log('🔍 Running periodic automated matching...');
                 await window.runAutomatedMatching();
             }
         }, 2 * 60 * 1000); // 2 minutes
-        
-        // Also run it once more after 30 seconds to catch any missed matches
-        setTimeout(async () => {
-            if (typeof window.runAutomatedMatching === 'function') {
-                console.log('🔍 Running delayed automated matching...');
-                await window.runAutomatedMatching();
-            }
-        }, 30 * 1000); // 30 seconds
         
         populateMyReportsSection('all');
 
@@ -755,11 +749,7 @@ async function loadDashboardData() {
     try {
         if (!currentUser) return;
         
-        // Run automated matching first to find any new matches
-        if (typeof window.runAutomatedMatching === 'function') {
-            await window.runAutomatedMatching();
-        }
-        
+        // Skip automated matching here - it's already run during initialization
         const { reports } = await loadUserReportsAndDocuments();
         updateDashboardStats(reports);
         loadRecentActivity(reports.slice(0, 3));
@@ -1141,18 +1131,45 @@ async function populateMyReportsSection(filter = 'all') {
             container.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">No recovered reports found.</p>';
             return;
         }
+        
+        // OPTIMIZATION: Batch fetch all lost and found reports instead of N+1 queries
+        const lostReportIds = recoveredRows.map(r => r.lost_report_id).filter(Boolean);
+        const foundReportIds = recoveredRows.map(r => r.found_report_id).filter(Boolean);
+        
+        const { data: allLostReports } = await supabase
+            .from('reports')
+            .select('*, report_documents(*)')
+            .in('id', lostReportIds.length ? lostReportIds : ['00000000-0000-0000-0000-000000000000']);
+        
+        const { data: allFoundReports } = await supabase
+            .from('reports')
+            .select('*, report_documents(*)')
+            .in('id', foundReportIds.length ? foundReportIds : ['00000000-0000-0000-0000-000000000000']);
+        
+        // Create maps for O(1) lookup
+        const lostReportMap = new Map((allLostReports || []).map(r => [r.id, r]));
+        const foundReportMap = new Map((allFoundReports || []).map(r => [r.id, r]));
+        
+        // Batch fetch all transactions for payment status checks
+        const allReportIds = [...lostReportIds, ...foundReportIds];
+        const { data: allTransactions } = await supabase
+            .from('transactions')
+            .select('*')
+            .in('report_id', allReportIds.length ? allReportIds : ['00000000-0000-0000-0000-000000000000']);
+        
+        const transactionMap = new Map();
+        (allTransactions || []).forEach(tx => {
+            if (!transactionMap.has(tx.report_id)) {
+                transactionMap.set(tx.report_id, []);
+            }
+            transactionMap.get(tx.report_id).push(tx);
+        });
+        
         for (const rec of recoveredRows) {
-            // Fetch lost and found reports
-            const { data: lostReport } = await supabase
-                .from('reports')
-                .select('*, report_documents(*)')
-                .eq('id', rec.lost_report_id)
-                .single();
-            const { data: foundReport } = await supabase
-                .from('reports')
-                .select('*, report_documents(*)')
-                .eq('id', rec.found_report_id)
-                .single();
+            // Get reports from maps (O(1) lookup)
+            const lostReport = lostReportMap.get(rec.lost_report_id);
+            const foundReport = foundReportMap.get(rec.found_report_id);
+            
             // Prefer the found document for display, fallback to lost
             let doc = null;
             if (foundReport && foundReport.report_documents && foundReport.report_documents.length > 0) {
@@ -1169,17 +1186,11 @@ async function populateMyReportsSection(filter = 'all') {
             let rewardAmount = foundReport && foundReport.reward_amount ? foundReport.reward_amount : 100;
             let claimRewardBtn = '';
             
-            // Check if payment has been made by looking at the transaction status
+            // Check if payment has been made (from pre-fetched transactions)
             let isPaid = false;
-            if (isLostOwner) {
-                const { data: paymentTransaction } = await supabase
-                    .from('transactions')
-                    .select('*')
-                    .eq('report_id', lostReport.id)
-                    .eq('transaction_type', 'recovery')
-                    .eq('status', 'completed')
-                    .maybeSingle();
-                isPaid = !!paymentTransaction;
+            if (isLostOwner && lostReport) {
+                const txs = transactionMap.get(lostReport.id) || [];
+                isPaid = txs.some(tx => tx.transaction_type === 'recovery' && tx.status === 'completed');
             }
             
             // Show Claim Reward button for finder if not already claimed and status is claimable
