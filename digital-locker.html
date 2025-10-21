@@ -136,12 +136,12 @@
 
                     <div class="form-group">
                         <label for="documentFile">Upload Document</label>
-                        <div class="file-upload-area" id="fileUploadArea">
+                        <label for="documentFile" class="file-upload-area" id="fileUploadArea" style="display: block; margin: 0;">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p><strong>Click to upload or drag and drop</strong></p>
                             <p class="small">PDF, Images (JPEG, PNG, GIF, WebP) - Max 50MB</p>
-                            <input type="file" class="file-input" id="documentFile" accept=".pdf,image/*,.doc,.docx" required>
-                        </div>
+                        </label>
+                        <input type="file" class="file-input" id="documentFile" accept=".pdf,image/*,.doc,.docx" required>
                     </div>
 
                     <button type="submit" class="btn-primary btn-block">

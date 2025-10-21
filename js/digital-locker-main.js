@@ -508,34 +508,16 @@ function setupEventListeners() {
 function setupFileUpload() {
   console.log('Setting up file upload...');
   
-  const fileUploadArea = document.getElementById('fileUploadArea');
   const fileInput = document.getElementById('documentFile');
-  
-  console.log('fileUploadArea:', fileUploadArea);
-  console.log('fileInput:', fileInput);
-  
-  if (!fileUploadArea) {
-    console.error('ERROR: fileUploadArea not found!');
-    return;
-  }
   
   if (!fileInput) {
     console.error('ERROR: fileInput not found!');
     return;
   }
   
-  console.log('Both elements found, setting up listeners...');
+  console.log('File input found, setting up listener...');
   
-  // Make clickable
-  fileUploadArea.style.cursor = 'pointer';
-  
-  // Simple click handler
-  fileUploadArea.onclick = function(e) {
-    console.log('CLICK EVENT FIRED');
-    fileInput.click();
-  };
-  
-  // File change handler
+  // File change handler - label handles the click
   fileInput.onchange = function(e) {
     console.log('FILE CHANGE EVENT FIRED');
     if (this.files && this.files.length > 0) {
