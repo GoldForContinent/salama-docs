@@ -238,6 +238,62 @@ function initializeUI() {
 
 async function handleLogout() {
     try {
+        // Show modal with logout options
+        const modal = document.createElement('div');
+        modal.id = 'logoutModal';
+        modal.style = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            z-index: 10000;
+        `;
+        
+        modal.innerHTML = `
+            <div style="
+                background: white; border-radius: 12px; padding: 30px; max-width: 400px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center;
+            ">
+                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 20px;">Logout</h3>
+                <p style="margin: 0 0 25px 0; color: #666; font-size: 14px;">Where would you like to go after logout?</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button onclick="performLogout('loginpage.html')" style="
+                        background: #006600; color: white; border: none; padding: 12px 24px;
+                        border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='#004d00'" onmouseout="this.style.background='#006600'">
+                        <i class="fas fa-sign-in-alt"></i> Login Page
+                    </button>
+                    <button onclick="performLogout('index.html')" style="
+                        background: #BB0000; color: white; border: none; padding: 12px 24px;
+                        border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='#8b0000'" onmouseout="this.style.background='#BB0000'">
+                        <i class="fas fa-home"></i> Homepage
+                    </button>
+                    <button onclick="document.getElementById('logoutModal').remove()" style="
+                        background: #999; color: white; border: none; padding: 12px 24px;
+                        border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='#777'" onmouseout="this.style.background='#999'">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Close modal on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    } catch (error) {
+        console.error('❌ Logout error:', error);
+        showNotification('Error during logout. Please try again.', 'error');
+    }
+}
+
+async function performLogout(redirectUrl) {
+    try {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
         
@@ -245,8 +301,8 @@ async function handleLogout() {
         currentUser = null;
         currentProfile = null;
         
-        // Redirect to login page
-        window.location.href = 'loginpage.html';
+        // Redirect to specified page
+        window.location.href = redirectUrl;
     } catch (error) {
         console.error('❌ Logout error:', error);
         showNotification('Error during logout. Please try again.', 'error');

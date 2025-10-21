@@ -148,16 +148,16 @@ window.showClaimRewardModal = async function(reportId, rewardAmount) {
     content: `
       <div style='text-align:center;'>
         <div style='font-size:2.2em;margin-bottom:10px;'><span style='color:#10b981;font-weight:900;'>KSh ${reward}</span></div>
-        <div style='margin-bottom:18px;font-size:1.08em;color:#222;'>Reward Amount</div>
+        <div style='margin-bottom:18px;font-size:1.08em;color:#333;font-weight:500;'>Reward Amount</div>
         <div style='margin-bottom:18px;'>
-          <label style='font-weight:600;color:#006600;'>Airtime Provider:</label><br>
-          <label class='payment-modal-label' style='margin-right:18px;'><input type='radio' name='rewardProvider' value='safaricom' checked> <span>Safaricom</span></label>
-          <label class='payment-modal-label' style='margin-right:18px;'><input type='radio' name='rewardProvider' value='airtel'> <span>Airtel</span></label>
-          <label class='payment-modal-label'><input type='radio' name='rewardProvider' value='telkom'> <span>Telkom</span></label>
+          <label style='font-weight:600;color:#006600;display:block;margin-bottom:10px;'>Airtime Provider:</label>
+          <label class='payment-modal-label' style='margin-right:18px;color:#333;'><input type='radio' name='rewardProvider' value='safaricom' checked> <span style='color:#333;'>Safaricom</span></label>
+          <label class='payment-modal-label' style='margin-right:18px;color:#333;'><input type='radio' name='rewardProvider' value='airtel'> <span style='color:#333;'>Airtel</span></label>
+          <label class='payment-modal-label' style='color:#333;'><input type='radio' name='rewardProvider' value='telkom'> <span style='color:#333;'>Telkom</span></label>
         </div>
         <div style='margin-bottom:18px;'>
-          <label style='font-weight:600;color:#006600;'>Phone Number:</label><br>
-          <input id='rewardPhoneInput' type='tel' placeholder='07XXXXXXXX' style='padding:10px 14px;font-size:1.08em;border-radius:7px;border:1.5px solid #bbb;width:90%;margin-top:6px;'>
+          <label style='font-weight:600;color:#006600;display:block;margin-bottom:10px;'>Phone Number:</label>
+          <input id='rewardPhoneInput' type='tel' placeholder='07XXXXXXXX' style='padding:10px 14px;font-size:1.08em;border-radius:7px;border:1.5px solid #bbb;width:90%;margin-top:6px;color:#333;'>
         </div>
       </div>
     `,
@@ -200,7 +200,7 @@ window.showClaimRewardModal = async function(reportId, rewardAmount) {
           if (window.renderPaymentTable) await window.renderPaymentTable();
           createStylishModal({
             title: 'Reward Claimed!',
-            content: `<div style='text-align:center;'><div style='font-size:2.5em;color:#10b981;margin-bottom:10px;'><i class='fas fa-gift'></i></div><div style='font-size:1.15em;font-weight:600;'>You will receive your airtime within 30 minutes.<br>Thank you for helping!</div></div>`,
+            content: `<div style='text-align:center;'><div style='font-size:2.5em;color:#10b981;margin-bottom:10px;'><i class='fas fa-gift'></i></div><div style='font-size:1.15em;font-weight:600;color:#333;'>You will receive your airtime within 30 minutes.<br>Thank you for helping!</div></div>`,
             actions: [
               { label: 'Close', style: 'background:#10b981;color:#fff;padding:10px 32px;border-radius:8px;font-weight:700;', onClick: () => document.getElementById('customPaymentModal')?.remove() }
             ]
