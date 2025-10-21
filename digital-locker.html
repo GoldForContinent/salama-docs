@@ -3,48 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salama Docs - Digital Locker</title>
+    <title>Digital Locker - Salama Docs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/digital-locker.css">
 </head>
 <body>
-    <header>
-        <div class="container header-content">
-            <div class="logo">
-                <i class="fas fa-id-card"></i>
-                <h1>Digital Locker</h1>
+    <div class="locker-wrapper">
+        <!-- Header -->
+        <header class="locker-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1><i class="fas fa-lock"></i> My Digital Locker</h1>
+                    <p>Securely store and manage your important documents</p>
+                </div>
+                <button class="btn-primary" onclick="openUploadModal()">
+                    <i class="fas fa-upload"></i> Upload Document
+                </button>
             </div>
-            <div class="user-profile">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
-            </div>
-        </div>
-    </header>
-    
-    <main class="container">
-        <div class="actions">
-            <button class="btn" onclick="window.location.href='dashboard.html'">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </button>
-            <button class="btn" onclick="window.location.href='upload.html'">
-                <i class="fas fa-plus"></i> Add Document
-            </button>
-        </div>
-        
-        <div class="documents-grid" id="documentsContainer">
-            <!-- Documents will be loaded here -->
-        </div>
-        
-        <div class="empty-state" id="emptyState">
-            <i class="fas fa-folder-open"></i>
-            <h3>Your digital locker is empty</h3>
-            <p>Upload your first document to get started</p>
-            <button class="btn" onclick="window.location.href='upload.html'">
-                <i class="fas fa-upload"></i> Upload Document
-            </button>
-        </div>
-    </main>
+        </header>
 
-    <script src="js/digital-locker.js"></script>
+        <!-- Statistics -->
+        <section class="statistics" id="statistics">
+            <div class="stat-card">
+                <i class="fas fa-file"></i>
+                <div>
+                    <h4>0</h4>
+                    <p>Documents</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls -->
+        <section class="controls">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search documents by name...">
+            </div>
+
+            <div class="view-controls">
+                <button class="view-btn active" id="gridViewBtn" onclick="toggleViewMode('grid')" title="Grid View">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="view-btn" id="listViewBtn" onclick="toggleViewMode('list')" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Documents Container -->
+        <section class="documents-section">
+            <div class="documents-container" id="documents-container">
+                <!-- Documents will be rendered here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <i class="fas fa-upload" style="color: var(--kenya-green);"></i>
+                <h3>Upload Document to Digital Locker</h3>
+                <p>Store a secure digital copy of your document</p>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="uploadDocumentType">Document Type</label>
+                        <select class="form-control" id="uploadDocumentType" required>
+                            <option value="">Select document type</option>
+                            <optgroup label="🆔 Government Identification">
+                                <option value="national_id">National ID Card</option>
+                                <option value="passport">Kenyan Passport</option>
+                                <option value="alien_id">Alien ID Card</option>
+                                <option value="refugee_id">Refugee ID</option>
+                                <option value="military_id">Military ID</option>
+                            </optgroup>
+                            <optgroup label="🚗 Driving & Vehicle">
+                                <option value="driving_license">Driving License</option>
+                                <option value="logbook">Vehicle Logbook</option>
+                                <option value="psi_certificate">PSI Certificate</option>
+                                <option value="towing_permit">Towing Permit</option>
+                                <option value="badge">PSV Badge</option>
+                            </optgroup>
+                            <optgroup label="🎓 Educational Documents">
+                                <option value="kcpe_certificate">KCPE Certificate</option>
+                                <option value="kcse_certificate">KCSE Certificate</option>
+                                <option value="university_degree">University Degree</option>
+                                <option value="college_diploma">College Diploma/Certificate</option>
+                                <option value="transcript">Official Transcript</option>
+                                <option value="student_id">Student ID Card</option>
+                            </optgroup>
+                            <optgroup label="💼 Professional Documents">
+                                <option value="work_permit">Work Permit</option>
+                                <option value="professional_license">Professional License</option>
+                                <option value="practicing_certificate">Practicing Certificate</option>
+                                <option value="tax_pin">KRA PIN Certificate</option>
+                                <option value="business_permit">Business Permit</option>
+                            </optgroup>
+                            <optgroup label="🏠 Property & Legal">
+                                <option value="title_deed">Title Deed</option>
+                                <option value="lease_agreement">Lease Agreement</option>
+                                <option value="allotment_letter">Land Allotment Letter</option>
+                                <option value="court_order">Court Order</option>
+                                <option value="power_attorney">Power of Attorney</option>
+                            </optgroup>
+                            <optgroup label="💳 Financial Documents">
+                                <option value="bank_card">Bank/ATM Card</option>
+                                <option value="checkbook">Checkbook</option>
+                                <option value="loan_agreement">Loan Agreement</option>
+                                <option value="insurance_policy">Insurance Policy</option>
+                            </optgroup>
+                            <optgroup label="🏥 Health Documents">
+                                <option value="birth_certificate">Birth Certificate</option>
+                                <option value="death_certificate">Death Certificate</option>
+                                <option value="marriage_certificate">Marriage Certificate</option>
+                                <option value="medical_report">Medical Report</option>
+                                <option value="nhif_card">NHIF Card</option>
+                            </optgroup>
+                            <optgroup label="📄 Other Important">
+                                <option value="will">Will/Testament</option>
+                                <option value="adoption_papers">Adoption Papers</option>
+                                <option value="guardianship">Guardianship Papers</option>
+                                <option value="other">Other Document</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="uploadDocumentName">Document Name</label>
+                        <input type="text" class="form-control" id="uploadDocumentName" placeholder="e.g., My National ID" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="documentFile">Upload Document</label>
+                        <div class="file-upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Click to upload or drag and drop</strong></p>
+                            <p class="small">PDF, Images (JPEG, PNG, GIF, WebP) - Max 50MB</p>
+                            <input type="file" class="file-input" id="documentFile" accept=".pdf,image/*,.doc,.docx" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">
+                        <i class="fas fa-upload"></i> Upload Document
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content modal-large">
+            <span class="close-modal" onclick="closeViewModal()">&times;</span>
+            <div class="modal-header">
+                <h3>View Document</h3>
+            </div>
+            <div class="modal-body">
+                <div class="document-viewer" id="documentViewer">
+                    <!-- Document will be displayed here -->
+                </div>
+                <div class="document-details">
+                    <h4 id="viewDocumentName"></h4>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="label">Type:</span>
+                            <span id="viewDocumentType"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Size:</span>
+                            <span id="viewFileSize"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Uploaded:</span>
+                            <span id="viewUploadedDate"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/supabase.js"></script>
+    <script type="module" src="js/locker-helpers.js"></script>
+    <script type="module" src="js/digital-locker-main.js"></script>
 </body>
 </html>

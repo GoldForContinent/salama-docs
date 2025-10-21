@@ -2380,3 +2380,132 @@ animationStyle.textContent = `
     }
 `;
 document.head.appendChild(animationStyle);
+
+// ============ DIGITAL LOCKER UPLOAD HANDLERS ============
+
+function openUploadModal() {
+    const modal = document.getElementById('uploadModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeUploadModal() {
+    const modal = document.getElementById('uploadModal');
+    if (modal) modal.style.display = 'none';
+    const form = document.getElementById('uploadForm');
+    if (form) form.reset();
+}
+
+async function handleDashboardUpload(e) {
+    try {
+        const documentType = document.getElementById('uploadDocumentType').value;
+        const documentName = document.getElementById('uploadDocumentName').value;
+        const fileInput = document.getElementById('documentFile');
+        const file = fileInput.files[0];
+        const uploadBtn = document.getElementById('uploadSubmitBtn');
+        
+        if (!file || !documentType || !documentName) {
+            showNotification('Please fill all fields', 'error');
+            return;
+        }
+        
+        // Validate file
+        const allowedMimes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        
+        if (!allowedMimes.includes(file.type)) {
+            showNotification('File type not allowed. Please upload images (JPEG, PNG, GIF, WebP) or PDFs.', 'error');
+            return;
+        }
+        
+        if (file.size > 52428800) { // 50MB
+            showNotification('File size exceeds 50MB limit.', 'error');
+            return;
+        }
+        
+        // Disable button and show loading
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        
+        // Get current user
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            showNotification('Please log in first', 'error');
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
+            return;
+        }
+        
+        const userId = session.user.id;
+        const documentId = crypto.randomUUID();
+        
+        // Upload to storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${documentId}.${fileExt}`;
+        const filePath = `${userId}/documents/${fileName}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('user-documents')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+        
+        if (uploadError) throw uploadError;
+        
+        // Get public URL
+        const { data: publicUrl } = supabase.storage
+            .from('user-documents')
+            .getPublicUrl(filePath);
+        
+        // Create database record
+        const { data: dbData, error: dbError } = await supabase
+            .from('locker_documents')
+            .insert([{
+                user_id: userId,
+                document_name: documentName,
+                document_type: documentType,
+                file_path: filePath,
+                file_size: file.size,
+                mime_type: file.type,
+                storage_url: publicUrl.publicUrl,
+                description: '',
+                tags: []
+            }])
+            .select();
+        
+        if (dbError) {
+            // Delete file if database insert fails
+            await supabase.storage.from('user-documents').remove([filePath]);
+            throw dbError;
+        }
+        
+        showNotification('Document uploaded successfully! View it in your Digital Locker.', 'success');
+        closeUploadModal();
+        
+        // Reset button
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
+    } catch (error) {
+        console.error('Upload error:', error);
+        showNotification('Error uploading document: ' + error.message, 'error');
+        const uploadBtn = document.getElementById('uploadSubmitBtn');
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
+    }
+}
+
+// Close modal when clicking X or outside
+document.addEventListener('DOMContentLoaded', () => {
+    const uploadModal = document.getElementById('uploadModal');
+    if (uploadModal) {
+        uploadModal.addEventListener('click', (e) => {
+            if (e.target === uploadModal) {
+                closeUploadModal();
+            }
+        });
+    }
+});
