@@ -238,17 +238,32 @@ async function downloadDocument(documentId) {
     }
     
     const doc = result.document;
+    
+    // Download using Supabase API to force download
+    const { data, error } = await supabase.storage
+      .from('user-documents')
+      .download(doc.file_path);
+    
+    if (error) {
+      console.error('Download error:', error);
+      showNotification('Error downloading document', 'error');
+      return;
+    }
+    
+    // Create blob URL and download
+    const url = URL.createObjectURL(data);
     const link = document.createElement('a');
-    link.href = doc.storage_url;
-    link.download = doc.document_name;
+    link.href = url;
+    link.download = doc.document_name || 'document';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
-    showNotification('Document downloaded', 'success');
+    showNotification('Document downloaded successfully', 'success');
   } catch (error) {
     console.error('Download error:', error);
-    showNotification('Error downloading document', 'error');
+    showNotification('Error downloading document: ' + error.message, 'error');
   }
 }
 
