@@ -500,33 +500,50 @@ function setupEventListeners() {
   // Setup drag and drop
   setupDragAndDrop();
   
-  // Setup file input click - FIXED
+  // Setup file input - SIMPLIFIED AND FIXED
+  setupFileUpload();
+}
+
+// ============ FILE UPLOAD SETUP ============
+function setupFileUpload() {
   const fileUploadArea = document.getElementById('fileUploadArea');
   const fileInput = document.getElementById('documentFile');
   
-  if (fileUploadArea && fileInput) {
-    // Click anywhere on upload area to select file
-    fileUploadArea.addEventListener('click', (e) => {
-      // Don't trigger if clicking on the hidden input
-      if (e.target !== fileInput) {
-        fileInput.click();
-      }
-    });
-    
-    // Also allow clicking directly on the input
-    fileInput.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-    
-    // Handle file selection
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        const fileName = e.target.files[0].name;
-        console.log('File selected:', fileName);
-        showNotification(`File selected: ${fileName}`, 'success');
-      }
-    });
+  if (!fileUploadArea || !fileInput) {
+    console.error('Upload area or file input not found');
+    return;
   }
+  
+  // Make the entire area clickable
+  fileUploadArea.style.cursor = 'pointer';
+  
+  // Click handler - simple and direct
+  fileUploadArea.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Upload area clicked, opening file picker...');
+    fileInput.click();
+  });
+  
+  // File selection handler
+  fileInput.addEventListener('change', function(e) {
+    if (this.files && this.files.length > 0) {
+      const file = this.files[0];
+      console.log('File selected:', file.name, 'Size:', file.size);
+      showNotification(`✓ File selected: ${file.name}`, 'success');
+    }
+  });
+  
+  // Prevent default drag behavior on the whole document
+  document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
 }
 
 // ============ DRAG AND DROP ============
