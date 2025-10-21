@@ -500,15 +500,31 @@ function setupEventListeners() {
   // Setup drag and drop
   setupDragAndDrop();
   
-  // Setup file input click
+  // Setup file input click - FIXED
   const fileUploadArea = document.getElementById('fileUploadArea');
   const fileInput = document.getElementById('documentFile');
   
   if (fileUploadArea && fileInput) {
-    fileUploadArea.addEventListener('click', () => fileInput.click());
+    // Click anywhere on upload area to select file
+    fileUploadArea.addEventListener('click', (e) => {
+      // Don't trigger if clicking on the hidden input
+      if (e.target !== fileInput) {
+        fileInput.click();
+      }
+    });
+    
+    // Also allow clicking directly on the input
+    fileInput.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    // Handle file selection
     fileInput.addEventListener('change', (e) => {
-      const fileName = e.target.files[0]?.name || 'No file selected';
-      console.log('File selected:', fileName);
+      if (e.target.files && e.target.files.length > 0) {
+        const fileName = e.target.files[0].name;
+        console.log('File selected:', fileName);
+        showNotification(`File selected: ${fileName}`, 'success');
+      }
     });
   }
 }
