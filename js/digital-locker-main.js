@@ -506,44 +506,46 @@ function setupEventListeners() {
 
 // ============ FILE UPLOAD SETUP ============
 function setupFileUpload() {
+  console.log('Setting up file upload...');
+  
   const fileUploadArea = document.getElementById('fileUploadArea');
   const fileInput = document.getElementById('documentFile');
   
-  if (!fileUploadArea || !fileInput) {
-    console.error('Upload area or file input not found');
+  console.log('fileUploadArea:', fileUploadArea);
+  console.log('fileInput:', fileInput);
+  
+  if (!fileUploadArea) {
+    console.error('ERROR: fileUploadArea not found!');
     return;
   }
   
-  // Make the entire area clickable
+  if (!fileInput) {
+    console.error('ERROR: fileInput not found!');
+    return;
+  }
+  
+  console.log('Both elements found, setting up listeners...');
+  
+  // Make clickable
   fileUploadArea.style.cursor = 'pointer';
   
-  // Click handler - simple and direct
-  fileUploadArea.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Upload area clicked, opening file picker...');
+  // Simple click handler
+  fileUploadArea.onclick = function(e) {
+    console.log('CLICK EVENT FIRED');
     fileInput.click();
-  });
+  };
   
-  // File selection handler
-  fileInput.addEventListener('change', function(e) {
+  // File change handler
+  fileInput.onchange = function(e) {
+    console.log('FILE CHANGE EVENT FIRED');
     if (this.files && this.files.length > 0) {
       const file = this.files[0];
-      console.log('File selected:', file.name, 'Size:', file.size);
+      console.log('File selected:', file.name);
       showNotification(`✓ File selected: ${file.name}`, 'success');
     }
-  });
+  };
   
-  // Prevent default drag behavior on the whole document
-  document.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
-  
-  document.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
+  console.log('File upload setup complete!');
 }
 
 // ============ DRAG AND DROP ============
@@ -551,7 +553,12 @@ function setupDragAndDrop() {
   const fileUploadArea = document.getElementById('fileUploadArea');
   const fileInput = document.getElementById('documentFile');
   
-  if (!fileUploadArea || !fileInput) return;
+  if (!fileUploadArea || !fileInput) {
+    console.log('Drag and drop: elements not found');
+    return;
+  }
+  
+  console.log('Setting up drag and drop...');
   
   // Prevent default drag behaviors
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -570,6 +577,8 @@ function setupDragAndDrop() {
   
   // Handle dropped files
   fileUploadArea.addEventListener('drop', handleDrop, false);
+  
+  console.log('Drag and drop setup complete!');
 }
 
 function preventDefaults(e) {
@@ -594,6 +603,7 @@ function unhighlight(e) {
 }
 
 function handleDrop(e) {
+  console.log('DROP EVENT FIRED');
   const dt = e.dataTransfer;
   const files = dt.files;
   const fileInput = document.getElementById('documentFile');
