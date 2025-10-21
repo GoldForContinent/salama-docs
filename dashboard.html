@@ -141,9 +141,6 @@
                 <!-- Digital Locker Section -->
                 <div class="locker-section" id="digital-locker">
                     <h2>My Digital Locker</h2>
-                    <button class="locker-btn" onclick="openUploadModal()">
-                        <i class="fas fa-upload"></i> Upload Document
-                    </button>
                     <button class="locker-btn" onclick="window.location.href='digital-locker.html'">
                         <i class="fas fa-eye"></i> View All Documents
                     </button>
@@ -264,100 +261,6 @@
         </div>
     </div>
 
-     <!-- Upload Document Modal -->
-    <div class="modal" id="uploadModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeUploadModal()">&times;</span>
-            <div class="modal-header">
-                <i class="fas fa-upload" style="color: var(--kenya-green);"></i>
-                <h3>Upload Document to Digital Locker</h3>
-                <p>Store a secure digital copy of your document</p>
-            </div>
-            <div class="modal-body">
-                <form id="uploadForm">
-                    <div class="form-group">
-                        <label for="uploadDocumentType">Document Type</label>
-                        <select class="form-control" id="uploadDocumentType" required>
-                            <option value="">Select document type</option>
-                            <optgroup label="🆔 Government Identification">
-                                <option value="national_id">National ID Card</option>
-                                <option value="passport">Kenyan Passport</option>
-                                <option value="alien_id">Alien ID Card</option>
-                                <option value="refugee_id">Refugee ID</option>
-                                <option value="military_id">Military ID</option>
-                            </optgroup>
-                            <optgroup label="🚗 Driving & Vehicle">
-                                <option value="driving_license">Driving License</option>
-                                <option value="logbook">Vehicle Logbook</option>
-                                <option value="psi_certificate">PSI Certificate</option>
-                                <option value="towing_permit">Towing Permit</option>
-                                <option value="badge">PSV Badge</option>
-                            </optgroup>
-                            <optgroup label="🎓 Educational Documents">
-                                <option value="kcpe_certificate">KCPE Certificate</option>
-                                <option value="kcse_certificate">KCSE Certificate</option>
-                                <option value="university_degree">University Degree</option>
-                                <option value="college_diploma">College Diploma/Certificate</option>
-                                <option value="transcript">Official Transcript</option>
-                                <option value="student_id">Student ID Card</option>
-                            </optgroup>
-                            <optgroup label="💼 Professional Documents">
-                                <option value="work_permit">Work Permit</option>
-                                <option value="professional_license">Professional License</option>
-                                <option value="practicing_certificate">Practicing Certificate</option>
-                                <option value="tax_pin">KRA PIN Certificate</option>
-                                <option value="business_permit">Business Permit</option>
-                            </optgroup>
-                            <optgroup label="🏠 Property & Legal">
-                                <option value="title_deed">Title Deed</option>
-                                <option value="lease_agreement">Lease Agreement</option>
-                                <option value="allotment_letter">Land Allotment Letter</option>
-                                <option value="court_order">Court Order</option>
-                                <option value="power_attorney">Power of Attorney</option>
-                            </optgroup>
-                            <optgroup label="💳 Financial Documents">
-                                <option value="bank_card">Bank/ATM Card</option>
-                                <option value="checkbook">Checkbook</option>
-                                <option value="loan_agreement">Loan Agreement</option>
-                                <option value="insurance_policy">Insurance Policy</option>
-                            </optgroup>
-                            <optgroup label="🏥 Health Documents">
-                                <option value="birth_certificate">Birth Certificate</option>
-                                <option value="death_certificate">Death Certificate</option>
-                                <option value="marriage_certificate">Marriage Certificate</option>
-                                <option value="medical_report">Medical Report</option>
-                                <option value="nhif_card">NHIF Card</option>
-                            </optgroup>
-                            <optgroup label="📄 Other Important">
-                                <option value="will">Will/Testament</option>
-                                <option value="adoption_papers">Adoption Papers</option>
-                                <option value="guardianship">Guardianship Papers</option>
-                                <option value="other">Other Document</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="uploadDocumentName">Document Name</label>
-                        <input type="text" class="form-control" id="uploadDocumentName" placeholder="e.g., My National ID" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="documentFile">Upload Document</label>
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p><strong>Click to upload or drag and drop</strong></p>
-                            <p class="small">PDF, Images (JPEG, PNG, GIF, WebP) - Max 50MB</p>
-                            <input type="file" class="file-input" id="documentFile" accept=".pdf,image/*,.doc,.docx" required>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn" id="uploadSubmitBtn" onclick="handleDashboardUpload()">Upload Document</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Edit Profile Modal -->
     <div class="modal" id="editProfileModal">

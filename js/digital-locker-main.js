@@ -386,6 +386,17 @@ function closeUploadModal() {
   
   const form = document.getElementById('uploadForm');
   if (form) form.reset();
+  
+  // Reset file input
+  const fileInput = document.getElementById('documentFile');
+  if (fileInput) fileInput.value = '';
+  
+  // Reset upload area styling
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  if (fileUploadArea) {
+    fileUploadArea.style.borderColor = 'var(--border-color)';
+    fileUploadArea.style.backgroundColor = 'transparent';
+  }
 }
 
 async function handleUpload(e) {
@@ -485,6 +496,85 @@ function setupEventListeners() {
       e.target.style.display = 'none';
     }
   });
+  
+  // Setup drag and drop
+  setupDragAndDrop();
+  
+  // Setup file input click
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  const fileInput = document.getElementById('documentFile');
+  
+  if (fileUploadArea && fileInput) {
+    fileUploadArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      const fileName = e.target.files[0]?.name || 'No file selected';
+      console.log('File selected:', fileName);
+    });
+  }
+}
+
+// ============ DRAG AND DROP ============
+function setupDragAndDrop() {
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  const fileInput = document.getElementById('documentFile');
+  
+  if (!fileUploadArea || !fileInput) return;
+  
+  // Prevent default drag behaviors
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+  
+  // Highlight drop area when item is dragged over it
+  ['dragenter', 'dragover'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, highlight, false);
+  });
+  
+  ['dragleave', 'drop'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, unhighlight, false);
+  });
+  
+  // Handle dropped files
+  fileUploadArea.addEventListener('drop', handleDrop, false);
+}
+
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function highlight(e) {
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  if (fileUploadArea) {
+    fileUploadArea.style.borderColor = 'var(--kenya-green)';
+    fileUploadArea.style.backgroundColor = 'rgba(0, 102, 0, 0.05)';
+  }
+}
+
+function unhighlight(e) {
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  if (fileUploadArea) {
+    fileUploadArea.style.borderColor = 'var(--border-color)';
+    fileUploadArea.style.backgroundColor = 'transparent';
+  }
+}
+
+function handleDrop(e) {
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  const fileInput = document.getElementById('documentFile');
+  
+  if (fileInput && files.length > 0) {
+    fileInput.files = files;
+    console.log('File dropped:', files[0].name);
+    
+    // Trigger change event
+    const event = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(event);
+  }
+  
+  unhighlight(e);
 }
 
 // ============ GLOBAL FUNCTIONS ============
