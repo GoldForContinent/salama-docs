@@ -3,10 +3,13 @@
  * Handles rendering and interaction of the notification center
  */
 
+import { supabase } from './supabase.js';
+
 class NotificationCenterUI {
   constructor() {
     this.isOpen = false;
     this.currentFilter = 'all';
+    this.notifications = [];
     this.init();
   }
 
@@ -265,14 +268,46 @@ class NotificationCenterUI {
   }
 
   /**
+   * Fetch notifications from Supabase
+   */
+  async fetchNotifications() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'unread')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      this.notifications = data || [];
+      this.updateBadge();
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  }
+
+  /**
    * Render notifications
    * @param {string} searchQuery - Optional search query
    */
-  render(searchQuery = '') {
+  async render(searchQuery = '') {
     const list = document.getElementById('notificationList');
-    if (!list || !window.notificationCenter) return;
+    if (!list) return;
 
-    let notifications = window.notificationCenter.getByType(this.currentFilter);
+    // Fetch fresh notifications from Supabase
+    await this.fetchNotifications();
+
+    let notifications = this.notifications;
+
+    // Apply filter
+    if (this.currentFilter !== 'all') {
+      notifications = notifications.filter(n => n.type === this.currentFilter);
+    }
 
     // Apply search
     if (searchQuery) {
@@ -299,6 +334,22 @@ class NotificationCenterUI {
   }
 
   /**
+   * Format relative time
+   */
+  formatRelativeTime(timestamp) {
+    const now = new Date();
+    const date = new Date(timestamp);
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+    
+    return date.toLocaleDateString();
+  }
+
+  /**
    * Render single notification
    * @param {Object} notification - Notification object
    * @returns {string} HTML
@@ -311,32 +362,34 @@ class NotificationCenterUI {
       info: 'fas fa-info-circle'
     };
 
-    const relativeTime = window.notificationCenter.formatRelativeTime(notification.timestamp);
+    const notificationType = notification.type || 'info';
+    const isUnread = notification.status === 'unread';
+    const relativeTime = this.formatRelativeTime(notification.created_at);
 
     return `
-      <div class="notification-item ${notification.type} ${!notification.read ? 'unread' : ''}" data-id="${notification.id}">
+      <div class="notification-item ${notificationType} ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
         <div class="notification-item-icon">
-          <i class="${icons[notification.type]}"></i>
+          <i class="${icons[notificationType] || icons.info}"></i>
         </div>
         <div class="notification-item-content">
           <p class="notification-item-message">${this.escapeHtml(notification.message)}</p>
           <p class="notification-item-time">${relativeTime}</p>
         </div>
         <div class="notification-item-actions">
-          ${!notification.read ? `
-            <button class="notification-item-action-btn mark-read" title="Mark as read">
+          ${isUnread ? `
+            <button class="notification-item-action-btn mark-read" title="Mark as read" data-id="${notification.id}">
               <i class="fas fa-envelope-open"></i>
             </button>
           ` : `
-            <button class="notification-item-action-btn mark-unread" title="Mark as unread">
+            <button class="notification-item-action-btn mark-unread" title="Mark as unread" data-id="${notification.id}">
               <i class="fas fa-envelope"></i>
             </button>
           `}
-          <button class="notification-item-action-btn delete" title="Delete">
+          <button class="notification-item-action-btn delete" title="Delete" data-id="${notification.id}">
             <i class="fas fa-trash"></i>
           </button>
         </div>
-        ${!notification.read ? '<div class="notification-item-unread-indicator"></div>' : ''}
+        ${isUnread ? '<div class="notification-item-unread-indicator"></div>' : ''}
       </div>
     `;
   }
@@ -347,21 +400,26 @@ class NotificationCenterUI {
   attachItemListeners() {
     const items = document.querySelectorAll('.notification-item');
     items.forEach(item => {
-      const id = parseInt(item.dataset.id);
+      const id = item.dataset.id;
 
       // Mark as read/unread
       const markBtn = item.querySelector('.mark-read, .mark-unread');
       if (markBtn) {
-        markBtn.addEventListener('click', (e) => {
+        markBtn.addEventListener('click', async (e) => {
           e.stopPropagation();
-          if (window.notificationCenter) {
-            const notif = window.notificationCenter.getById(id);
-            if (notif.read) {
-              window.notificationCenter.markAsUnread(id);
-            } else {
-              window.notificationCenter.markAsRead(id);
-            }
+          const isRead = markBtn.classList.contains('mark-unread');
+          const newStatus = isRead ? 'unread' : 'read';
+          
+          try {
+            const { error } = await supabase
+              .from('notifications')
+              .update({ status: newStatus })
+              .eq('id', id);
+
+            if (error) throw error;
             this.render();
+          } catch (error) {
+            console.error('Error updating notification:', error);
           }
         });
       }
@@ -369,11 +427,18 @@ class NotificationCenterUI {
       // Delete
       const deleteBtn = item.querySelector('.delete');
       if (deleteBtn) {
-        deleteBtn.addEventListener('click', (e) => {
+        deleteBtn.addEventListener('click', async (e) => {
           e.stopPropagation();
-          if (window.notificationCenter) {
-            window.notificationCenter.deleteNotification(id);
+          try {
+            const { error } = await supabase
+              .from('notifications')
+              .update({ status: 'deleted' })
+              .eq('id', id);
+
+            if (error) throw error;
             this.render();
+          } catch (error) {
+            console.error('Error deleting notification:', error);
           }
         });
       }
@@ -395,8 +460,11 @@ class NotificationCenterUI {
    * Update badge
    */
   updateBadge() {
-    if (window.notificationCenter) {
-      window.notificationCenter.updateBadge();
+    const badge = document.querySelector('.notification-badge');
+    if (badge) {
+      const unreadCount = this.notifications.filter(n => n.status === 'unread').length;
+      badge.textContent = unreadCount > 0 ? unreadCount : '0';
+      badge.style.display = unreadCount > 0 ? 'flex' : 'none';
     }
   }
 }

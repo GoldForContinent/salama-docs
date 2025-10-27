@@ -75,8 +75,9 @@ header .notification-bell,
   background: rgba(0, 0, 0, 0.5);
   z-index: 9999;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .notification-center-modal.active {
@@ -87,38 +88,39 @@ header .notification-bell,
   background: white;
   border-radius: 12px;
   width: 100%;
-  max-width: 450px;
-  max-height: 90vh;
+  max-width: 500px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  animation: slideInRight 0.3s ease-out;
+  animation: slideInCenter 0.3s ease-out;
+  margin: auto;
 }
 
-@keyframes slideInRight {
+@keyframes slideInCenter {
   from {
-    transform: translateX(500px);
+    transform: scale(0.95) translateY(-20px);
     opacity: 0;
   }
   to {
-    transform: translateX(0);
+    transform: scale(1) translateY(0);
     opacity: 1;
   }
 }
 
-@keyframes slideOutRight {
+@keyframes slideOutCenter {
   from {
-    transform: translateX(0);
+    transform: scale(1) translateY(0);
     opacity: 1;
   }
   to {
-    transform: translateX(500px);
+    transform: scale(0.95) translateY(-20px);
     opacity: 0;
   }
 }
 
 .notification-center-content.closing {
-  animation: slideOutRight 0.3s ease-in forwards;
+  animation: slideOutCenter 0.3s ease-in forwards;
 }
 
 /* Header */
@@ -588,5 +590,230 @@ header .notification-bell,
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+  .notification-center-content {
+    max-width: 90%;
+    max-height: 80vh;
+    width: 100%;
+  }
+
+  .notification-center-header h2 {
+    font-size: 16px;
+  }
+
+  .notification-center-toolbar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 15px;
+  }
+
+  .notification-center-search {
+    min-width: 100%;
+  }
+
+  .notification-center-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .notification-center-btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .notification-center-filters {
+    padding: 0 15px 12px;
+  }
+
+  .notification-item {
+    padding: 12px 15px;
+    gap: 10px;
+  }
+
+  .notification-item-content {
+    flex: 1;
+  }
+
+  .notification-item-message {
+    font-size: 13px;
+  }
+
+  .notification-item-time {
+    font-size: 11px;
+  }
+
+  .notification-item-actions {
+    gap: 6px;
+  }
+
+  .notification-item-action-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Mobile Phones (480px and below) */
+@media (max-width: 480px) {
+  .notification-center-modal {
+    padding: 10px;
+  }
+
+  .notification-center-content {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 12px;
+    width: 100%;
+  }
+
+  .notification-center-header {
+    padding: 15px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .notification-center-header h2 {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .notification-center-close {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+
+  .notification-center-toolbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .notification-center-search input {
+    padding: 8px 10px 8px 28px;
+    font-size: 12px;
+  }
+
+  .notification-center-search i {
+    left: 8px;
+    font-size: 11px;
+  }
+
+  .notification-center-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .notification-center-btn {
+    flex: 1;
+    min-width: 45%;
+    padding: 7px 8px;
+    font-size: 10px;
+  }
+
+  .notification-center-filters {
+    padding: 0 12px 10px;
+    gap: 6px;
+  }
+
+  .notification-filter-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .notification-center-list {
+    max-height: calc(85vh - 200px);
+  }
+
+  .notification-item {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .notification-item-icon {
+    font-size: 18px;
+    min-width: 24px;
+  }
+
+  .notification-item-content {
+    flex: 1;
+  }
+
+  .notification-item-message {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .notification-item-time {
+    font-size: 10px;
+    margin-top: 4px;
+  }
+
+  .notification-item-actions {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .notification-item-action-btn {
+    padding: 3px 6px;
+    font-size: 10px;
+    min-width: 40px;
+  }
+
+  .notification-center-empty {
+    padding: 30px 15px;
+  }
+
+  .notification-center-empty i {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .notification-center-empty p {
+    font-size: 13px;
+  }
+
+  .notification-center-footer {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .notification-center-footer-btn {
+    padding: 8px 6px;
+    font-size: 10px;
+  }
+}
+
+/* Extra Small Phones (320px and below) */
+@media (max-width: 320px) {
+  .notification-center-content {
+    max-height: 95vh;
+  }
+
+  .notification-center-header h2 {
+    font-size: 13px;
+  }
+
+  .notification-center-btn {
+    min-width: 40%;
+    padding: 6px 6px;
+    font-size: 9px;
+  }
+
+  .notification-item-message {
+    font-size: 11px;
+  }
+
+  .notification-item-action-btn {
+    padding: 2px 4px;
+    font-size: 9px;
   }
 }
