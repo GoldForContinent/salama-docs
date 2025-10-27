@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { notifyLostReportCreated } from './dashboard-notifications.js';
 
 let documentCounter = 1;
 let selectedTimeline = 'today';
@@ -305,6 +306,14 @@ async function handleFormSubmit(e) {
             .single();
 
         if (reportError) throw reportError;
+
+        // 🔔 Send notification to user
+        try {
+            await notifyLostReportCreated(user.id, report.id, formData.documents[0]?.typeName || 'document');
+        } catch (notifError) {
+            console.error('Notification error:', notifError);
+            // Don't fail the report creation if notification fails
+        }
 
         // Save documents
         console.log('formData.documents:', formData.documents); // DEBUG LOG

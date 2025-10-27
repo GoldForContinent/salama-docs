@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { notificationManager } from './notification-manager.js';
+import { notifyPotentialMatch, notifyPaymentRequired, notifyTakeToCollectionPoint, notifyLocationRevealed, notifyRewardAvailable } from './dashboard-notifications.js';
 
 // Document type mapping for readable names
 const docTypeMap = {
@@ -1041,6 +1042,15 @@ window.runAutomatedMatching = async function() {
                     found_report_id: match.foundReport.id,
                     status: 'recovered'
                 });
+
+                // 🔔 Send notifications to both users
+                try {
+                    await notifyPotentialMatch(match.lostReport.user_id, match.lostReport.id, match.lostDoc.document_type);
+                    await notifyPotentialMatch(match.foundReport.user_id, match.foundReport.id, match.foundDoc.document_type);
+                } catch (notifError) {
+                    console.error('Notification error:', notifError);
+                }
+
                 // Prepare transaction data
                 const recoveryFee = (typeof match.lostReport.recovery_fee === 'number' && !isNaN(match.lostReport.recovery_fee)) ? match.lostReport.recovery_fee : 200;
                 const rewardAmount = (typeof match.foundReport.reward_amount === 'number' && !isNaN(match.foundReport.reward_amount)) ? match.foundReport.reward_amount : 100;
@@ -1689,6 +1699,17 @@ window.verifyDocuments = async function(reportId) {
             .update({ status: 'payment_pending' })
             .eq('id', recovered.id);
 
+        // 🔔 Send notifications to both users
+        try {
+            const { data: lostReport } = await supabase.from('reports').select('user_id, collection_point').eq('id', recovered.lost_report_id).single();
+            const { data: foundReport } = await supabase.from('reports').select('user_id').eq('id', recovered.found_report_id).single();
+            
+            if (lostReport) await notifyPaymentRequired(lostReport.user_id, recovered.lost_report_id);
+            if (foundReport && lostReport) await notifyTakeToCollectionPoint(foundReport.user_id, recovered.found_report_id, lostReport.collection_point);
+        } catch (notifError) {
+            console.error('Notification error:', notifError);
+        }
+
         notificationManager.success('Documents verified successfully!');
         populateMyReportsSection('recovered');
         await updateRecoveredCount(); // Update count after verification
@@ -1734,6 +1755,17 @@ window.processPayment = async function(reportId) {
             .from('reports')
             .update({ status: 'completed' })
             .in('id', [recovered.lost_report_id, recovered.found_report_id]);
+
+        // 🔔 Send notifications to both users
+        try {
+            const { data: lostReport } = await supabase.from('reports').select('user_id').eq('id', recovered.lost_report_id).single();
+            const { data: foundReport } = await supabase.from('reports').select('user_id').eq('id', recovered.found_report_id).single();
+            
+            if (lostReport) await notifyLocationRevealed(lostReport.user_id, recovered.lost_report_id);
+            if (foundReport) await notifyRewardAvailable(foundReport.user_id, recovered.found_report_id);
+        } catch (notifError) {
+            console.error('Notification error:', notifError);
+        }
 
         notificationManager.success('Payment processed! Location revealed.');
         populateMyReportsSection('recovered');

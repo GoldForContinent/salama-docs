@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { notifyFoundReportCreated } from './dashboard-notifications.js';
 
 // Enhanced County → Constituency → Chief's Office selection
 const counties = {
@@ -933,6 +934,14 @@ function setupFormSubmission() {
             }
             
             console.log('✅ Report inserted successfully:', report);
+            
+            // 🔔 Send notification to user
+            try {
+                await notifyFoundReportCreated(user.id, report.id, formData.documents[0]?.type || 'document');
+            } catch (notifError) {
+                console.error('Notification error:', notifError);
+                // Don't fail the report creation if notification fails
+            }
             
             // 3. Insert finder details into finder_info table
             const { error: finderError } = await supabase
