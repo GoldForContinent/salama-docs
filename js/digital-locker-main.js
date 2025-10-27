@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { notificationManager } from './notification-manager.js';
 import { 
   DOCUMENT_TYPES, 
   getDocIcon, 
@@ -16,7 +17,6 @@ import {
   searchLockerDocuments,
   getDocumentCount,
   getDocument,
-  showNotification,
   debounce
 } from './locker-helpers.js';
 
@@ -47,7 +47,7 @@ async function initializeApp() {
     updateStatistics();
   } catch (error) {
     console.error('Init error:', error);
-    showNotification('Error initializing app', 'error');
+    notificationManager.error('Error initializing app');
   }
 }
 
@@ -57,7 +57,7 @@ async function loadDocuments() {
     const result = await getUserLockerDocuments(currentUser.id, false);
     
     if (!result.success) {
-      showNotification('Error loading documents', 'error');
+      notificationManager.error('Error loading documents');
       return;
     }
     
@@ -66,7 +66,7 @@ async function loadDocuments() {
     renderDocuments();
   } catch (error) {
     console.error('Load error:', error);
-    showNotification('Error loading documents', 'error');
+    notificationManager.error('Error loading documents');
   }
 }
 
@@ -183,7 +183,7 @@ async function viewDocument(documentId) {
     const result = await getDocument(documentId);
     
     if (!result.success) {
-      showNotification('Error loading document', 'error');
+      notificationManager.error('Error loading document');
       return;
     }
     
@@ -224,7 +224,7 @@ async function viewDocument(documentId) {
     modal.style.display = 'flex';
   } catch (error) {
     console.error('View error:', error);
-    showNotification('Error viewing document', 'error');
+    notificationManager.error('Error viewing document');
   }
 }
 
@@ -233,7 +233,7 @@ async function downloadDocument(documentId) {
     const result = await getDocument(documentId);
     
     if (!result.success) {
-      showNotification('Error loading document', 'error');
+      notificationManager.error('Error loading document');
       return;
     }
     
@@ -246,7 +246,7 @@ async function downloadDocument(documentId) {
     
     if (error) {
       console.error('Download error:', error);
-      showNotification('Error downloading document', 'error');
+      notificationManager.error('Error downloading document');
       return;
     }
     
@@ -260,10 +260,10 @@ async function downloadDocument(documentId) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    showNotification('Document downloaded successfully', 'success');
+    notificationManager.success('Document downloaded successfully');
   } catch (error) {
     console.error('Download error:', error);
-    showNotification('Error downloading document: ' + error.message, 'error');
+    notificationManager.error('Error downloading document: ' + error.message);
   }
 }
 
@@ -276,15 +276,15 @@ async function editDocumentName(documentId, currentName) {
     const result = await updateDocumentName(documentId, newName);
     
     if (!result.success) {
-      showNotification('Error updating document name', 'error');
+      notificationManager.error('Error updating document name');
       return;
     }
     
     await loadDocuments();
-    showNotification('Document name updated', 'success');
+    notificationManager.success('Document name updated');
   } catch (error) {
     console.error('Edit error:', error);
-    showNotification('Error updating document name', 'error');
+    notificationManager.error('Error updating document name');
   }
 }
 
@@ -295,23 +295,23 @@ async function deleteDocument(documentId) {
     const doc = allDocuments.find(d => d.id === documentId);
     
     if (!doc) {
-      showNotification('Document not found', 'error');
+      notificationManager.error('Document not found');
       return;
     }
     
     const result = await deleteLockerDocument(documentId, doc.file_path);
     
     if (!result.success) {
-      showNotification('Error deleting document', 'error');
+      notificationManager.error('Error deleting document');
       return;
     }
     
     await loadDocuments();
     updateStatistics();
-    showNotification('Document deleted', 'success');
+    notificationManager.success('Document deleted');
   } catch (error) {
     console.error('Delete error:', error);
-    showNotification('Error deleting document', 'error');
+    notificationManager.error('Error deleting document');
   }
 }
 
@@ -423,13 +423,13 @@ async function handleUpload(e) {
   const file = fileInput.files[0];
   
   if (!file || !documentType || !documentName) {
-    showNotification('Please fill all fields', 'error');
+    notificationManager.error('Please fill all fields');
     return;
   }
   
   const validation = validateFile(file);
   if (!validation.valid) {
-    showNotification(validation.error, 'error');
+    notificationManager.error(validation.error);
     return;
   }
   
@@ -443,7 +443,7 @@ async function handleUpload(e) {
     const uploadResult = await uploadDocumentToStorage(file, currentUser.id, documentId);
     
     if (!uploadResult.success) {
-      showNotification(uploadResult.error, 'error');
+      notificationManager.error(uploadResult.error);
       uploadBtn.disabled = false;
       uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
       return;
@@ -461,13 +461,13 @@ async function handleUpload(e) {
     
     if (!dbResult.success) {
       await deleteDocumentFromStorage(uploadResult.filePath);
-      showNotification('Error saving document', 'error');
+      notificationManager.error('Error saving document');
       uploadBtn.disabled = false;
       uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
       return;
     }
     
-    showNotification('Document uploaded successfully', 'success');
+    notificationManager.success('Document uploaded successfully');
     closeUploadModal();
     await loadDocuments();
     updateStatistics();
@@ -476,7 +476,7 @@ async function handleUpload(e) {
     uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
   } catch (error) {
     console.error('Upload error:', error);
-    showNotification('Error uploading document', 'error');
+    notificationManager.error('Error uploading document');
     const uploadBtn = e.target.querySelector('button[type="submit"]');
     uploadBtn.disabled = false;
     uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
@@ -538,7 +538,7 @@ function setupFileUpload() {
     if (this.files && this.files.length > 0) {
       const file = this.files[0];
       console.log('File selected:', file.name);
-      showNotification(`✓ File selected: ${file.name}`, 'success');
+      notificationManager.success(`✓ File selected: ${file.name}`);
     }
   };
   

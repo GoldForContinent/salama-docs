@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js';
-import { showNotification, setupNotificationBell } from './notification.js';
+import { notificationManager } from './notification-manager.js';
 
 // Document type mapping for readable names
 const docTypeMap = {
@@ -132,11 +132,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // === Notification Bell Logic ===
-        setupNotificationBell();
+        // === Notification System Initialized ===
+        // Notification manager is now global and ready to use
     } catch (error) {
         console.error('❌ Initialization error:', error);
-        showNotification('Failed to initialize dashboard. Please refresh the page.', 'error');
+        notificationManager.error('Failed to initialize dashboard. Please refresh the page.');
     }
 });
 
@@ -288,7 +288,7 @@ async function handleLogout() {
         });
     } catch (error) {
         console.error('❌ Logout error:', error);
-        showNotification('Error during logout. Please try again.', 'error');
+        notificationManager.error('Error during logout. Please try again.');
     }
 }
 
@@ -310,7 +310,7 @@ window.performLogout = async function(redirectUrl) {
         window.location.href = redirectUrl;
     } catch (error) {
         console.error('❌ Logout error:', error);
-        showNotification('Error during logout. Please try again.', 'error');
+        notificationManager.error('Error during logout. Please try again.');
     }
 };
 
@@ -460,7 +460,7 @@ async function loadUserData() {
 
     } catch (error) {
         console.error('❌ Error loading user data:', error);
-        showNotification('Error loading user data. Please refresh the page.', 'error');
+        notificationManager.error('Error loading user data. Please refresh the page.');
     }
 }
 
@@ -694,7 +694,7 @@ async function updateProfile() {
         // Update UI with new data
         updateUserUI(currentUser, currentProfile);
 
-        showNotification('Profile updated successfully!', 'success');
+        notificationManager.success('Profile updated successfully!');
         closeModal('editProfileModal');
         
     } catch (error) {
@@ -781,7 +781,7 @@ async function changePassword() {
         if (error) throw error;
 
         console.log('✅ Password changed successfully');
-        showNotification('Password changed successfully!', 'success');
+        notificationManager.success('Password changed successfully!');
         closeModal('changePasswordModal');
         
     } catch (error) {
@@ -1115,7 +1115,7 @@ window.runAutomatedMatching = async function() {
         await window.createMissingTransactions();
         console.log(`📊 Processing ${matches.length} matches...`);
         if (matches.length > 0) {
-            showNotification(`Found ${matches.length} potential matches! Check your reports.`, 'success');
+            notificationManager.success(`Found ${matches.length} potential matches! Check your reports.`);
         } else {
             console.log('ℹ️ No new matches found.');
         }
@@ -1451,7 +1451,7 @@ async function populateMyReportsSection(filter = 'all') {
                                 amount: Number(rewardAmount),
                                 created_at: new Date().toISOString()
                             });
-                            showNotification('Reward claimed! Funds will be sent to your phone.', 'success');
+                            notificationManager.success('Reward claimed! Funds will be sent to your phone.');
                             document.getElementById('customModal')?.remove();
                             populateMyReportsSection(filter);
                             await updateRecoveredCount(); // Update count after claiming reward
@@ -1651,7 +1651,7 @@ window.matchReports = async function() {
             }
         }
         
-        showNotification('Matching complete! Check the Recovered tab.', 'success');
+        notificationManager.success('Matching complete! Check the Recovered tab.');
         populateMyReportsSection('recovered');
         await updateRecoveredCount(); // Update count after matching
     } catch (err) {
@@ -1689,12 +1689,12 @@ window.verifyDocuments = async function(reportId) {
             .update({ status: 'payment_pending' })
             .eq('id', recovered.id);
 
-        showNotification('Documents verified successfully!', 'success');
+        notificationManager.success('Documents verified successfully!');
         populateMyReportsSection('recovered');
         await updateRecoveredCount(); // Update count after verification
         closeModal();
     } catch (error) {
-        showNotification('Verification failed: ' + error.message, 'error');
+        notificationManager.error('Verification failed: ' + error.message);
     }
 };
 
@@ -1735,12 +1735,12 @@ window.processPayment = async function(reportId) {
             .update({ status: 'completed' })
             .in('id', [recovered.lost_report_id, recovered.found_report_id]);
 
-        showNotification('Payment processed! Location revealed.', 'success');
+        notificationManager.success('Payment processed! Location revealed.');
         populateMyReportsSection('recovered');
         await updateRecoveredCount(); // Update count after payment
         closeModal();
     } catch (error) {
-        showNotification('Payment failed: ' + error.message, 'error');
+        notificationManager.error('Payment failed: ' + error.message);
     }
 };
 
@@ -1860,7 +1860,7 @@ window.showVerificationModal = async function(reportId) {
         const { data: rec } = await supabase.from('recovered_reports').select('*').or(`lost_report_id.eq.${reportId},found_report_id.eq.${reportId}`).maybeSingle();
         if (!rec) {
             document.getElementById('verificationSpinner')?.remove();
-            showNotification('No matching recovered record found', 'error');
+            notificationManager.error('No matching recovered record found');
             return;
         }
         // Determine the found report (the one that is not the lost report)
@@ -1910,7 +1910,7 @@ window.showVerificationModal = async function(reportId) {
         });
     } catch (error) {
         document.getElementById('verificationSpinner')?.remove();
-        showNotification('Error loading verification details', 'error');
+        notificationManager.error('Error loading verification details');
     }
 };
 
@@ -2241,11 +2241,11 @@ window.clearAllData = async function() {
     refreshPaymentSection();
     
     // Show success notification
-    showNotification('All data cleared successfully! You can now test fresh.', 'success');
+    notificationManager.success('All data cleared successfully! You can now test fresh.');
     
   } catch (error) {
     console.error('❌ Error in clearAllData:', error);
-    showNotification('Error clearing data: ' + error.message, 'error');
+    notificationManager.error('Error clearing data: ' + error.message);
   }
 };
 
