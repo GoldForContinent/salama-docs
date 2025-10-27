@@ -20,10 +20,16 @@ class UnifiedNotificationSystem {
    * Initialize the notification system
    */
   init() {
+    console.log('🚀 Initializing UnifiedNotificationSystem...');
     this.createBell();
+    console.log('✅ Bell created');
     this.createModal();
+    console.log('✅ Modal created');
     this.attachEventListeners();
+    console.log('✅ Event listeners attached');
     this.setupSubscriptions();
+    console.log('✅ Subscriptions setup');
+    console.log('🎉 UnifiedNotificationSystem initialized');
   }
 
   /**
@@ -248,12 +254,28 @@ class UnifiedNotificationSystem {
   async open() {
     console.log('🔔 Opening notification modal...');
     const modal = document.getElementById('notificationModal');
-    if (modal) {
+    if (!modal) {
+      console.error('❌ Modal element not found!');
+      return;
+    }
+
+    try {
       console.log('Modal element found, fetching notifications...');
       await this.fetchNotifications();
-      console.log('Notifications fetched, rendering...');
+      console.log('Notifications fetched:', this.notifications.length);
+      
+      // Make sure modal is visible before rendering
       modal.classList.add('active');
       this.isOpen = true;
+      
+      // Ensure list element exists
+      const list = document.getElementById('notificationList');
+      if (!list) {
+        console.error('❌ Notification list element not found!');
+        return;
+      }
+      
+      console.log('Rendering notifications...');
       this.render();
       console.log('✅ Modal opened and rendered');
 
@@ -262,8 +284,8 @@ class UnifiedNotificationSystem {
       if (searchInput) {
         setTimeout(() => searchInput.focus(), 100);
       }
-    } else {
-      console.error('❌ Modal element not found!');
+    } catch (error) {
+      console.error('Error opening modal:', error);
     }
   }
 
@@ -284,11 +306,14 @@ class UnifiedNotificationSystem {
   render(searchQuery = '') {
     const list = document.getElementById('notificationList');
     if (!list) {
-      console.warn('Notification list element not found');
+      console.error('❌ Notification list element not found');
       return;
     }
 
-    let notifications = this.notifications;
+    console.log('🎨 Starting render. Total notifications:', this.notifications.length);
+    console.log('Notifications data:', this.notifications);
+
+    let notifications = [...this.notifications]; // Create copy
     console.log('🎨 Rendering notifications. Total:', notifications.length, 'Filter:', this.currentFilter);
 
     // Filter by type
@@ -318,8 +343,16 @@ class UnifiedNotificationSystem {
     }
 
     console.log('Rendering', notifications.length, 'notifications');
-    list.innerHTML = notifications.map(n => this.renderNotification(n)).join('');
+    const html = notifications.map(n => {
+      console.log('Creating HTML for notification:', n.id, n.message);
+      return this.renderNotification(n);
+    }).join('');
+    
+    console.log('Setting innerHTML with', html.length, 'characters');
+    list.innerHTML = html;
+    console.log('HTML set, attaching listeners...');
     this.attachItemListeners();
+    console.log('✅ Render complete');
   }
 
   /**
