@@ -41,13 +41,18 @@
                 <input type="text" id="searchInput" placeholder="Search documents by name...">
             </div>
 
-            <div class="view-controls">
-                <button class="view-btn active" id="gridViewBtn" onclick="toggleViewMode('grid')" title="Grid View">
-                    <i class="fas fa-th"></i>
+            <div class="controls-right">
+                <button class="btn-primary" onclick="openUploadModal()" title="Upload Document">
+                    <i class="fas fa-upload"></i> Upload Document
                 </button>
-                <button class="view-btn" id="listViewBtn" onclick="toggleViewMode('list')" title="List View">
-                    <i class="fas fa-list"></i>
-                </button>
+                <div class="view-controls">
+                    <button class="view-btn active" id="gridViewBtn" onclick="toggleViewMode('grid')" title="Grid View">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-btn" id="listViewBtn" onclick="toggleViewMode('list')" title="List View">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
             </div>
         </section>
 
