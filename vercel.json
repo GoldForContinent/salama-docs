@@ -1,0 +1,28 @@
+{
+  "buildCommand": "echo 'Static site'",
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/reportlost",
+      "destination": "/reportlost.html"
+    },
+    {
+      "source": "/reportfound",
+      "destination": "/reportfound.html"
+    },
+    {
+      "source": "/digital-locker",
+      "destination": "/digital-locker.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/$1.html"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}
