@@ -36,6 +36,22 @@ class NotificationCenterUI {
     `;
     bell.addEventListener('click', () => this.toggle());
 
+    // Try to add next to profile dropdown (preferred location)
+    const profileDropdown = document.getElementById('profileDropdownBtn');
+    if (profileDropdown && profileDropdown.parentNode) {
+      profileDropdown.parentNode.insertBefore(bell, profileDropdown);
+      return;
+    }
+
+    // Try to add to header top-right area
+    const headerRight = document.querySelector('.header-right') ||
+                        document.querySelector('.top-right') ||
+                        document.querySelector('.navbar-right');
+    if (headerRight) {
+      headerRight.appendChild(bell);
+      return;
+    }
+
     // Try to add to header
     const header = document.querySelector('.header') || 
                    document.querySelector('header') ||
@@ -44,10 +60,11 @@ class NotificationCenterUI {
 
     if (header) {
       header.appendChild(bell);
-    } else {
-      // Fallback: add to body
-      document.body.appendChild(bell);
+      return;
     }
+
+    // Fallback: add to body
+    document.body.appendChild(bell);
   }
 
   /**
