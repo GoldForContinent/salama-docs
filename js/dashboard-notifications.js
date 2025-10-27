@@ -39,13 +39,17 @@ class DashboardNotificationsService {
         .insert({
           user_id: userId,
           message: message,
+          type: type,
           status: 'unread',
-          related_report_id: reportId
+          related_report_id: reportId,
+          created_at: new Date().toISOString()
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      console.log('✅ Notification created:', message, 'Type:', type);
 
       // Also show toast notification
       if (window.notificationManager) {

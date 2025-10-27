@@ -209,7 +209,10 @@ class UnifiedNotificationSystem {
   async fetchNotifications() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.warn('No user logged in');
+        return;
+      }
 
       const { data, error } = await supabase
         .from('notifications')
@@ -221,6 +224,7 @@ class UnifiedNotificationSystem {
       if (error) throw error;
 
       this.notifications = data || [];
+      console.log('📬 Fetched notifications:', this.notifications.length, this.notifications);
       this.updateBadge();
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -242,18 +246,24 @@ class UnifiedNotificationSystem {
    * Open modal
    */
   async open() {
+    console.log('🔔 Opening notification modal...');
     const modal = document.getElementById('notificationModal');
     if (modal) {
+      console.log('Modal element found, fetching notifications...');
       await this.fetchNotifications();
+      console.log('Notifications fetched, rendering...');
       modal.classList.add('active');
       this.isOpen = true;
       this.render();
+      console.log('✅ Modal opened and rendered');
 
       // Focus search
       const searchInput = document.getElementById('notificationSearch');
       if (searchInput) {
         setTimeout(() => searchInput.focus(), 100);
       }
+    } else {
+      console.error('❌ Modal element not found!');
     }
   }
 
@@ -273,13 +283,18 @@ class UnifiedNotificationSystem {
    */
   render(searchQuery = '') {
     const list = document.getElementById('notificationList');
-    if (!list) return;
+    if (!list) {
+      console.warn('Notification list element not found');
+      return;
+    }
 
     let notifications = this.notifications;
+    console.log('🎨 Rendering notifications. Total:', notifications.length, 'Filter:', this.currentFilter);
 
     // Filter by type
     if (this.currentFilter !== 'all') {
       notifications = notifications.filter(n => n.type === this.currentFilter);
+      console.log('After type filter:', notifications.length);
     }
 
     // Filter by search
@@ -287,9 +302,11 @@ class UnifiedNotificationSystem {
       notifications = notifications.filter(n =>
         n.message.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      console.log('After search filter:', notifications.length);
     }
 
     if (notifications.length === 0) {
+      console.log('No notifications to display');
       list.innerHTML = `
         <div class="notification-modal-empty">
           <i class="fas fa-inbox"></i>
@@ -300,6 +317,7 @@ class UnifiedNotificationSystem {
       return;
     }
 
+    console.log('Rendering', notifications.length, 'notifications');
     list.innerHTML = notifications.map(n => this.renderNotification(n)).join('');
     this.attachItemListeners();
   }
@@ -318,6 +336,14 @@ class UnifiedNotificationSystem {
     const type = notification.type || 'info';
     const isUnread = notification.status === 'unread';
     const time = this.formatRelativeTime(notification.created_at);
+
+    console.log('📝 Rendering notification:', {
+      id: notification.id,
+      message: notification.message,
+      type: type,
+      status: notification.status,
+      icon: icons[type]
+    });
 
     return `
       <div class="notification-modal-item ${type} ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
