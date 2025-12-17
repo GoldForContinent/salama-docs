@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { notificationManager } from './notification-manager.js';
 import { notifyPotentialMatch, notifyPaymentRequired, notifyTakeToCollectionPoint, notifyLocationRevealed, notifyRewardAvailable } from './dashboard-notifications.js';
+import { getCachedUserReports, getCachedUserProfile, invalidateUserReports, invalidateUserProfile, invalidateDashboardStats } from './cache.js';
 
 // Document type mapping for readable names
 const docTypeMap = {
@@ -74,6 +75,12 @@ const elements = {
 // Global variable to store current user data
 let currentUser = null;
 let currentProfile = null;
+
+// Pagination state
+let currentPage = 0;
+const PAGE_SIZE = 20; // Load 20 reports per page
+let totalReportsCount = 0;
+let currentFilter = 'all';
 
 // Initialize the dashboard
 let hasRunInitialMatching = false;
@@ -423,36 +430,46 @@ async function loadUserData() {
         window.currentUser = user; // Set global user context for payments.js
         console.log('✅ Current user loaded:', user.email);
 
-        // Get user profile with comprehensive error handling
+        // Get user profile with caching
         let profile;
         try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', user.id)
-                .single();
+            profile = await getCachedUserProfile(user.id, async () => {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
 
-            if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
-            profile = data;
-            console.log('✅ Profile found:', profile);
+                if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+                return data;
+            });
+
+            if (!profile) {
+                console.log('📝 Profile not found, creating default profile...');
+                // Create default profile if doesn't exist
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .insert([{ 
+                        user_id: user.id,
+                        email: user.email,
+                        full_name: user.email.split('@')[0],
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+                profile = data;
+                console.log('✅ Default profile created:', profile);
+                // Invalidate cache so next time it's fresh
+                invalidateUserProfile(user.id);
+            } else {
+                console.log('✅ Profile found (from cache or DB):', profile);
+            }
         } catch (profileError) {
-            console.log('📝 Profile not found, creating default profile...');
-            // Create default profile if doesn't exist
-            const { data, error } = await supabase
-                .from('profiles')
-                .insert([{ 
-                    user_id: user.id,
-                    email: user.email,
-                    full_name: user.email.split('@')[0],
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                }])
-                .select()
-                .single();
-
-            if (error) throw error;
-            profile = data;
-            console.log('✅ Default profile created:', profile);
+            console.error('❌ Error loading profile:', profileError);
+            throw profileError;
         }
 
         currentProfile = profile;
@@ -685,6 +702,10 @@ async function updateProfile() {
         }
 
         console.log('✅ Profile updated successfully in database:', data);
+
+        // Invalidate profile cache since it was updated
+        invalidateUserProfile(currentUser.id);
+        console.log('🗑️ Invalidated profile cache after update');
 
         // Update current profile data
         currentProfile = { ...currentProfile, ...updateData };
@@ -1036,6 +1057,10 @@ window.runAutomatedMatching = async function() {
                 // Update both reports to potential_match
                 await supabase.from('reports').update({ status: 'potential_match' }).eq('id', match.lostReport.id);
                 await supabase.from('reports').update({ status: 'potential_match' }).eq('id', match.foundReport.id);
+                
+                // Invalidate cache for both users since reports were updated
+                if (match.lostReport.user_id) invalidateUserReports(match.lostReport.user_id);
+                if (match.foundReport.user_id) invalidateUserReports(match.foundReport.user_id);
                 // Insert into recovered_reports
                 await supabase.from('recovered_reports').insert({
                     lost_report_id: match.lostReport.id,
@@ -1135,37 +1160,82 @@ window.runAutomatedMatching = async function() {
 };
 
 // Fetch all reports and their documents for the current user
-async function loadUserReportsAndDocuments() {
-    if (!currentUser) return { reports: [], documents: [] };
-    // Fetch reports
-    const { data: reports, error: reportsError } = await supabase
-        .from('reports')
-        .select('*, report_documents(*)')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
-    if (reportsError) {
-        console.error('Error fetching reports:', reportsError);
-        return { reports: [], documents: [] };
-    }
-    // Flatten documents
-    let allDocuments = [];
-    reports.forEach(r => {
-        if (r.report_documents && Array.isArray(r.report_documents)) {
-            allDocuments = allDocuments.concat(r.report_documents.map(d => ({ ...d, report_type: r.report_type, report_status: r.status, report_id: r.id, created_at: r.created_at })));
+async function loadUserReportsAndDocuments(page = 0) {
+    if (!currentUser) return { reports: [], documents: [], total: 0 };
+    
+    // Use cached reports with fetch function
+    const result = await getCachedUserReports(currentUser.id, page, async () => {
+        // Get total count first (for pagination info)
+        const { count, error: countError } = await supabase
+            .from('reports')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', currentUser.id);
+        
+        if (countError) {
+            console.error('Error counting reports:', countError);
+            return { reports: [], documents: [], total: 0, page, hasMore: false };
         }
+        
+        totalReportsCount = count || 0;
+        
+        // Fetch paginated reports
+        const { data: reports, error: reportsError } = await supabase
+            .from('reports')
+            .select('*, report_documents(*)')
+            .eq('user_id', currentUser.id)
+            .order('created_at', { ascending: false })
+            .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        
+        if (reportsError) {
+            console.error('Error fetching reports:', reportsError);
+            return { reports: [], documents: [], total: count || 0, page, hasMore: false };
+        }
+        
+        // Flatten documents
+        let allDocuments = [];
+        reports.forEach(r => {
+            if (r.report_documents && Array.isArray(r.report_documents)) {
+                allDocuments = allDocuments.concat(r.report_documents.map(d => ({ ...d, report_type: r.report_type, report_status: r.status, report_id: r.id, created_at: r.created_at })));
+            }
+        });
+        
+        return { 
+            reports: reports || [], 
+            documents: allDocuments,
+            total: count || 0,
+            page,
+            hasMore: (page + 1) * PAGE_SIZE < (count || 0)
+        };
     });
-    return { reports, documents: allDocuments };
+    
+    return result;
 }
 
-async function populateMyReportsSection(filter = 'all') {
-    // Run matching logic before rendering reports
-    if (typeof window.runAutomatedMatching === 'function') {
-        await window.runAutomatedMatching();
+async function populateMyReportsSection(filter = 'all', page = 0) {
+    // Reset to page 0 if filter changed
+    if (filter !== currentFilter) {
+        page = 0;
+        currentPage = 0;
+        currentFilter = filter;
+    } else {
+        currentPage = page;
     }
-    const { reports } = await loadUserReportsAndDocuments();
+    
     const container = document.getElementById('allReports');
     if (!container) return;
+    
+    // Show loading state
+    container.innerHTML = '<div style="text-align:center;padding:40px;"><div style="display:inline-block;width:40px;height:40px;border:4px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;"></div><p style="margin-top:16px;color:#666;">Loading reports...</p></div>';
+    
+    // Run matching logic before rendering reports (only on first page load, not on pagination)
+    if (page === 0 && typeof window.runAutomatedMatching === 'function') {
+        await window.runAutomatedMatching();
+    }
+    
+    const { reports, total, hasMore } = await loadUserReportsAndDocuments(page);
+    
     container.innerHTML = '';
+    
     // Deduplicate reports by ID
     const uniqueReportsMap = new Map();
     reports.forEach(r => {
@@ -1174,6 +1244,8 @@ async function populateMyReportsSection(filter = 'all') {
         }
     });
     let filteredReports = Array.from(uniqueReportsMap.values());
+    
+    // Apply filters (client-side filtering for current page)
     if (filter === 'lost') filteredReports = filteredReports.filter(r => r.report_type === 'lost');
     if (filter === 'found') filteredReports = filteredReports.filter(r => r.report_type === 'found');
     if (filter === 'completed') filteredReports = filteredReports.filter(r => r.status === 'completed');
@@ -1463,7 +1535,7 @@ async function populateMyReportsSection(filter = 'all') {
                             });
                             notificationManager.success('Reward claimed! Funds will be sent to your phone.');
                             document.getElementById('customModal')?.remove();
-                            populateMyReportsSection(filter);
+                            populateMyReportsSection(filter, currentPage); // Keep current page
                             await updateRecoveredCount(); // Update count after claiming reward
                         }
                     },
@@ -1476,7 +1548,70 @@ async function populateMyReportsSection(filter = 'all') {
             });
         });
     });
+    
+    // Add pagination controls (only for non-recovered filters and if there are more reports)
+    if (filter !== 'recovered' && total > PAGE_SIZE) {
+        const paginationDiv = createPaginationControls(page, total, hasMore, filter);
+        container.appendChild(paginationDiv);
+    }
 }
+
+// Create pagination controls
+function createPaginationControls(currentPage, total, hasMore, filter) {
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'pagination-container';
+    paginationDiv.style.cssText = 'display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin: 2rem 0; padding: 1.5rem; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);';
+    
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    
+    paginationDiv.innerHTML = `
+        <button 
+            onclick="loadPreviousPage('${filter}')" 
+            ${currentPage === 0 ? 'disabled' : ''}
+            class="pagination-btn pagination-btn-prev"
+            style="padding: 0.75rem 1.5rem; background: ${currentPage === 0 ? '#ccc' : 'var(--button-bg)'}; color: white; border: none; border-radius: 6px; cursor: ${currentPage === 0 ? 'not-allowed' : 'pointer'}; font-size: 0.95rem; font-weight: 500; transition: all 0.3s ease; opacity: ${currentPage === 0 ? '0.6' : '1'}; display: flex; align-items: center; gap: 0.5rem;"
+        >
+            <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <span class="pagination-info" style="font-size: 0.95rem; color: var(--secondary-text); font-weight: 500;">
+            Page <strong style="color: var(--text-color);">${currentPage + 1}</strong> of <strong style="color: var(--text-color);">${totalPages}</strong>
+            <span style="color: var(--secondary-text); margin-left: 0.5rem;">(${total} total)</span>
+        </span>
+        <button 
+            onclick="loadNextPage('${filter}')" 
+            ${!hasMore ? 'disabled' : ''}
+            class="pagination-btn pagination-btn-next"
+            style="padding: 0.75rem 1.5rem; background: ${!hasMore ? '#ccc' : 'var(--button-bg)'}; color: white; border: none; border-radius: 6px; cursor: ${!hasMore ? 'not-allowed' : 'pointer'}; font-size: 0.95rem; font-weight: 500; transition: all 0.3s ease; opacity: ${!hasMore ? '0.6' : '1'}; display: flex; align-items: center; gap: 0.5rem;"
+        >
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    return paginationDiv;
+}
+
+// Pagination navigation functions
+window.loadNextPage = async function(filter = currentFilter) {
+    const newPage = currentPage + 1;
+    await populateMyReportsSection(filter, newPage);
+    // Scroll to top of reports section
+    const container = document.getElementById('allReports');
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+window.loadPreviousPage = async function(filter = currentFilter) {
+    if (currentPage > 0) {
+        const newPage = currentPage - 1;
+        await populateMyReportsSection(filter, newPage);
+        // Scroll to top of reports section
+        const container = document.getElementById('allReports');
+        if (container) {
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+};
 
 // ... existing code after populateMyReportsSection ...
 
@@ -1499,7 +1634,7 @@ function setupReportFilters() {
             // Debounce filter changes
             clearTimeout(filterDebounceTimer);
             filterDebounceTimer = setTimeout(() => {
-                populateMyReportsSection(filter);
+                populateMyReportsSection(filter, 0); // Reset to page 0 when filter changes
             }, 100);
         });
     });
