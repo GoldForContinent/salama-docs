@@ -343,12 +343,15 @@
       sectionObserver.observe(section);
     });
 
-    // Add loading animation for page load
+    // Add loading animation for page load (temporarily disabled)
+    /*
     window.addEventListener('load', function() {
       document.body.classList.add('loaded');
     });
+    */
 
-    // Performance optimization: Lazy load images
+    // Performance optimization: Lazy load images (temporarily disabled)
+    /*
     if ('IntersectionObserver' in window) {
       const imageObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -365,3 +368,4 @@
         imageObserver.observe(img);
       });
     }
+    */

@@ -34,7 +34,7 @@
     body {
       font-family: 'Open Sans', sans-serif;
       background: linear-gradient(135deg, var(--light) 0%, #f0f2f5 100%);
-      color: var(--dark);
+      color: #121212; /* Explicit color instead of CSS variable for debugging */
       line-height: 1.7;
       overflow-x: hidden;
       font-feature-settings: 'kern' 1, 'liga' 1;
@@ -54,6 +54,7 @@
       line-height: 1.2;
       letter-spacing: -0.02em;
       margin-bottom: 1rem;
+      color: #121212; /* Explicit color for visibility */
     }
 
     .section {
@@ -71,12 +72,13 @@
     .section-title h2 {
       font-size: 3rem;
       margin-bottom: 20px;
-      color: var(--dark);
-      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #121212; /* Explicit color for visibility */
       position: relative;
+    }
+
+    .section-title h2 .highlight {
+      color: var(--primary);
+      font-weight: 800;
     }
 
     .section-title h2::after {
@@ -1901,7 +1903,8 @@
       }
     }
 
-    /* Page Load Animation */
+    /* Page Load Animation - Disabled for now to prevent visibility issues */
+    /*
     body {
       opacity: 0;
       animation: pageLoad 0.8s ease-out 0.2s forwards;
@@ -1915,6 +1918,7 @@
       from { opacity: 0; }
       to { opacity: 1; }
     }
+    */
 
     /* Enhanced hover effects */
     .step-card, .document-card, .feature {
