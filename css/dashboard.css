@@ -95,6 +95,12 @@ html, body {
   margin-right: 10px;
 }
 
+.logo img {
+  height: 40px;
+  width: auto;
+  margin-right: 10px;
+}
+
 .logo h2 {
   font-size: 20px;
 }
@@ -2103,8 +2109,16 @@ body.dark-mode .payment-table td {
 
 /* ===== COMPREHENSIVE MOBILE RESPONSIVE IMPROVEMENTS ===== */
 
+/* Mobile Menu Toggle Button */
+#mobileMenuToggle {
+  display: none;
+}
+
 /* Mobile Navigation - Add mobile menu toggle */
 @media (max-width: 768px) {
+  #mobileMenuToggle {
+    display: flex;
+  }
   .dashboard-container {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;

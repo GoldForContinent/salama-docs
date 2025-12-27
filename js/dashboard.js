@@ -1052,6 +1052,16 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Make functions available to HTML onclick handlers
+// Mobile sidebar toggle function
+function toggleMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('mobile-open');
+    }
+}
+
+// Make function globally available
+window.toggleMobileSidebar = toggleMobileSidebar;
 window.showSection = showSection;
 window.openModal = openModal;
 window.closeModal = closeModal;
