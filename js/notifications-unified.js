@@ -761,6 +761,8 @@ class UnifiedNotificationSystem {
    * Create notification in Supabase
    */
   static async createNotification(userId, message, options = {}) {
+    console.log('🔔 Attempting to create notification:', { userId, message, options });
+
     const {
       type = 'info',
       priority = 'medium',
@@ -787,16 +789,31 @@ class UnifiedNotificationSystem {
         notificationData.expires_at = expiresAt;
       }
 
-      const { error } = await supabase
-        .from('notifications')
-        .insert(notificationData);
+      console.log('📝 Inserting notification data:', notificationData);
 
-      if (error) throw error;
-      console.log('✅ Notification created:', message, { type, action });
+      const { data, error } = await supabase
+        .from('notifications')
+        .insert(notificationData)
+        .select();
+
+      if (error) {
+        console.error('❌ Supabase insert error:', error);
+        throw error;
+      }
+
+      console.log('✅ Notification created successfully:', data);
       return true;
     } catch (error) {
       console.error('❌ Error creating notification:', error);
-      return false;
+      console.error('❌ Error details:', {
+        userId,
+        message: message.substring(0, 100),
+        options,
+        error: error.message,
+        code: error.code
+      });
+      // Don't return false, throw the error so calling code knows it failed
+      throw error;
     }
   }
 
@@ -824,7 +841,7 @@ class UnifiedNotificationSystem {
       this.currentUser = user;
       this.createBell();
       this.createModal();
-      this.attachEventListeners();
+      this.attachModalListeners();
 
       // Fetch notifications for the newly logged in user
       await this.fetchNotifications();

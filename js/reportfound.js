@@ -934,14 +934,16 @@ function setupFormSubmission() {
             }
             
             console.log('✅ Report inserted successfully:', report);
-            
+
             // 🔔 Send notification to user
+            console.log('📤 About to create notification for found report:', { userId: user.id, reportId: report.id, userEmail: user.email });
             try {
-                await UnifiedNotificationSystem.createNotification(
+                const notifResult = await UnifiedNotificationSystem.createNotification(
                     user.id,
                     `📋 Your found ${formData.documents[0]?.type || 'document'} report has been registered. You'll be notified when the owner reports a lost document and we find a match.`,
                     { type: 'info', reportId: report.id }
                 );
+                console.log('📤 Notification creation result:', notifResult);
             } catch (notifError) {
                 console.error('Notification error:', notifError);
                 // Don't fail the report creation if notification fails
