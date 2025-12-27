@@ -1,5 +1,4 @@
- // Initialize AOS (Animate On Scroll) - Temporarily disabled to prevent text flickering
-    /*
+ // Initialize AOS (Animate On Scroll)
     AOS.init({
       duration: 1000,
       easing: 'ease-out-cubic',
@@ -8,7 +7,6 @@
       offset: 100,
       delay: 100
     });
-    */
 
     // Modern scroll-based header effects
     let lastScrollTop = 0;
@@ -31,16 +29,6 @@
       }
 
       lastScrollTop = scrollTop;
-    });
-    
-    // Header scroll effect
-    const header = document.getElementById('header');
-    window.addEventListener('scroll', function() {
-      if (window.scrollY > 100) {
-        header.classList.add('scrolled');
-      } else {
-        header.classList.remove('scrolled');
-      }
     });
     
     // Mobile Navigation Toggle
