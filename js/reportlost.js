@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js';
-import { notifyLostReportCreated } from './dashboard-notifications.js';
+import { UnifiedNotificationSystem } from './notifications-unified.js';
 
 let documentCounter = 1;
 let selectedTimeline = 'today';
@@ -309,7 +309,11 @@ async function handleFormSubmit(e) {
 
         // 🔔 Send notification to user
         try {
-            await notifyLostReportCreated(user.id, report.id, formData.documents[0]?.typeName || 'document');
+            await UnifiedNotificationSystem.createNotification(
+                user.id,
+                `🔍 Search started for your lost ${formData.documents[0]?.typeName || 'document'}. We'll notify you when we find a match.`,
+                { type: 'info', reportId: report.id }
+            );
         } catch (notifError) {
             console.error('Notification error:', notifError);
             // Don't fail the report creation if notification fails

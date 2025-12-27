@@ -271,26 +271,13 @@ class NotificationManager {
 // Create global instance
 const notificationManager = new NotificationManager();
 
-// Hook into notification creation to save to history
-const originalShow = notificationManager.show.bind(notificationManager);
-notificationManager.show = function(message, options = {}) {
-  const id = originalShow(message, options);
-  
-  // Save to notification center history if available
-  if (typeof window.notificationCenter !== 'undefined') {
-    const notification = this.getById(id);
-    if (notification) {
-      window.notificationCenter.addNotification(notification);
-    }
-  }
-  
-  return id;
-};
+// Notifications are now handled by UnifiedNotificationSystem
+// Toast notifications are handled separately from persistent notifications
 
 // Export for ES6 modules
 export { notificationManager, NotificationManager };
 
-// Attach to window for global access
+// Attach to window for global access (toast notifications only)
 window.notificationManager = notificationManager;
 
 /**

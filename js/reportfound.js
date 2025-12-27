@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js';
-import { notifyFoundReportCreated } from './dashboard-notifications.js';
+import { UnifiedNotificationSystem } from './notifications-unified.js';
 
 // Enhanced County → Constituency → Chief's Office selection
 const counties = {
@@ -937,7 +937,11 @@ function setupFormSubmission() {
             
             // 🔔 Send notification to user
             try {
-                await notifyFoundReportCreated(user.id, report.id, formData.documents[0]?.type || 'document');
+                await UnifiedNotificationSystem.createNotification(
+                    user.id,
+                    `📋 Your found ${formData.documents[0]?.type || 'document'} report has been registered. You'll be notified when the owner reports a lost document and we find a match.`,
+                    { type: 'info', reportId: report.id }
+                );
             } catch (notifError) {
                 console.error('Notification error:', notifError);
                 // Don't fail the report creation if notification fails

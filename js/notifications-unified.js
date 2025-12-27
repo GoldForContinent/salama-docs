@@ -1,9 +1,10 @@
 /**
  * UNIFIED NOTIFICATION SYSTEM
- * Single file handling all notifications for the dashboard
- * - Creates notifications in Supabase
- * - Displays notification modal
- * - Manages notification center
+ * Single comprehensive notification system for the dashboard
+ * - Creates and manages notifications in Supabase
+ * - Displays toast notifications and modal notification center
+ * - Handles real-time subscriptions
+ * - Manages notification badges and UI state
  */
 
 import { supabase } from './supabase.js';
@@ -13,22 +14,35 @@ class UnifiedNotificationSystem {
     this.isOpen = false;
     this.currentFilter = 'all';
     this.notifications = [];
+    this.currentUser = null;
+    this.subscriptions = [];
+    this.badgeElement = null;
     this.init();
   }
 
   /**
    * Initialize the notification system
    */
-  init() {
+  async init() {
     console.log('🚀 Initializing UnifiedNotificationSystem...');
-    this.createBell();
-    console.log('✅ Bell created');
-    this.createModal();
-    console.log('✅ Modal created');
-    this.attachEventListeners();
-    console.log('✅ Event listeners attached');
-    this.setupSubscriptions();
-    console.log('✅ Subscriptions setup');
+
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    this.currentUser = user;
+
+    if (this.currentUser) {
+      this.createBell();
+      console.log('✅ Bell created');
+      this.createModal();
+      console.log('✅ Modal created');
+      this.attachEventListeners();
+      console.log('✅ Event listeners attached');
+      await this.setupSubscriptions();
+      console.log('✅ Subscriptions setup');
+      await this.fetchNotifications();
+      console.log('✅ Initial notifications fetched');
+    }
+
     console.log('🎉 UnifiedNotificationSystem initialized');
   }
 
@@ -45,7 +59,7 @@ class UnifiedNotificationSystem {
     bell.className = 'notification-bell';
     bell.innerHTML = `
       <i class="fas fa-bell"></i>
-      <span class="notification-badge">0</span>
+      <span class="notification-badge" id="topNotificationCount">0</span>
     `;
     bell.addEventListener('click', () => this.toggle());
 
@@ -53,6 +67,7 @@ class UnifiedNotificationSystem {
     const profileDropdown = document.getElementById('profileDropdownBtn');
     if (profileDropdown && profileDropdown.parentNode) {
       profileDropdown.parentNode.insertBefore(bell, profileDropdown);
+      this.badgeElement = bell.querySelector('.notification-badge');
     }
   }
 
@@ -191,49 +206,111 @@ class UnifiedNotificationSystem {
   /**
    * Setup real-time subscriptions
    */
-  setupSubscriptions() {
-    // Subscribe to notifications table changes
-    supabase
-      .channel('notifications-channel')
+  async setupSubscriptions() {
+    if (!this.currentUser) return;
+
+    // Clean up existing subscriptions
+    this.cleanupSubscriptions();
+
+    // Subscribe to user-specific notifications
+    const userSubscription = supabase
+      .channel(`notifications:${this.currentUser.id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'notifications'
+          table: 'notifications',
+          filter: `user_id=eq.${this.currentUser.id}`
         },
-        () => {
-          this.fetchNotifications();
+        (payload) => {
+          console.log('🔔 Real-time notification update:', payload);
+          this.handleRealtimeUpdate(payload);
         }
       )
       .subscribe();
+
+    this.subscriptions.push(userSubscription);
+  }
+
+  /**
+   * Handle real-time notification updates
+   */
+  async handleRealtimeUpdate(payload) {
+    console.log('🔄 Handling real-time update:', payload.eventType);
+
+    switch (payload.eventType) {
+      case 'INSERT':
+        // Add new notification to the list
+        this.notifications.unshift(payload.new);
+        this.showToast(payload.new);
+        break;
+      case 'UPDATE':
+        // Update existing notification
+        const index = this.notifications.findIndex(n => n.id === payload.new.id);
+        if (index !== -1) {
+          this.notifications[index] = payload.new;
+        }
+        break;
+      case 'DELETE':
+        // Remove notification from list
+        this.notifications = this.notifications.filter(n => n.id !== payload.old.id);
+        break;
+    }
+
+    // Update UI
+    this.updateBadge();
+    if (this.isOpen) {
+      this.render();
+    }
+  }
+
+  /**
+   * Show toast notification for new notifications
+   */
+  showToast(notification) {
+    // Import and use the notification manager for toasts
+    if (window.notificationManager) {
+      const type = notification.type || 'info';
+      window.notificationManager[type](notification.message);
+    }
+  }
+
+  /**
+   * Cleanup subscriptions
+   */
+  cleanupSubscriptions() {
+    this.subscriptions.forEach(sub => {
+      supabase.removeChannel(sub);
+    });
+    this.subscriptions = [];
   }
 
   /**
    * Fetch notifications from Supabase
    */
   async fetchNotifications() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.warn('No user logged in');
-        return;
-      }
+    if (!this.currentUser) {
+      console.warn('No user logged in for notifications');
+      return;
+    }
 
+    try {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', this.currentUser.id)
         .neq('status', 'deleted')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       this.notifications = data || [];
-      console.log('📬 Fetched notifications:', this.notifications.length, this.notifications);
+      console.log('📬 Fetched notifications:', this.notifications.length);
       this.updateBadge();
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      this.notifications = [];
     }
   }
 
@@ -369,14 +446,7 @@ class UnifiedNotificationSystem {
     const type = notification.type || 'info';
     const isUnread = notification.status === 'unread';
     const time = this.formatRelativeTime(notification.created_at);
-
-    console.log('📝 Rendering notification:', {
-      id: notification.id,
-      message: notification.message,
-      type: type,
-      status: notification.status,
-      icon: icons[type]
-    });
+    const hasAction = notification.notification_action && notification.action_data;
 
     return `
       <div class="notification-modal-item ${type} ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
@@ -386,8 +456,14 @@ class UnifiedNotificationSystem {
         <div class="notification-modal-item-content">
           <p class="notification-modal-item-message">${this.escapeHtml(notification.message)}</p>
           <p class="notification-modal-item-time">${time}</p>
+          ${hasAction ? `<div class="notification-modal-item-action-hint">Click to take action</div>` : ''}
         </div>
         <div class="notification-modal-item-actions">
+          ${hasAction ? `
+            <button class="notification-modal-item-btn action" title="${notification.notification_action}" data-id="${notification.id}" data-action="${notification.notification_action}" data-action-data="${this.escapeHtml(JSON.stringify(notification.action_data || {}))}">
+              <i class="fas fa-external-link-alt"></i>
+            </button>
+          ` : ''}
           ${isUnread ? `
             <button class="notification-modal-item-btn mark-read" title="Mark as read" data-id="${notification.id}">
               <i class="fas fa-envelope-open"></i>
@@ -414,6 +490,28 @@ class UnifiedNotificationSystem {
     items.forEach(item => {
       const id = item.dataset.id;
 
+      // Handle item click for actions
+      item.addEventListener('click', (e) => {
+        // Don't trigger if clicking on action buttons
+        if (e.target.closest('.notification-modal-item-actions')) {
+          return;
+        }
+
+        const actionBtn = item.querySelector('.action');
+        if (actionBtn) {
+          this.handleNotificationAction(actionBtn.dataset.action, actionBtn.dataset.actionData);
+        }
+      });
+
+      // Action button
+      const actionBtn = item.querySelector('.action');
+      if (actionBtn) {
+        actionBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.handleNotificationAction(actionBtn.dataset.action, actionBtn.dataset.actionData);
+        });
+      }
+
       // Mark as read/unread
       const markBtn = item.querySelector('.mark-read, .mark-unread');
       if (markBtn) {
@@ -428,8 +526,13 @@ class UnifiedNotificationSystem {
               .update({ status: newStatus })
               .eq('id', id);
 
-            await this.fetchNotifications();
-            this.render();
+            // Update local state without refetching
+            const notification = this.notifications.find(n => n.id === id);
+            if (notification) {
+              notification.status = newStatus;
+              this.updateBadge();
+              this.render();
+            }
           } catch (error) {
             console.error('Error updating notification:', error);
           }
@@ -447,7 +550,9 @@ class UnifiedNotificationSystem {
               .update({ status: 'deleted' })
               .eq('id', id);
 
-            await this.fetchNotifications();
+            // Update local state without refetching
+            this.notifications = this.notifications.filter(n => n.id !== id);
+            this.updateBadge();
             this.render();
           } catch (error) {
             console.error('Error deleting notification:', error);
@@ -455,6 +560,52 @@ class UnifiedNotificationSystem {
         });
       }
     });
+  }
+
+  /**
+   * Handle notification action
+   */
+  handleNotificationAction(action, actionDataStr) {
+    try {
+      const actionData = JSON.parse(actionDataStr || '{}');
+
+      switch (action) {
+        case 'view_report':
+          if (actionData.reportId) {
+            // Navigate to report details
+            window.location.hash = `#report-${actionData.reportId}`;
+          }
+          break;
+        case 'claim_reward':
+          if (actionData.reportId) {
+            // Trigger reward claiming
+            this.claimReward(actionData.reportId);
+          }
+          break;
+        case 'pay_recovery_fee':
+          if (actionData.reportId) {
+            // Navigate to payment section
+            window.location.hash = '#recovered';
+          }
+          break;
+        default:
+          console.log('Unknown action:', action, actionData);
+      }
+    } catch (error) {
+      console.error('Error handling notification action:', error);
+    }
+  }
+
+  /**
+   * Claim reward helper
+   */
+  async claimReward(reportId) {
+    // This would integrate with the existing reward claiming logic
+    console.log('Claiming reward for report:', reportId);
+    // Trigger existing reward claiming functionality
+    if (window.claimReward) {
+      window.claimReward(reportId);
+    }
   }
 
   /**
@@ -527,38 +678,109 @@ class UnifiedNotificationSystem {
    * Update badge
    */
   updateBadge() {
-    const badge = document.querySelector('.notification-badge');
-    if (badge) {
+    // Update the main badge element
+    if (this.badgeElement) {
       const unreadCount = this.notifications.filter(n => n.status === 'unread').length;
-      badge.textContent = unreadCount > 0 ? unreadCount : '0';
-      badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+      this.badgeElement.textContent = unreadCount;
+      this.badgeElement.style.display = unreadCount > 0 ? 'flex' : 'none';
     }
+
+    // Also update any other badge elements for compatibility
+    const otherBadges = document.querySelectorAll('.notification-badge:not(#topNotificationCount)');
+    otherBadges.forEach(badge => {
+      const unreadCount = this.notifications.filter(n => n.status === 'unread').length;
+      badge.textContent = unreadCount;
+      badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    });
   }
 
   /**
    * Create notification in Supabase
    */
-  static async createNotification(userId, message, type = 'info', priority = 'medium', reportId = null, action = null, actionData = null) {
+  static async createNotification(userId, message, options = {}) {
+    const {
+      type = 'info',
+      priority = 'medium',
+      reportId = null,
+      action = null,
+      actionData = null,
+      expiresAt = null
+    } = options;
+
     try {
+      const notificationData = {
+        user_id: userId,
+        message: message,
+        type: type,
+        priority: priority,
+        status: 'unread',
+        related_report_id: reportId,
+        notification_action: action,
+        action_data: actionData,
+        created_at: new Date().toISOString()
+      };
+
+      if (expiresAt) {
+        notificationData.expires_at = expiresAt;
+      }
+
       const { error } = await supabase
         .from('notifications')
-        .insert({
-          user_id: userId,
-          message: message,
-          type: type,
-          priority: priority,
-          status: 'unread',
-          related_report_id: reportId,
-          notification_action: action,
-          action_data: actionData,
-          created_at: new Date().toISOString()
-        });
+        .insert(notificationData);
 
       if (error) throw error;
-      console.log('✅ Notification created:', message);
+      console.log('✅ Notification created:', message, { type, action });
+      return true;
     } catch (error) {
       console.error('❌ Error creating notification:', error);
+      return false;
     }
+  }
+
+  /**
+   * Create notification with action - convenience method
+   */
+  static async createActionableNotification(userId, message, action, actionData, options = {}) {
+    return this.createNotification(userId, message, {
+      ...options,
+      action,
+      actionData
+    });
+  }
+}
+
+  /**
+   * Handle user authentication changes
+   */
+  async handleAuthChange(user) {
+    console.log('🔐 Auth change detected:', user ? 'logged in' : 'logged out');
+
+    if (user && !this.currentUser) {
+      // User logged in
+      this.currentUser = user;
+      await this.init();
+    } else if (!user && this.currentUser) {
+      // User logged out
+      this.currentUser = null;
+      this.notifications = [];
+      this.updateBadge();
+      this.cleanupSubscriptions();
+      if (this.isOpen) {
+        this.close();
+      }
+    } else if (user && this.currentUser && user.id !== this.currentUser.id) {
+      // User switched
+      this.currentUser = user;
+      await this.setupSubscriptions();
+      await this.fetchNotifications();
+    }
+  }
+
+  /**
+   * Cleanup on page unload
+   */
+  cleanup() {
+    this.cleanupSubscriptions();
   }
 }
 
@@ -566,6 +788,18 @@ class UnifiedNotificationSystem {
 let unifiedNotifications;
 document.addEventListener('DOMContentLoaded', () => {
   unifiedNotifications = new UnifiedNotificationSystem();
+
+  // Listen for auth changes
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    await unifiedNotifications.handleAuthChange(session?.user || null);
+  });
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  if (unifiedNotifications) {
+    unifiedNotifications.cleanup();
+  }
 });
 
 // Export for use in other files

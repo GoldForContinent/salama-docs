@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js';
 import { notificationManager } from './notification-manager.js';
-import { notifyPotentialMatch, notifyPaymentRequired, notifyTakeToCollectionPoint, notifyLocationRevealed, notifyRewardAvailable } from './dashboard-notifications.js';
+import { UnifiedNotificationSystem } from './notifications-unified.js';
 import { getCachedUserReports, getCachedUserProfile, invalidateUserReports, invalidateUserProfile, invalidateDashboardStats } from './cache.js';
 
 // Document type mapping for readable names
@@ -492,6 +492,8 @@ async function loadUserData() {
         currentUser = user;
         window.currentUser = user; // Set global user context for payments.js
         console.log('✅ Current user loaded:', user.email);
+
+        // Notification service is auto-initialized via notifications-unified.js
 
         // Get user profile with caching
         let profile;
@@ -1158,8 +1160,16 @@ window.runAutomatedMatching = async function() {
 
                 // 🔔 Send notifications to both users
                 try {
-                    await notifyPotentialMatch(match.lostReport.user_id, match.lostReport.id, match.lostDoc.document_type);
-                    await notifyPotentialMatch(match.foundReport.user_id, match.foundReport.id, match.foundDoc.document_type);
+                    await UnifiedNotificationSystem.createNotification(
+                        match.lostReport.user_id,
+                        `✅ Potential match found! We've located a ${match.lostDoc.document_type} that matches your lost report. Please verify the document to confirm it's yours.`,
+                        { type: 'warning', reportId: match.lostReport.id, action: 'view_report', actionData: { reportId: match.lostReport.id } }
+                    );
+                    await UnifiedNotificationSystem.createNotification(
+                        match.foundReport.user_id,
+                        `✅ Potential match found! We've located a ${match.foundDoc.document_type} that matches your found report. Please verify the document to confirm it's yours.`,
+                        { type: 'warning', reportId: match.foundReport.id, action: 'view_report', actionData: { reportId: match.foundReport.id } }
+                    );
                 } catch (notifError) {
                     console.error('Notification error:', notifError);
                 }
@@ -1924,11 +1934,23 @@ window.verifyDocuments = async function(reportId) {
 
         // 🔔 Send notifications to both users
         try {
-            const { data: lostReport } = await supabase.from('reports').select('user_id, collection_point').eq('id', recovered.lost_report_id).single();
-            const { data: foundReport } = await supabase.from('reports').select('user_id').eq('id', recovered.found_report_id).single();
-            
-            if (lostReport) await notifyPaymentRequired(lostReport.user_id, recovered.lost_report_id);
-            if (foundReport && lostReport) await notifyTakeToCollectionPoint(foundReport.user_id, recovered.found_report_id, lostReport.collection_point);
+            const { data: lostReport } = await supabase.from('reports').select('user_id, collection_point, recovery_fee, document_type').eq('id', recovered.lost_report_id).single();
+            const { data: foundReport } = await supabase.from('reports').select('user_id, reward_amount, document_type').eq('id', recovered.found_report_id).single();
+
+            if (lostReport) {
+                await UnifiedNotificationSystem.createNotification(
+                    lostReport.user_id,
+                    `💰 Document verified! Pay KES ${lostReport.recovery_fee} to receive the location of your ${lostReport.document_type}.`,
+                    { type: 'warning', reportId: recovered.lost_report_id, action: 'pay_recovery_fee', actionData: { reportId: recovered.lost_report_id } }
+                );
+            }
+            if (foundReport && lostReport) {
+                await UnifiedNotificationSystem.createNotification(
+                    foundReport.user_id,
+                    `📦 Document verified by owner! Please take the document to: ${lostReport.collection_point}`,
+                    { type: 'info', reportId: recovered.found_report_id }
+                );
+            }
         } catch (notifError) {
             console.error('Notification error:', notifError);
         }
@@ -1982,10 +2004,22 @@ window.processPayment = async function(reportId) {
         // 🔔 Send notifications to both users
         try {
             const { data: lostReport } = await supabase.from('reports').select('user_id').eq('id', recovered.lost_report_id).single();
-            const { data: foundReport } = await supabase.from('reports').select('user_id').eq('id', recovered.found_report_id).single();
-            
-            if (lostReport) await notifyLocationRevealed(lostReport.user_id, recovered.lost_report_id);
-            if (foundReport) await notifyRewardAvailable(foundReport.user_id, recovered.found_report_id);
+            const { data: foundReport } = await supabase.from('reports').select('user_id, reward_amount, document_type').eq('id', recovered.found_report_id).single();
+
+            if (lostReport) {
+                await UnifiedNotificationSystem.createNotification(
+                    lostReport.user_id,
+                    `📍 Payment received! Check the "Recovered" section to see the location of your document.`,
+                    { type: 'success', reportId: recovered.lost_report_id }
+                );
+            }
+            if (foundReport) {
+                await UnifiedNotificationSystem.createNotification(
+                    foundReport.user_id,
+                    `🎉 Congratulations! You've earned KES ${foundReport.reward_amount} reward for the ${foundReport.document_type}. Click here to claim your reward.`,
+                    { type: 'success', reportId: recovered.found_report_id, action: 'claim_reward', actionData: { reportId: recovered.found_report_id } }
+                );
+            }
         } catch (notifError) {
             console.error('Notification error:', notifError);
         }
