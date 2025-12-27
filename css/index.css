@@ -554,23 +554,11 @@
       height: 100vh;
       min-height: 800px;
       overflow: hidden;
-      background: linear-gradient(135deg, rgba(26, 58, 26, 0.85), rgba(13, 38, 13, 0.95));
+      background: linear-gradient(135deg, rgba(26, 58, 26, 0.85), rgba(13, 38, 13, 0.95)), url('assets/salama logo2.jpeg') no-repeat center center/cover;
       display: flex;
       align-items: center;
       padding-top: 100px;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('assets/slideimage1.jpg') no-repeat center center/cover;
-      z-index: -1;
-      animation: zoomEffect 25s infinite alternate ease-in-out;
-      filter: brightness(0.7) contrast(1.1);
+      animation: slideUpBackground 2s ease-out 1s both;
     }
 
     .hero::after {
@@ -587,12 +575,12 @@
       z-index: -1;
     }
     
-    @keyframes zoomEffect {
+    @keyframes slideUpBackground {
       0% {
-        transform: scale(1);
+        background-position: center 100%;
       }
       100% {
-        transform: scale(1.1);
+        background-position: center center;
       }
     }
     
