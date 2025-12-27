@@ -1,0 +1,310 @@
+/* Skeleton Loading Styles */
+
+/* Base skeleton styles */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Hide skeleton when content is loaded */
+.skeleton-loaded {
+    animation: none !important;
+    background: none !important;
+}
+
+/* User profile skeleton */
+.user-profile-skeleton {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar-skeleton {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.user-name-skeleton {
+    height: 16px;
+    width: 120px;
+}
+
+/* Welcome message skeleton */
+.welcome-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.welcome-title-skeleton {
+    height: 24px;
+    width: 250px;
+}
+
+.welcome-subtitle-skeleton {
+    height: 16px;
+    width: 180px;
+}
+
+/* Statistics cards skeleton */
+.stats-skeleton {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-card-skeleton {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon-skeleton {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.stat-content-skeleton {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-number-skeleton {
+    height: 28px;
+    width: 60px;
+}
+
+.stat-label-skeleton {
+    height: 16px;
+    width: 80px;
+}
+
+/* Profile section skeleton */
+.profile-skeleton {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.profile-avatar-skeleton {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.profile-details-skeleton {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.profile-name-skeleton {
+    height: 24px;
+    width: 150px;
+}
+
+.profile-detail-skeleton {
+    height: 16px;
+    width: 100%;
+    max-width: 200px;
+}
+
+.profile-actions-skeleton {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.profile-btn-skeleton {
+    height: 40px;
+    width: 120px;
+    border-radius: 6px;
+}
+
+/* Reports skeleton */
+.reports-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.report-card-skeleton {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.report-content-skeleton {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.report-title-skeleton {
+    height: 18px;
+    width: 200px;
+}
+
+.report-meta-skeleton {
+    height: 14px;
+    width: 150px;
+}
+
+.report-image-skeleton {
+    width: 80px;
+    height: 60px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+/* Quick actions skeleton */
+.actions-skeleton {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.action-card-skeleton {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.action-icon-skeleton {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    align-self: flex-start;
+}
+
+.action-title-skeleton {
+    height: 20px;
+    width: 160px;
+}
+
+.action-desc-skeleton {
+    height: 14px;
+    width: 100%;
+    max-width: 240px;
+}
+
+/* Text skeleton variations */
+.skeleton-text {
+    border-radius: 4px;
+}
+
+.skeleton-text-sm {
+    height: 12px;
+}
+
+.skeleton-text-md {
+    height: 16px;
+}
+
+.skeleton-text-lg {
+    height: 20px;
+}
+
+.skeleton-text-xl {
+    height: 24px;
+}
+
+.skeleton-text-2xl {
+    height: 32px;
+}
+
+/* Avatar skeleton variations */
+.skeleton-avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.skeleton-avatar-md {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.skeleton-avatar-lg {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+}
+
+.skeleton-avatar-xl {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+}
+
+/* Button skeleton */
+.skeleton-btn {
+    border-radius: 6px;
+    height: 40px;
+    width: 120px;
+}
+
+/* Card skeleton */
+.skeleton-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode support for skeleton loading */
+@media (prefers-color-scheme: dark) {
+    .skeleton {
+        background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+        background-size: 200% 100%;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .skeleton {
+        animation: none;
+        background: #e5e7eb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .skeleton {
+            background: #4b5563;
+        }
+    }
+}

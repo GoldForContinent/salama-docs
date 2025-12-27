@@ -63,11 +63,21 @@ const elements = {
     profileLocation: document.getElementById('profileLocation'),
     profileAvatar: document.getElementById('profileAvatar'),
     profileJoined: document.getElementById('profileJoined'),
-    
+
     // Form Elements
     editProfileForm: document.getElementById('editProfileForm'),
     changePasswordForm: document.getElementById('changePasswordForm'),
-    
+
+    // Skeleton Elements
+    welcomeTitleSkeleton: document.getElementById('welcomeTitleSkeleton'),
+    userAvatarSkeleton: document.getElementById('userAvatarSkeleton'),
+    userDisplayNameSkeleton: document.getElementById('userDisplayNameSkeleton'),
+    statsSkeleton: document.getElementById('statsSkeleton'),
+    statsGrid: document.getElementById('statsGrid'),
+    profileSkeleton: document.getElementById('profileSkeleton'),
+    profileContent: document.getElementById('profileContent'),
+    recentReportsSkeleton: document.getElementById('recentReportsSkeleton'),
+
     // Other
     recentReports: document.getElementById('recentReports')
 };
@@ -82,17 +92,56 @@ const PAGE_SIZE = 20; // Load 20 reports per page
 let totalReportsCount = 0;
 let currentFilter = 'all';
 
+// Skeleton loading management functions
+function showSkeleton(element) {
+    if (element) element.style.display = 'block';
+}
+
+function hideSkeleton(element) {
+    if (element) element.style.display = 'none';
+}
+
+function showContent(element) {
+    if (element) element.style.display = 'block';
+}
+
+function hideContent(element) {
+    if (element) element.style.display = 'none';
+}
+
+// Initialize skeleton loading states
+function initializeSkeletonLoading() {
+    console.log('🦴 Initializing skeleton loading states...');
+
+    // Show skeleton elements initially
+    showSkeleton(elements.welcomeTitleSkeleton);
+    showSkeleton(elements.userAvatarSkeleton);
+    showSkeleton(elements.userDisplayNameSkeleton);
+    showSkeleton(elements.statsSkeleton);
+    showSkeleton(elements.profileSkeleton);
+    showSkeleton(elements.recentReportsSkeleton);
+
+    // Hide actual content initially
+    hideContent(elements.userName);
+    hideContent(elements.userDisplayName);
+    hideContent(elements.userAvatar);
+    hideContent(elements.statsGrid);
+    hideContent(elements.profileContent);
+    hideContent(elements.recentReports);
+}
+
 // Initialize the dashboard
 let hasRunInitialMatching = false;
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('🚀 Initializing dashboard...');
         initializeUI();
+        initializeSkeletonLoading();
         await loadUserData();
         await setupRealtimeSubscriptions();
         showSection('dashboard');
         setupReportFilters();
-        
+
         // Run automated matching ONCE on dashboard load (not multiple times)
         if (typeof window.runAutomatedMatching === 'function' && !hasRunInitialMatching) {
             console.log('🔍 Running initial automated matching on dashboard load...');
@@ -324,16 +373,30 @@ window.performLogout = async function(redirectUrl) {
 
 function showSection(sectionName) {
     console.log(`🔄 Switching to section: ${sectionName}`);
-    
+
     // Hide all sections
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
-    
+
     // Show selected section
     const section = document.getElementById(`${sectionName}-section`);
     if (section) {
         section.style.display = 'block';
+
+        // Handle skeleton loading for profile section
+        if (sectionName === 'profile') {
+            // If profile data is already loaded, show content immediately
+            if (currentProfile) {
+                hideSkeleton(elements.profileSkeleton);
+                showContent(elements.profileContent);
+            } else {
+                // Show profile skeleton if data not loaded yet
+                showSkeleton(elements.profileSkeleton);
+                hideContent(elements.profileContent);
+            }
+        }
+
         // If Payments section, refresh payment table
         if (sectionName === 'payments') {
             refreshPaymentSection();
@@ -486,6 +549,15 @@ function updateUserUI(user, profile) {
     console.log('🎨 Updating UI with user data...');
     const fullName = profile?.full_name || user.email.split('@')[0];
     const avatarUrl = profile?.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+
+    // Hide skeleton elements and show actual content
+    hideSkeleton(elements.welcomeTitleSkeleton);
+    hideSkeleton(elements.userAvatarSkeleton);
+    hideSkeleton(elements.userDisplayNameSkeleton);
+
+    showContent(elements.userName);
+    showContent(elements.userDisplayName);
+    showContent(elements.userAvatar);
 
     // Update welcome message and profile
     if (elements.userName) elements.userName.textContent = fullName;
@@ -831,12 +903,18 @@ async function changePassword() {
 async function loadDashboardData() {
     try {
         if (!currentUser) return;
-        
+
         // Skip automated matching here - it's already run during initialization
         const { reports } = await loadUserReportsAndDocuments();
         updateDashboardStats(reports);
         loadRecentActivity(reports.slice(0, 3));
         await updateRecoveredCount(); // Call updateRecoveredCount after loading reports
+
+        // Hide skeleton elements and show actual content
+        hideSkeleton(elements.statsSkeleton);
+        hideSkeleton(elements.recentReportsSkeleton);
+        showContent(elements.statsGrid);
+        showContent(elements.recentReports);
     } catch (error) {
         console.error('❌ Error loading dashboard data:', error);
     }
