@@ -1,4 +1,5 @@
- // Initialize AOS (Animate On Scroll)
+ // Initialize AOS (Animate On Scroll) - Temporarily disabled to prevent text flickering
+    /*
     AOS.init({
       duration: 1000,
       easing: 'ease-out-cubic',
@@ -7,6 +8,7 @@
       offset: 100,
       delay: 100
     });
+    */
 
     // Modern scroll-based header effects
     let lastScrollTop = 0;
@@ -326,7 +328,8 @@
       });
     });
 
-    // Intersection Observer for section animations
+    // Intersection Observer for section animations (temporarily disabled)
+    /*
     const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -342,6 +345,7 @@
     document.querySelectorAll('.section').forEach(section => {
       sectionObserver.observe(section);
     });
+    */
 
     // Add loading animation for page load (temporarily disabled)
     /*

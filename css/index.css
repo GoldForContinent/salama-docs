@@ -604,7 +604,7 @@
       margin: 0 auto;
       text-align: center;
       padding: 0 20px;
-      animation: fadeInUp 1s ease-out;
+      /* animation: fadeInUp 1s ease-out; */
     }
 
     .partner-badge {
@@ -621,7 +621,7 @@
       margin-bottom: 40px;
       border: 1px solid var(--glass-border);
       box-shadow: var(--shadow-sm);
-      animation: fadeInDown 1s ease-out 0.2s both;
+      /* animation: fadeInDown 1s ease-out 0.2s both; */
     }
 
     .partner-badge i {
@@ -634,7 +634,7 @@
       margin-bottom: 24px;
       text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
       line-height: 1.1;
-      animation: fadeInUp 1s ease-out 0.4s both;
+      /* animation: fadeInUp 1s ease-out 0.4s both; */
       position: relative;
     }
 
@@ -658,7 +658,7 @@
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
       line-height: 1.6;
       font-weight: 400;
-      animation: fadeInUp 1s ease-out 0.6s both;
+      /* animation: fadeInUp 1s ease-out 0.6s both; */
     }
 
     @keyframes fadeInUp {
@@ -698,7 +698,7 @@
       justify-content: center;
       gap: 24px;
       flex-wrap: wrap;
-      animation: fadeInUp 1s ease-out 0.8s both;
+      /* animation: fadeInUp 1s ease-out 0.8s both; */
     }
 
     .btn-hero {
@@ -1887,7 +1887,8 @@
       }
     }
 
-    /* Modern Animation Classes */
+    /* Modern Animation Classes - Temporarily disabled to prevent text flickering */
+    /*
     .section-visible {
       animation: fadeInSection 0.8s ease-out forwards;
     }
@@ -1902,6 +1903,7 @@
         transform: translateY(0);
       }
     }
+    */
 
     /* Page Load Animation - Disabled for now to prevent visibility issues */
     /*
