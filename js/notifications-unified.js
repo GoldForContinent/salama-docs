@@ -24,26 +24,44 @@ class UnifiedNotificationSystem {
    * Initialize the notification system
    */
   async init() {
-    console.log('🚀 Initializing UnifiedNotificationSystem...');
+    try {
+      console.log('🚀 Initializing UnifiedNotificationSystem...');
 
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    this.currentUser = user;
-
-    if (this.currentUser) {
+      // Always create the UI elements (bell and modal) regardless of auth state
       this.createBell();
       console.log('✅ Bell created');
       this.createModal();
       console.log('✅ Modal created');
       this.attachEventListeners();
       console.log('✅ Event listeners attached');
-      await this.setupSubscriptions();
-      console.log('✅ Subscriptions setup');
-      await this.fetchNotifications();
-      console.log('✅ Initial notifications fetched');
-    }
 
-    console.log('🎉 UnifiedNotificationSystem initialized');
+      // Try to get current user
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.warn('⚠️ Auth not ready during initialization, will initialize on auth change:', error.message);
+        // UI is ready, full functionality will initialize on auth change
+        console.log('🎉 UnifiedNotificationSystem UI initialized (waiting for auth)');
+        return;
+      }
+
+      this.currentUser = user;
+
+      if (this.currentUser) {
+        await this.setupSubscriptions();
+        console.log('✅ Subscriptions setup');
+        await this.fetchNotifications();
+        console.log('✅ Initial notifications fetched');
+      } else {
+        console.log('ℹ️ No user logged in, full functionality will initialize on login');
+      }
+
+      console.log('🎉 UnifiedNotificationSystem initialized successfully');
+    } catch (error) {
+      console.error('❌ Error initializing notification system:', error);
+      // Don't throw - allow dashboard to continue loading
+      console.log('⚠️ Continuing dashboard load despite notification error');
+    }
   }
 
   /**
@@ -756,9 +774,22 @@ class UnifiedNotificationSystem {
     console.log('🔐 Auth change detected:', user ? 'logged in' : 'logged out');
 
     if (user && !this.currentUser) {
-      // User logged in
+      // User logged in - initialize the system
       this.currentUser = user;
-      await this.init();
+      try {
+        this.createBell();
+        console.log('✅ Bell created');
+        this.createModal();
+        console.log('✅ Modal created');
+        this.attachEventListeners();
+        console.log('✅ Event listeners attached');
+        await this.setupSubscriptions();
+        console.log('✅ Subscriptions setup');
+        await this.fetchNotifications();
+        console.log('✅ Initial notifications fetched');
+      } catch (error) {
+        console.error('❌ Error initializing notifications on login:', error);
+      }
     } else if (!user && this.currentUser) {
       // User logged out
       this.currentUser = null;

@@ -142,20 +142,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         showSection('dashboard');
         setupReportFilters();
 
-        // Run automated matching ONCE on dashboard load (not multiple times)
-        if (typeof window.runAutomatedMatching === 'function' && !hasRunInitialMatching) {
-            console.log('🔍 Running initial automated matching on dashboard load...');
-            hasRunInitialMatching = true;
-            await window.runAutomatedMatching();
-        }
-        
-        // Set up periodic automated matching every 2 minutes
+        // Temporarily disable automated matching during initialization
+        // to prevent dashboard loading issues
+        console.log('🔍 Automated matching disabled during initialization to prevent loading issues');
+
+        // Set up periodic automated matching every 5 minutes (reduced frequency)
         setInterval(async () => {
             if (typeof window.runAutomatedMatching === 'function') {
                 console.log('🔍 Running periodic automated matching...');
                 await window.runAutomatedMatching();
             }
-        }, 2 * 60 * 1000); // 2 minutes
+        }, 5 * 60 * 1000); // 5 minutes
         
         populateMyReportsSection('all');
 
@@ -482,12 +479,14 @@ async function loadUserData() {
     try {
         console.log('👤 Loading user data...');
         const { data: { user }, error: authError } = await supabase.auth.getUser();
+        console.log('🔍 Auth result:', { user: user?.email, error: authError });
         if (authError) throw authError;
         if (!user) {
             console.log('🚫 No user found, redirecting to login');
             window.location.href = 'loginpage.html';
             return;
         }
+        console.log('✅ User authenticated:', user.email);
 
         currentUser = user;
         window.currentUser = user; // Set global user context for payments.js
@@ -496,6 +495,7 @@ async function loadUserData() {
         // Notification service is auto-initialized via notifications-unified.js
 
         // Get user profile with caching
+        console.log('📋 Loading user profile...');
         let profile;
         try {
             profile = await getCachedUserProfile(user.id, async () => {
@@ -541,9 +541,35 @@ async function loadUserData() {
         updateUserUI(user, profile);
         await loadDashboardData();
 
+        // Set a timeout to force show content if loading hangs
+        setTimeout(() => {
+            console.log('⏰ Loading timeout reached, forcing content display...');
+            hideSkeleton(elements.statsSkeleton);
+            hideSkeleton(elements.recentReportsSkeleton);
+            showContent(elements.statsGrid);
+            showContent(elements.recentReports);
+        }, 10000); // 10 seconds
+
     } catch (error) {
         console.error('❌ Error loading user data:', error);
         notificationManager.error('Error loading user data. Please refresh the page.');
+
+        // Force hide skeletons and show basic content even on error
+        console.log('🚨 Force hiding skeletons due to error...');
+        hideSkeleton(elements.welcomeTitleSkeleton);
+        hideSkeleton(elements.userAvatarSkeleton);
+        hideSkeleton(elements.userDisplayNameSkeleton);
+        hideSkeleton(elements.statsSkeleton);
+        hideSkeleton(elements.profileSkeleton);
+        hideSkeleton(elements.recentReportsSkeleton);
+
+        // Show basic content
+        showContent(elements.userName);
+        showContent(elements.userDisplayName);
+        showContent(elements.userAvatar);
+        showContent(elements.statsGrid);
+        showContent(elements.profileContent);
+        showContent(elements.recentReports);
     }
 }
 
@@ -904,19 +930,28 @@ async function changePassword() {
 // Dashboard functions
 async function loadDashboardData() {
     try {
-        if (!currentUser) return;
+        console.log('📊 Loading dashboard data...');
+        if (!currentUser) {
+            console.log('⚠️ No current user, skipping dashboard data load');
+            return;
+        }
 
         // Skip automated matching here - it's already run during initialization
+        console.log('📋 Loading user reports and documents...');
         const { reports } = await loadUserReportsAndDocuments();
+        console.log('📊 Reports loaded:', reports?.length || 0);
+
         updateDashboardStats(reports);
         loadRecentActivity(reports.slice(0, 3));
         await updateRecoveredCount(); // Call updateRecoveredCount after loading reports
 
         // Hide skeleton elements and show actual content
+        console.log('🎨 Updating UI...');
         hideSkeleton(elements.statsSkeleton);
         hideSkeleton(elements.recentReportsSkeleton);
         showContent(elements.statsGrid);
         showContent(elements.recentReports);
+        console.log('✅ Dashboard data loaded successfully');
     } catch (error) {
         console.error('❌ Error loading dashboard data:', error);
     }
