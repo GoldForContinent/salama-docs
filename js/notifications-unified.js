@@ -313,7 +313,31 @@ class UnifiedNotificationSystem {
       return;
     }
 
+    // Double-check auth status
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      console.warn('Auth check failed, user not authenticated');
+      return;
+    }
+
+    if (user.id !== this.currentUser.id) {
+      console.warn('User ID mismatch, updating current user');
+      this.currentUser = user;
+    }
+
+    console.log('📬 Fetching notifications for user:', this.currentUser.id, this.currentUser.email);
+
     try {
+      // DEBUG: Temporarily test if RLS is working by checking total notification count
+      const { count: totalCount, error: countError } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .neq('status', 'deleted');
+
+      console.log('🔍 Total notifications in DB (should be filtered by RLS):', totalCount);
+
+      console.log('🔍 Querying notifications with user_id:', this.currentUser.id);
+
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
@@ -321,10 +345,31 @@ class UnifiedNotificationSystem {
         .neq('status', 'deleted')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase query error:', error);
+        throw error;
+      }
+
+      console.log('🔍 Raw query result count:', data?.length || 0);
+
+      // Debug: Check if RLS is working by logging all notification user_ids
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(n => n.user_id))];
+        console.log('🔍 Unique user_ids in results:', userIds);
+        console.log('🔍 Current user ID:', this.currentUser.id);
+        console.log('🔍 RLS working?', userIds.length === 1 && userIds[0] === this.currentUser.id);
+
+        // Extra safety: manually filter to ensure only current user's notifications
+        if (userIds.length > 1 || (userIds.length === 1 && userIds[0] !== this.currentUser.id)) {
+          console.warn('⚠️ RLS not working properly, manually filtering notifications');
+          data = data.filter(n => n.user_id === this.currentUser.id);
+        }
+      }
 
       this.notifications = data || [];
-      console.log('📬 Fetched notifications:', this.notifications.length);
+      console.log('📬 Fetched notifications:', this.notifications.length, 'for user:', this.currentUser.id);
+      console.log('📬 Notification details:', this.notifications.map(n => ({ id: n.id, user_id: n.user_id, message: n.message.substring(0, 50) + '...' })));
+
       this.updateBadge();
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -770,20 +815,32 @@ class UnifiedNotificationSystem {
    * Handle user authentication changes
    */
   async handleAuthChange(user) {
-    console.log('Auth change detected:', user ? 'logged in' : 'logged out');
+    console.log('Auth change detected:', user ? `logged in (${user.email})` : 'logged out');
+    console.log('Current user before change:', this.currentUser?.email || 'none');
 
     if (user && !this.currentUser) {
       // User logged in - initialize the system
+      console.log('🔐 User logging in, initializing notification system...');
       this.currentUser = user;
       this.createBell();
       this.createModal();
       this.attachEventListeners();
+
+      // Fetch notifications for the newly logged in user
+      await this.fetchNotifications();
     } else if (!user && this.currentUser) {
       // User logged out
+      console.log('🔐 User logging out, clearing notifications...');
       this.currentUser = null;
       this.notifications = [];
       this.updateBadge();
+    } else if (user && this.currentUser && user.id !== this.currentUser.id) {
+      // User switched
+      console.log('🔐 User switched, updating...');
+      this.currentUser = user;
+      await this.fetchNotifications();
     }
+    console.log('Current user after change:', this.currentUser?.email || 'none');
   }
 
   /**
