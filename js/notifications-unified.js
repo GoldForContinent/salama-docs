@@ -765,45 +765,24 @@ class UnifiedNotificationSystem {
       actionData
     });
   }
-}
 
   /**
    * Handle user authentication changes
    */
   async handleAuthChange(user) {
-    console.log('🔐 Auth change detected:', user ? 'logged in' : 'logged out');
+    console.log('Auth change detected:', user ? 'logged in' : 'logged out');
 
     if (user && !this.currentUser) {
       // User logged in - initialize the system
       this.currentUser = user;
-      try {
-        this.createBell();
-        console.log('✅ Bell created');
-        this.createModal();
-        console.log('✅ Modal created');
-        this.attachEventListeners();
-        console.log('✅ Event listeners attached');
-        await this.setupSubscriptions();
-        console.log('✅ Subscriptions setup');
-        await this.fetchNotifications();
-        console.log('✅ Initial notifications fetched');
-      } catch (error) {
-        console.error('❌ Error initializing notifications on login:', error);
-      }
+      this.createBell();
+      this.createModal();
+      this.attachEventListeners();
     } else if (!user && this.currentUser) {
       // User logged out
       this.currentUser = null;
       this.notifications = [];
       this.updateBadge();
-      this.cleanupSubscriptions();
-      if (this.isOpen) {
-        this.close();
-      }
-    } else if (user && this.currentUser && user.id !== this.currentUser.id) {
-      // User switched
-      this.currentUser = user;
-      await this.setupSubscriptions();
-      await this.fetchNotifications();
     }
   }
 
