@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Debug Page</title>
+    <link rel="stylesheet" href="css/notifications-unified.css">
+</head>
+<body>
+    <h1>Notification Debug Test</h1>
+    <button id="testBtn">Test Notification Modal</button>
+
+    <!-- Test Modal Structure -->
+    <div class="notification-modal active" id="testModal">
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <h2>Test Notifications</h2>
+                <button class="notification-modal-close">&times;</button>
+            </div>
+
+            <div class="notification-modal-toolbar">
+                <div class="notification-modal-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="notificationSearch" placeholder="Search notifications...">
+                </div>
+                <div class="notification-modal-actions">
+                    <button class="notification-modal-btn">Mark All Read</button>
+                    <button class="notification-modal-btn danger">Clear All</button>
+                </div>
+            </div>
+
+            <div class="notification-modal-filters">
+                <button class="notification-filter-btn active" data-filter="all">All</button>
+                <button class="notification-filter-btn" data-filter="success">
+                    <i class="fas fa-check-circle"></i> Success
+                </button>
+                <button class="notification-filter-btn" data-filter="error">
+                    <i class="fas fa-exclamation-circle"></i> Error
+                </button>
+            </div>
+
+            <div class="notification-modal-list" id="testNotificationList">
+                <!-- Test notifications -->
+                <div class="notification-modal-item success unread" data-id="1">
+                    <div class="notification-modal-item-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="notification-modal-item-content">
+                        <p class="notification-modal-item-message">Test notification 1 - Success</p>
+                        <p class="notification-modal-item-time">2 hours ago</p>
+                    </div>
+                    <div class="notification-modal-item-actions">
+                        <button class="notification-modal-item-btn mark-read" title="Mark as read">
+                            <i class="fas fa-envelope-open"></i>
+                        </button>
+                        <button class="notification-modal-item-btn delete" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="notification-modal-item-unread-indicator"></div>
+                </div>
+
+                <div class="notification-modal-item error" data-id="2">
+                    <div class="notification-modal-item-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="notification-modal-item-content">
+                        <p class="notification-modal-item-message">Test notification 2 - Error</p>
+                        <p class="notification-modal-item-time">1 hour ago</p>
+                    </div>
+                    <div class="notification-modal-item-actions">
+                        <button class="notification-modal-item-btn mark-read" title="Mark as read">
+                            <i class="fas fa-envelope-open"></i>
+                        </button>
+                        <button class="notification-modal-item-btn delete" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="notification-modal-item info unread" data-id="3">
+                    <div class="notification-modal-item-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="notification-modal-item-content">
+                        <p class="notification-modal-item-message">Test notification 3 - Info</p>
+                        <p class="notification-modal-item-time">30 minutes ago</p>
+                    </div>
+                    <div class="notification-modal-item-actions">
+                        <button class="notification-modal-item-btn mark-read" title="Mark as read">
+                            <i class="fas fa-envelope-open"></i>
+                        </button>
+                        <button class="notification-modal-item-btn delete" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="notification-modal-item-unread-indicator"></div>
+                </div>
+            </div>
+
+            <div class="notification-modal-footer">
+                <button class="notification-modal-footer-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', function() {
+            const modal = document.getElementById('testModal');
+            modal.classList.toggle('active');
+        });
+
+        document.querySelector('.notification-modal-close').addEventListener('click', function() {
+            document.getElementById('testModal').classList.remove('active');
+        });
+
+        document.querySelector('.notification-modal-footer-btn').addEventListener('click', function() {
+            document.getElementById('testModal').classList.remove('active');
+        });
+
+        // Debug: Check if elements are visible
+        console.log('Debug: Test modal visible?', document.getElementById('testModal').classList.contains('active'));
+        console.log('Debug: Notification list element:', document.getElementById('testNotificationList'));
+        console.log('Debug: Notification items:', document.querySelectorAll('.notification-modal-item'));
+    </script>
+</body>
+</html>
