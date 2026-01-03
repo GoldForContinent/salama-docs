@@ -1193,20 +1193,35 @@ window.runAutomatedMatching = async function() {
                     status: 'recovered'
                 });
 
-                // 🔔 Send notifications to both users
+                // 🔔 Send notifications to both users for potential match
                 try {
+                    // --- STEP 1: Notify LOST OWNER of Potential Match ---
                     await UnifiedNotificationSystem.createNotification(
                         match.lostReport.user_id,
-                        `✅ Potential match found! We've located a ${match.lostDoc.document_type} that matches your lost report. Please verify the document to confirm it's yours.`,
-                        { type: 'warning', reportId: match.lostReport.id, action: 'view_report', actionData: { reportId: match.lostReport.id } }
+                        `✅ Potential match found! A document matching "${match.lostReport.document_type}" (${match.lostReport.document_number}) has been reported as found. Please verify it now.`,
+                        {
+                            type: 'warning',
+                            reportId: match.lostReport.id,
+                            action: 'view_report',
+                            actionData: { reportId: match.lostReport.id }
+                        }
                     );
+
+                    // --- STEP 2: Notify FOUND OWNER of Awaiting Verification ---
                     await UnifiedNotificationSystem.createNotification(
                         match.foundReport.user_id,
-                        `✅ Potential match found! We've located a ${match.foundDoc.document_type} that matches your found report. Please verify the document to confirm it's yours.`,
-                        { type: 'warning', reportId: match.foundReport.id, action: 'view_report', actionData: { reportId: match.foundReport.id } }
+                        `📄 Great news! The document you found (${match.foundReport.document_type}) has been matched with a lost report. It is now awaiting verification by the owner.`,
+                        {
+                            type: 'info',
+                            reportId: match.foundReport.id,
+                            action: 'view_report',
+                            actionData: { reportId: match.foundReport.id }
+                        }
                     );
+
+                    console.log('✅ Match processed and notifications sent for reports:', match.lostReport.id, match.foundReport.id);
                 } catch (notifError) {
-                    console.error('Notification error:', notifError);
+                    console.error('❌ Notification error during matching:', notifError);
                 }
 
                 // Prepare transaction data
@@ -1967,27 +1982,40 @@ window.verifyDocuments = async function(reportId) {
             .update({ status: 'payment_pending' })
             .eq('id', recovered.id);
 
-        // 🔔 Send notifications to both users
+        // 🔔 Send notifications to both users after verification
         try {
             const { data: lostReport } = await supabase.from('reports').select('user_id, collection_point, recovery_fee, document_type').eq('id', recovered.lost_report_id).single();
             const { data: foundReport } = await supabase.from('reports').select('user_id, reward_amount, document_type').eq('id', recovered.found_report_id).single();
 
+            // --- Notify LOST OWNER to Pay Recovery Fee ---
             if (lostReport) {
                 await UnifiedNotificationSystem.createNotification(
                     lostReport.user_id,
-                    `💰 Document verified! Pay KES ${lostReport.recovery_fee} to receive the location of your ${lostReport.document_type}.`,
-                    { type: 'warning', reportId: recovered.lost_report_id, action: 'pay_recovery_fee', actionData: { reportId: recovered.lost_report_id } }
+                    `💰 Verification Successful! Please pay the recovery fee to reveal the location of your ${lostReport.document_type}.`,
+                    {
+                        type: 'success',
+                        reportId: recovered.lost_report_id,
+                        action: 'pay_recovery_fee',
+                        actionData: { reportId: recovered.lost_report_id }
+                    }
                 );
             }
-            if (foundReport && lostReport) {
+
+            // --- Notify FOUND OWNER that Owner Verified ---
+            if (foundReport) {
                 await UnifiedNotificationSystem.createNotification(
                     foundReport.user_id,
-                    `📦 Document verified by owner! Please take the document to: ${lostReport.collection_point}`,
-                    { type: 'info', reportId: recovered.found_report_id }
+                    `🎉 The owner has verified the document! You can now claim your reward once the recovery fee is paid.`,
+                    {
+                        type: 'success',
+                        reportId: recovered.found_report_id,
+                        action: 'view_report',
+                        actionData: { reportId: recovered.found_report_id }
+                    }
                 );
             }
         } catch (notifError) {
-            console.error('Notification error:', notifError);
+            console.error('❌ Notification error during verification:', notifError);
         }
 
         notificationManager.success('Documents verified successfully!');
@@ -2036,27 +2064,41 @@ window.processPayment = async function(reportId) {
             .update({ status: 'completed' })
             .in('id', [recovered.lost_report_id, recovered.found_report_id]);
 
-        // 🔔 Send notifications to both users
+        // 🔔 Send notifications to both users after payment
         try {
-            const { data: lostReport } = await supabase.from('reports').select('user_id').eq('id', recovered.lost_report_id).single();
+            const { data: lostReport } = await supabase.from('reports').select('user_id, collection_point, document_type').eq('id', recovered.lost_report_id).single();
             const { data: foundReport } = await supabase.from('reports').select('user_id, reward_amount, document_type').eq('id', recovered.found_report_id).single();
 
+            // --- Notify LOST OWNER of Successful Payment & Reveal Location ---
             if (lostReport) {
+                const locationDetails = lostReport.collection_point || "the designated collection point";
                 await UnifiedNotificationSystem.createNotification(
                     lostReport.user_id,
-                    `📍 Payment received! Check the "Recovered" section to see the location of your document.`,
-                    { type: 'success', reportId: recovered.lost_report_id }
+                    `📍 Payment Successful! Your document is ready for collection at ${locationDetails}. You can also view this in the Recovered Reports section.`,
+                    {
+                        type: 'success',
+                        reportId: recovered.lost_report_id,
+                        action: 'view_recovered',
+                        actionData: { reportId: recovered.lost_report_id }
+                    }
                 );
             }
+
+            // --- Notify FOUND OWNER to Claim Reward ---
             if (foundReport) {
                 await UnifiedNotificationSystem.createNotification(
                     foundReport.user_id,
-                    `🎉 Congratulations! You've earned KES ${foundReport.reward_amount} reward for the ${foundReport.document_type}. Click here to claim your reward.`,
-                    { type: 'success', reportId: recovered.found_report_id, action: 'claim_reward', actionData: { reportId: recovered.found_report_id } }
+                    `💳 Recovery fee paid! Please claim your reward. Your reward will be processed within 24 hours.`,
+                    {
+                        type: 'success',
+                        reportId: recovered.found_report_id,
+                        action: 'claim_reward',
+                        actionData: { reportId: recovered.found_report_id }
+                    }
                 );
             }
         } catch (notifError) {
-            console.error('Notification error:', notifError);
+            console.error('❌ Notification error during payment:', notifError);
         }
 
         notificationManager.success('Payment processed! Location revealed.');
@@ -2745,6 +2787,127 @@ window.openImageViewer = function(imageUrl, documentType) {
             document.removeEventListener('keydown', closeOnEsc);
         }
     });
+};
+
+/**
+ * Claim reward for found document (Found Owner)
+ */
+window.claimReward = async function(reportId) {
+    try {
+        console.log('🎁 Starting reward claim for report:', reportId);
+
+        // 1. Get the recovered report to find the finder
+        const { data: recovered } = await supabase
+            .from('recovered_reports')
+            .select('*')
+            .or(`lost_report_id.eq.${reportId},found_report_id.eq.${reportId}`)
+            .maybeSingle();
+
+        if (!recovered) throw new Error('No matching recovered record found');
+
+        // 2. Update the recovered_report status to indicate reward claimed
+        // Note: reward_claimed column may need to be added to the table
+        const updateData = { status: 'reward_claimed' };
+
+        // Try to update reward_claimed if the column exists
+        try {
+            const { error: testError } = await supabase
+                .from('recovered_reports')
+                .select('reward_claimed')
+                .eq('id', recovered.id)
+                .limit(1);
+
+            if (!testError) {
+                updateData.reward_claimed = true;
+            }
+        } catch (e) {
+            console.log('reward_claimed column not available, skipping');
+        }
+
+        const { error: updateError } = await supabase
+            .from('recovered_reports')
+            .update(updateData)
+            .eq('id', recovered.id);
+
+        if (updateError) throw updateError;
+
+        // 3. Update the transaction status to 'claimed'
+        const { error: txError } = await supabase
+            .from('transactions')
+            .update({ status: 'claimed' })
+            .eq('report_id', reportId)
+            .eq('transaction_type', 'reward');
+
+        if (txError) {
+            console.warn('Transaction status update failed, but continuing:', txError);
+        }
+
+        // 4. Get the finder's details for notification
+        const { data: foundReport } = await supabase
+            .from('reports')
+            .select('user_id, reward_amount, document_type')
+            .eq('id', recovered.found_report_id)
+            .single();
+
+        // 5. Send final notification to the finder
+        if (foundReport) {
+            await UnifiedNotificationSystem.createNotification(
+                foundReport.user_id,
+                `✨ Reward of KES ${foundReport.reward_amount} claimed successfully! Funds will be sent to your phone within 24 hours.`,
+                {
+                    type: 'success',
+                    reportId: recovered.found_report_id
+                }
+            );
+        }
+
+        console.log('✅ Reward claimed successfully for report:', reportId);
+        notificationManager.success('Reward claimed! Funds will be sent to your phone within 24 hours.');
+        populateMyReportsSection('recovered');
+        await updateRecoveredCount();
+        closeModal();
+
+    } catch (error) {
+        console.error('❌ Error claiming reward:', error);
+        notificationManager.error('Failed to claim reward: ' + error.message);
+    }
+};
+
+/**
+ * Show claim reward modal
+ */
+window.showClaimRewardModal = function(reportId, rewardAmount) {
+    const modal = document.createElement('div');
+    modal.className = 'custom-modal-overlay';
+    modal.innerHTML = `
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h3>🎉 Claim Your Reward</h3>
+                <button class="custom-modal-close" onclick="this.closest('.custom-modal-overlay').remove()">&times;</button>
+            </div>
+            <div class="custom-modal-body">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">💰</div>
+                    <h4 style="color: #10b981; margin-bottom: 10px;">KES ${rewardAmount}</h4>
+                    <p style="margin-bottom: 20px;">Congratulations! Your reward is ready to be claimed.</p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 30px;">
+                        Funds will be sent to your registered phone number within 24 hours after claiming.
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="window.claimReward('${reportId}'); this.closest('.custom-modal-overlay').remove();"
+                                class="btn btn-success" style="padding: 12px 24px;">
+                            ✅ Claim Reward
+                        </button>
+                        <button onclick="this.closest('.custom-modal-overlay').remove()"
+                                class="btn btn-secondary" style="padding: 12px 24px;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 };
 
 // Add animations
