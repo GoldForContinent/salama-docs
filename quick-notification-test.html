@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Notification Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/notifications-unified.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; }
+        .notification-count { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Quick Notification Modal Test</h1>
+
+    <div class="test-section">
+        <h3>Current Status</h3>
+        <p>Notifications available: <span class="notification-count" id="count">Loading...</span></p>
+        <button onclick="testModal()">Test Modal Display</button>
+        <button onclick="showDebugInfo()">Show Debug Info</button>
+    </div>
+
+    <!-- Test Modal -->
+    <div class="notification-modal active" id="testModal" style="position: relative; z-index: 1;">
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <h2>Test Modal</h2>
+                <button class="notification-modal-close" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="notification-modal-list" id="testList">
+                <div class="notification-modal-item success unread">
+                    <div class="notification-modal-item-selection">
+                        <input type="checkbox" class="notification-checkbox">
+                    </div>
+                    <div class="notification-modal-item-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="notification-modal-item-content">
+                        <p class="notification-modal-item-message">Test notification 1 - Success</p>
+                        <p class="notification-modal-item-time">2 hours ago</p>
+                    </div>
+                    <div class="notification-modal-item-actions">
+                        <button class="notification-modal-item-btn mark-read">
+                            <i class="fas fa-envelope-open"></i>
+                        </button>
+                        <button class="notification-modal-item-btn delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="notification-modal-item-unread-indicator"></div>
+                </div>
+
+                <div class="notification-modal-item error">
+                    <div class="notification-modal-item-selection">
+                        <input type="checkbox" class="notification-checkbox">
+                    </div>
+                    <div class="notification-modal-item-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="notification-modal-item-content">
+                        <p class="notification-modal-item-message">Test notification 2 - Error</p>
+                        <p class="notification-modal-item-time">1 hour ago</p>
+                    </div>
+                    <div class="notification-modal-item-actions">
+                        <button class="notification-modal-item-btn mark-unread">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                        <button class="notification-modal-item-btn delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notification-modal-footer">
+                <button class="notification-modal-footer-btn" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate checking notification count
+        async function checkNotifications() {
+            try {
+                // This would normally come from your Supabase query
+                const countElement = document.getElementById('count');
+                countElement.textContent = '14 (from database)';
+                countElement.style.color = 'green';
+            } catch (error) {
+                document.getElementById('count').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        function testModal() {
+            const modal = document.getElementById('testModal');
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('testModal');
+            modal.classList.remove('active');
+        }
+
+        function showDebugInfo() {
+            const list = document.getElementById('testList');
+            console.log('Test list children:', list.children.length);
+            console.log('Test list HTML:', list.innerHTML.substring(0, 200) + '...');
+
+            // Check computed styles
+            const styles = window.getComputedStyle(list);
+            console.log('Test list display:', styles.display);
+            console.log('Test list visibility:', styles.visibility);
+            console.log('Test list opacity:', styles.opacity);
+        }
+
+        // Initialize
+        checkNotifications();
+    </script>
+</body>
+</html>

@@ -72,6 +72,13 @@
   overflow-y: auto;
 }
 
+/* FORCE VISIBILITY OVERRIDE - Critical for modal display */
+.notification-modal.active {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .notification-modal.active {
   display: flex;
 }
@@ -286,6 +293,10 @@
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  min-height: 200px; /* Ensure minimum height */
+  display: block !important; /* Force display */
+  visibility: visible !important; /* Force visibility */
+  opacity: 1 !important; /* Force opacity */
 }
 
 .notification-modal-list::-webkit-scrollbar {
@@ -309,12 +320,14 @@
 .notification-modal-item {
   padding: 15px 20px;
   border-bottom: 1px solid #f0f0f0;
-  display: flex;
+  display: flex !important; /* Force display */
   gap: 12px;
   align-items: flex-start;
   transition: background 0.2s ease;
   cursor: pointer;
   position: relative;
+  visibility: visible !important; /* Force visibility */
+  opacity: 1 !important; /* Force opacity */
 }
 
 /* Selection Checkbox */
