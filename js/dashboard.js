@@ -130,6 +130,52 @@ function initializeSkeletonLoading() {
     hideContent(elements.recentReports);
 }
 
+// Session Management
+let sessionTimeout;
+const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+function resetSessionTimeout() {
+    clearTimeout(sessionTimeout);
+    sessionTimeout = setTimeout(() => {
+        console.log('⏰ Session expired due to inactivity');
+        handleSessionExpiry();
+    }, SESSION_TIMEOUT);
+}
+
+function handleSessionExpiry() {
+    // Show session expiry warning
+    if (confirm('Your session has expired due to inactivity. Click OK to login again.')) {
+        logout();
+    } else {
+        logout(); // Force logout anyway
+    }
+}
+
+async function logout() {
+    try {
+        console.log('🚪 Logging out user...');
+        await supabase.auth.signOut();
+        window.location.href = 'loginpage.html';
+    } catch (error) {
+        console.error('❌ Error during logout:', error);
+        // Force redirect even if logout fails
+        window.location.href = 'loginpage.html';
+    }
+}
+
+// Activity listeners
+function setupActivityListeners() {
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    events.forEach(event => {
+        document.addEventListener(event, resetSessionTimeout, true);
+    });
+
+    // Start the initial timeout
+    resetSessionTimeout();
+    console.log('✅ Session timeout initialized (10 minutes)');
+}
+
 // Initialize the dashboard
 let hasRunInitialMatching = false;
 document.addEventListener('DOMContentLoaded', async () => {
@@ -137,9 +183,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('🚀 Initializing dashboard...');
         initializeUI();
         initializeSkeletonLoading();
+        setupActivityListeners(); // Initialize session timeout
         await loadUserData();
         await setupRealtimeSubscriptions();
-        showSection('dashboard');
+        await showSection('dashboard');
         setupReportFilters();
 
         // Temporarily disable automated matching during initialization
@@ -197,10 +244,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 function initializeUI() {
     console.log('🔧 Setting up UI event listeners...');
     
-    // Profile dropdown toggle
+    // Profile dropdown toggle with session check
     const profileDropdownBtn = document.getElementById('profileDropdownBtn');
     if (profileDropdownBtn) {
-        profileDropdownBtn.addEventListener('click', function(e) {
+        profileDropdownBtn.addEventListener('click', async function(e) {
             e.stopPropagation();
             const dropdown = document.getElementById('profileDropdown');
             if (dropdown) {
@@ -222,7 +269,7 @@ function initializeUI() {
         item.addEventListener('click', function() {
             const section = this.getAttribute('data-section');
             if (section) {
-                showSection(section);
+                await showSection(section);
             }
         });
     });
@@ -368,8 +415,22 @@ window.performLogout = async function(redirectUrl) {
     }
 };
 
-function showSection(sectionName) {
+async function showSection(sectionName) {
     console.log(`🔄 Switching to section: ${sectionName}`);
+
+    // Check session validity before showing section
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+            console.log('⏰ Session expired during navigation, redirecting to login');
+            window.location.href = 'loginpage.html';
+            return;
+        }
+    } catch (error) {
+        console.error('❌ Error checking session:', error);
+        window.location.href = 'loginpage.html';
+        return;
+    }
 
     // Hide all sections
     document.querySelectorAll('.content-section').forEach(section => {
@@ -578,14 +639,20 @@ function updateUserUI(user, profile) {
     const fullName = profile?.full_name || user.email.split('@')[0];
     const avatarUrl = profile?.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
 
-    // Hide skeleton elements and show actual content
-    hideSkeleton(elements.welcomeTitleSkeleton);
-    hideSkeleton(elements.userAvatarSkeleton);
-    hideSkeleton(elements.userDisplayNameSkeleton);
+        // Hide skeleton elements and show actual content
+        hideSkeleton(elements.welcomeTitleSkeleton);
+        hideSkeleton(elements.userAvatarSkeleton);
+        hideSkeleton(elements.userDisplayNameSkeleton);
+        hideSkeleton(elements.statsSkeleton);
+        hideSkeleton(elements.profileSkeleton);
+        hideSkeleton(elements.recentReportsSkeleton);
 
-    showContent(elements.userName);
-    showContent(elements.userDisplayName);
-    showContent(elements.userAvatar);
+        showContent(elements.userName);
+        showContent(elements.userDisplayName);
+        showContent(elements.userAvatar);
+        showContent(elements.statsGrid);
+        showContent(elements.profileContent);
+        showContent(elements.recentReports);
 
     // Update welcome message and profile
     if (elements.userName) elements.userName.textContent = fullName;
@@ -593,19 +660,35 @@ function updateUserUI(user, profile) {
     if (elements.profileName) elements.profileName.textContent = fullName;
     
     // Update profile details
-    if (elements.profileId) elements.profileId.textContent = profile?.id_number || 'Not provided';
-    if (elements.profileEmail) elements.profileEmail.textContent = user.email;
-    if (elements.profilePhone) elements.profilePhone.textContent = profile?.phone || 'Not provided';
+    if (elements.profileId) {
+        elements.profileId.textContent = profile?.id_number || 'Not provided';
+        elements.profileId.style.display = 'inline';
+    }
+    if (elements.profileEmail) {
+        elements.profileEmail.textContent = user.email;
+        elements.profileEmail.style.display = 'inline';
+    }
+    if (elements.profilePhone) {
+        elements.profilePhone.textContent = profile?.phone || 'Not provided';
+        elements.profilePhone.style.display = 'inline';
+    }
     if (elements.profileLocation) {
         const location = profile?.county || profile?.address || 'Not provided';
         elements.profileLocation.textContent = location;
+        elements.profileLocation.style.display = 'inline';
     }
     if (elements.profileJoined && user.created_at) {
-        elements.profileJoined.textContent = new Date(user.created_at).toLocaleDateString('en-US', { 
-            year: 'numeric', 
+        elements.profileJoined.textContent = new Date(user.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
+        elements.profileJoined.style.display = 'inline';
+    }
+
+    // Show profile name
+    if (elements.profileName) {
+        elements.profileName.style.display = 'block';
     }
 
     // Update avatars with error handling
@@ -620,7 +703,12 @@ function updateUserUI(user, profile) {
 
     updateAvatar(elements.userAvatar, avatarUrl);
     updateAvatar(elements.profileAvatar, avatarUrl);
-    
+
+    // Ensure profile avatar is visible
+    if (elements.profileAvatar) {
+        elements.profileAvatar.style.display = 'block';
+    }
+
     console.log('✅ UI updated successfully');
 }
 
