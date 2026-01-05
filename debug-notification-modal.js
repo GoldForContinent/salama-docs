@@ -203,30 +203,136 @@
         window.unifiedNotifications.open();
     }
 
-    // 6. Check for JavaScript errors in render process
-    console.log('🔍 Checking for render errors...');
+    // 6. ENHANCED DEBUGGING - Override render method with Venice AI suggestions
+    console.log('🔍 ===== ENHANCED DEBUGGING =====');
 
-    // Override the render method temporarily to add more logging
     if (window.unifiedNotifications) {
+        // Override render method with detailed Venice AI logging
         const originalRender = window.unifiedNotifications.render;
         window.unifiedNotifications.render = function(searchQuery = '') {
-            console.log('🎨 CUSTOM DEBUG: render() called with searchQuery:', searchQuery);
-            console.log('🎨 CUSTOM DEBUG: this.notifications:', this.notifications);
-            console.log('🎨 CUSTOM DEBUG: this.notifications.length:', this.notifications.length);
+            console.log('🎨 VENICE DEBUG: ===== RENDER START =====');
+            console.log('🎨 VENICE DEBUG: render() called with searchQuery:', searchQuery);
+            console.log('🎨 VENICE DEBUG: this.notifications:', this.notifications);
+            console.log('🎨 VENICE DEBUG: this.notifications.length:', this.notifications.length);
+            console.log('🎨 VENICE DEBUG: this.currentFilter:', this.currentFilter);
+
+            // Log the filtered notifications (Venice AI Step 1)
+            let filteredNotifications = [...this.notifications];
+            console.log('🎨 VENICE DEBUG: Initial filtered notifications:', filteredNotifications.length);
+
+            // Apply type filter
+            if (this.currentFilter !== 'all') {
+                filteredNotifications = filteredNotifications.filter(notif => notif.type === this.currentFilter);
+                console.log('🎨 VENICE DEBUG: After type filter:', filteredNotifications.length);
+            }
+
+            // Apply search filter
+            const searchQueryLower = searchQuery.toLowerCase();
+            if (searchQueryLower) {
+                filteredNotifications = filteredNotifications.filter(notif =>
+                    notif.message.toLowerCase().includes(searchQueryLower)
+                );
+                console.log('🎨 VENICE DEBUG: After search filter:', searchQueryLower, '->', filteredNotifications.length);
+            }
+
+            console.log('🎨 VENICE DEBUG: Final notifications to render:', filteredNotifications.length);
+
+            // Check if we have notifications to display
+            if (filteredNotifications.length === 0) {
+                console.log('🎨 VENICE DEBUG: No notifications to display - showing empty state');
+                // Call original render for empty state
+                return originalRender.call(this, searchQuery);
+            }
+
+            // Log each notification that will be rendered
+            filteredNotifications.forEach((notif, index) => {
+                console.log(`🎨 VENICE DEBUG: Notification ${index + 1}:`, {
+                    id: notif.id,
+                    type: notif.type,
+                    message: notif.message.substring(0, 50) + '...',
+                    status: notif.status,
+                    created_at: notif.created_at
+                });
+            });
 
             // Call original render
+            console.log('🎨 VENICE DEBUG: Calling original render method...');
             const result = originalRender.call(this, searchQuery);
 
-            console.log('🎨 CUSTOM DEBUG: render completed, checking DOM...');
+            // Check DOM after render (Venice AI Step 3)
+            console.log('🎨 VENICE DEBUG: Render completed, checking DOM...');
             const listAfter = document.getElementById('notificationList');
             if (listAfter) {
-                console.log('🎨 CUSTOM DEBUG: list children after render:', listAfter.children.length);
-                console.log('🎨 CUSTOM DEBUG: list HTML length:', listAfter.innerHTML.length);
+                console.log('🎨 VENICE DEBUG: List element found');
+                console.log('🎨 VENICE DEBUG: List children count:', listAfter.children.length);
+                console.log('🎨 VENICE DEBUG: List innerHTML length:', listAfter.innerHTML.length);
+                console.log('🎨 VENICE DEBUG: List innerHTML preview:', listAfter.innerHTML.substring(0, 200) + '...');
+
+                // Check each child element
+                Array.from(listAfter.children).forEach((child, index) => {
+                    console.log(`🎨 VENICE DEBUG: Child ${index + 1}:`, {
+                        tagName: child.tagName,
+                        className: child.className,
+                        innerHTML: child.innerHTML.substring(0, 100) + '...'
+                    });
+                });
+
+                // Force visibility check
+                const computedStyle = window.getComputedStyle(listAfter);
+                console.log('🎨 VENICE DEBUG: List computed styles:', {
+                    display: computedStyle.display,
+                    visibility: computedStyle.visibility,
+                    opacity: computedStyle.opacity,
+                    height: computedStyle.height
+                });
+
+            } else {
+                console.error('🎨 VENICE DEBUG: ❌ List element NOT found after render!');
             }
+
+            console.log('🎨 VENICE DEBUG: ===== RENDER END =====');
+            return result;
+        };
+
+        // Override createNotificationItem method (Venice AI Step 2)
+        const originalCreateItem = window.unifiedNotifications.renderNotification;
+        window.unifiedNotifications.renderNotification = function(notification) {
+            console.log('🎨 VENICE DEBUG: ===== CREATE ITEM START =====');
+            console.log('🎨 VENICE DEBUG: Creating item for notification:', notification.id, notification.message.substring(0, 30) + '...');
+
+            const result = originalCreateItem.call(this, notification);
+
+            console.log('🎨 VENICE DEBUG: Generated HTML length:', result.length);
+            console.log('🎨 VENICE DEBUG: Generated HTML preview:', result.substring(0, 150) + '...');
+            console.log('🎨 VENICE DEBUG: ===== CREATE ITEM END =====');
 
             return result;
         };
-        console.log('✅ Render method overridden with debug logging');
+
+        // Override open method (Venice AI Step 4)
+        const originalOpen = window.unifiedNotifications.open;
+        window.unifiedNotifications.open = function() {
+            console.log('🔔 VENICE DEBUG: ===== MODAL OPEN START =====');
+
+            const result = originalOpen.call(this);
+
+            // Force additional visibility (Venice AI Step 4)
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                modal.style.display = 'flex !important';
+                modal.style.visibility = 'visible !important';
+                modal.style.opacity = '1 !important';
+                modal.style.zIndex = '10000 !important';
+                console.log('🔔 VENICE DEBUG: Modal forced visible');
+            } else {
+                console.error('🔔 VENICE DEBUG: ❌ Modal element not found!');
+            }
+
+            console.log('🔔 VENICE DEBUG: ===== MODAL OPEN END =====');
+            return result;
+        };
+
+        console.log('✅ VENICE DEBUG: All methods overridden with enhanced logging');
     }
 
     console.log('🔍 ===== DEBUG COMPLETE =====');
