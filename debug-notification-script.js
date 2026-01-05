@@ -82,3 +82,5 @@
 
     console.log('🔍 Debug complete. Check the page for red/yellow/blue colored elements.');
 })();
+
+
