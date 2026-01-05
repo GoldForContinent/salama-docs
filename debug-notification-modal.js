@@ -66,60 +66,125 @@
         }
     }
 
-    // 4. Apply aggressive debug CSS to force visibility
-    console.log('🎨 Applying aggressive debug CSS...');
+    // 4. Apply ULTRA aggressive debug CSS to force visibility
+    console.log('🎨 Applying ULTRA aggressive debug CSS...');
 
     const debugStyle = document.createElement('style');
     debugStyle.id = 'debug-notification-styles';
     debugStyle.textContent = `
+        /* FORCE ABSOLUTE VISIBILITY */
+        .notification-modal,
+        .notification-modal *,
+        .notification-modal-list,
+        .notification-modal-item,
+        .notification-modal-item-content,
+        .notification-modal-item-message,
+        .notification-modal-item-time,
+        .notification-modal-item-icon,
+        .notification-modal-item-actions,
+        .notification-modal-item-btn {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            color: #000 !important;
+            background: white !important;
+            border: 2px solid red !important;
+            padding: 5px !important;
+            margin: 2px !important;
+            font-size: 14px !important;
+            font-weight: bold !important;
+            text-shadow: none !important;
+        }
+
         .notification-modal-list {
             border: 5px solid red !important;
             background: yellow !important;
-            min-height: 200px !important;
+            min-height: 300px !important;
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
             z-index: 10000 !important;
             position: relative !important;
+            padding: 20px !important;
         }
 
         .notification-modal-item {
             border: 3px solid blue !important;
             background: lightblue !important;
-            display: block !important;
+            display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
             z-index: 10001 !important;
-            margin: 5px !important;
-            padding: 10px !important;
+            margin: 10px 0 !important;
+            padding: 15px !important;
             color: black !important;
             font-weight: bold !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
         }
 
         .notification-modal-item-message {
-            color: black !important;
+            color: #000 !important;
             font-weight: bold !important;
             background: white !important;
-            padding: 5px !important;
-            border: 1px solid green !important;
+            padding: 8px !important;
+            border: 2px solid green !important;
+            margin: 5px 0 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            font-size: 16px !important;
+            line-height: 1.4 !important;
+        }
+
+        .notification-modal-item-message::before {
+            content: "MESSAGE: " !important;
+            color: red !important;
+            font-weight: bold !important;
         }
 
         .notification-modal-item-icon {
             color: red !important;
-            font-size: 20px !important;
+            font-size: 24px !important;
+            background: yellow !important;
+            padding: 5px !important;
+            border: 2px solid purple !important;
         }
 
         .notification-checkbox {
-            width: 20px !important;
-            height: 20px !important;
-            border: 2px solid purple !important;
+            width: 24px !important;
+            height: 24px !important;
+            border: 3px solid purple !important;
+            background: pink !important;
+            margin-right: 10px !important;
         }
 
         .notification-read-more {
             background: orange !important;
             color: black !important;
-            border: 2px solid brown !important;
+            border: 3px solid brown !important;
+            padding: 8px !important;
+            font-size: 14px !important;
+            font-weight: bold !important;
+            margin: 5px 0 !important;
+            display: inline-block !important;
+        }
+
+        .notification-modal-item-actions {
+            background: lightgreen !important;
+            border: 2px solid darkgreen !important;
             padding: 5px !important;
+            margin-top: 10px !important;
+        }
+
+        .notification-modal-item-btn {
+            background: cyan !important;
+            color: black !important;
+            border: 2px solid blue !important;
+            padding: 6px 10px !important;
+            margin: 2px !important;
+            font-size: 12px !important;
+            display: inline-block !important;
         }
     `;
 

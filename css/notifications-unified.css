@@ -2,6 +2,21 @@
    UNIFIED NOTIFICATION SYSTEM STYLES
    ============================================ */
 
+/* FORCE TEXT VISIBILITY - Critical override for notification content */
+.notification-modal * {
+  color: #333 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.notification-modal p,
+.notification-modal span,
+.notification-modal div {
+  color: #333 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 /* Notification Bell */
 .notification-bell {
   position: relative;
@@ -378,13 +393,20 @@
 
 .notification-modal-item-content {
   flex: 1;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .notification-modal-item-message {
   margin: 0 0 4px 0;
   font-size: 14px;
-  color: #333;
+  color: #333 !important; /* Force black text */
   line-height: 1.4;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: white !important; /* Ensure background is visible */
 }
 
 .notification-modal-item.expanded .notification-modal-item-message {
