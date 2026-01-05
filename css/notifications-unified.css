@@ -147,6 +147,32 @@
   flex-wrap: wrap;
 }
 
+/* Bulk Actions */
+.notification-modal-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.notification-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.notification-select-all input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--kenya-green, #006600);
+}
+
 .notification-modal-search {
   flex: 1;
   min-width: 200px;
@@ -206,6 +232,20 @@
 
 .notification-modal-btn.danger:hover {
   background: rgba(239, 68, 68, 0.1);
+}
+
+.notification-modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+  color: #999;
+  border-color: #e0e0e0;
+}
+
+.notification-modal-btn:disabled:hover {
+  background: #f5f5f5;
+  color: #999;
+  border-color: #e0e0e0;
 }
 
 /* Filters */
@@ -277,6 +317,20 @@
   position: relative;
 }
 
+/* Selection Checkbox */
+.notification-modal-item-selection {
+  display: flex;
+  align-items: center;
+  min-width: 20px;
+}
+
+.notification-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--kenya-green, #006600);
+}
+
 .notification-modal-item:hover {
   background: #f9f9f9;
 }
@@ -318,6 +372,27 @@
   font-size: 14px;
   color: #333;
   line-height: 1.4;
+}
+
+.notification-modal-item.expanded .notification-modal-item-message {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.notification-read-more {
+  background: none;
+  border: none;
+  color: var(--kenya-green, #006600);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 0;
+  text-decoration: underline;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.notification-read-more:hover {
+  color: #004400;
 }
 
 .notification-modal-item-time {
@@ -462,6 +537,15 @@
     gap: 10px;
   }
 
+  .notification-modal-item-selection {
+    min-width: 18px;
+  }
+
+  .notification-checkbox {
+    width: 14px;
+    height: 14px;
+  }
+
   .notification-modal-item-message {
     font-size: 13px;
   }
@@ -535,6 +619,15 @@
     gap: 8px;
   }
 
+  .notification-modal-item-selection {
+    min-width: 16px;
+  }
+
+  .notification-checkbox {
+    width: 12px;
+    height: 12px;
+  }
+
   .notification-modal-item-icon {
     font-size: 16px;
   }
@@ -601,5 +694,10 @@
   .notification-modal-item-btn {
     padding: 2px 4px;
     font-size: 10px;
+  }
+
+  .notification-checkbox {
+    width: 10px;
+    height: 10px;
   }
 }

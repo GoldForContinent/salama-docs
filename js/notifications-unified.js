@@ -112,13 +112,25 @@ class UnifiedNotificationSystem {
             <i class="fas fa-search"></i>
             <input type="text" id="notificationSearch" placeholder="Search notifications...">
           </div>
-          <div class="notification-modal-actions">
-            <button class="notification-modal-btn" id="markAllReadBtn" title="Mark all as read">
-              <i class="fas fa-envelope-open"></i> Mark All Read
-            </button>
-            <button class="notification-modal-btn danger" id="clearAllBtn" title="Clear all notifications">
-              <i class="fas fa-trash"></i> Clear All
-            </button>
+          <div class="notification-modal-bulk-actions">
+            <label class="notification-select-all">
+              <input type="checkbox" id="selectAllNotifications">
+              <span>Select All</span>
+            </label>
+            <div class="notification-modal-actions">
+              <button class="notification-modal-btn" id="markSelectedReadBtn" title="Mark selected as read" disabled>
+                <i class="fas fa-envelope-open"></i> Mark Selected Read
+              </button>
+              <button class="notification-modal-btn danger" id="deleteSelectedBtn" title="Delete selected notifications" disabled>
+                <i class="fas fa-trash"></i> Delete Selected
+              </button>
+              <button class="notification-modal-btn" id="markAllReadBtn" title="Mark all as read">
+                <i class="fas fa-envelope-open"></i> Mark All Read
+              </button>
+              <button class="notification-modal-btn danger" id="clearAllBtn" title="Clear all notifications">
+                <i class="fas fa-trash"></i> Clear All
+              </button>
+            </div>
           </div>
         </div>
 
@@ -200,8 +212,33 @@ class UnifiedNotificationSystem {
         e.target.closest('.notification-filter-btn').classList.add('active');
         this.currentFilter = e.target.closest('.notification-filter-btn').dataset.filter;
         this.render();
+        this.updateBulkActionButtons();
       });
     });
+
+    // Select All checkbox
+    const selectAllCheckbox = document.getElementById('selectAllNotifications');
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', (e) => {
+        this.selectAllNotifications(e.target.checked);
+      });
+    }
+
+    // Bulk actions
+    const markSelectedReadBtn = document.getElementById('markSelectedReadBtn');
+    if (markSelectedReadBtn) {
+      markSelectedReadBtn.addEventListener('click', () => this.markSelectedAsRead());
+    }
+
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    if (deleteSelectedBtn) {
+      deleteSelectedBtn.addEventListener('click', () => {
+        const selectedIds = this.getSelectedNotificationIds();
+        if (selectedIds.length > 0 && confirm(`Are you sure you want to delete ${selectedIds.length} selected notification(s)?`)) {
+          this.deleteSelectedNotifications();
+        }
+      });
+    }
 
     // Close on background click
     const modal = document.getElementById('notificationModal');
@@ -492,6 +529,7 @@ class UnifiedNotificationSystem {
     list.innerHTML = html;
     console.log('HTML set, attaching listeners...');
     this.attachItemListeners();
+    this.updateBulkActionButtons();
     console.log('✅ Render complete');
   }
 
@@ -511,13 +549,24 @@ class UnifiedNotificationSystem {
     const time = this.formatRelativeTime(notification.created_at);
     const hasAction = notification.notification_action && notification.action_data;
 
+    // Truncate message for preview (show first 100 characters)
+    const fullMessage = notification.message;
+    const previewMessage = fullMessage.length > 100 ? fullMessage.substring(0, 100) + '...' : fullMessage;
+    const shouldTruncate = fullMessage.length > 100;
+
     return `
       <div class="notification-modal-item ${type} ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
+        <div class="notification-modal-item-selection">
+          <input type="checkbox" class="notification-checkbox" data-id="${notification.id}">
+        </div>
         <div class="notification-modal-item-icon">
           <i class="${icons[type] || icons.info}"></i>
         </div>
         <div class="notification-modal-item-content">
-          <p class="notification-modal-item-message">${this.escapeHtml(notification.message)}</p>
+          <p class="notification-modal-item-message ${shouldTruncate ? 'truncated' : ''}" data-full-message="${this.escapeHtml(fullMessage)}">
+            ${this.escapeHtml(previewMessage)}
+          </p>
+          ${shouldTruncate ? '<button class="notification-read-more" data-id="' + notification.id + '">Read more</button>' : ''}
           <p class="notification-modal-item-time">${time}</p>
           ${hasAction ? `<div class="notification-modal-item-action-hint">Click to take action</div>` : ''}
         </div>
@@ -552,6 +601,25 @@ class UnifiedNotificationSystem {
     const items = document.querySelectorAll('.notification-modal-item');
     items.forEach(item => {
       const id = item.dataset.id;
+
+      // Handle expand/collapse for read more
+      const readMoreBtn = item.querySelector('.notification-read-more');
+      if (readMoreBtn) {
+        readMoreBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleNotificationExpansion(id);
+        });
+      }
+
+      // Handle checkbox selection
+      const checkbox = item.querySelector('.notification-checkbox');
+      if (checkbox) {
+        checkbox.addEventListener('change', (e) => {
+          e.stopPropagation();
+          this.updateSelectAllCheckbox();
+          this.updateBulkActionButtons();
+        });
+      }
 
       // Handle item click for actions
       item.addEventListener('click', (e) => {
@@ -623,6 +691,155 @@ class UnifiedNotificationSystem {
         });
       }
     });
+  }
+
+  /**
+   * Toggle notification expansion
+   */
+  toggleNotificationExpansion(notificationId) {
+    const item = document.querySelector(`.notification-modal-item[data-id="${notificationId}"]`);
+    if (!item) return;
+
+    const messageElement = item.querySelector('.notification-modal-item-message');
+    const readMoreBtn = item.querySelector('.notification-read-more');
+
+    if (!messageElement || !readMoreBtn) return;
+
+    const isExpanded = item.classList.contains('expanded');
+
+    if (isExpanded) {
+      // Collapse
+      item.classList.remove('expanded');
+      const previewMessage = messageElement.dataset.fullMessage.length > 100
+        ? messageElement.dataset.fullMessage.substring(0, 100) + '...'
+        : messageElement.dataset.fullMessage;
+      messageElement.textContent = previewMessage;
+      readMoreBtn.textContent = 'Read more';
+    } else {
+      // Expand
+      item.classList.add('expanded');
+      messageElement.textContent = messageElement.dataset.fullMessage;
+      readMoreBtn.textContent = 'Read less';
+    }
+  }
+
+  /**
+   * Select/Deselect all notifications
+   */
+  selectAllNotifications(selected) {
+    const checkboxes = document.querySelectorAll('.notification-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = selected;
+    });
+    this.updateBulkActionButtons();
+  }
+
+  /**
+   * Update select all checkbox state
+   */
+  updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('selectAllNotifications');
+    const checkboxes = document.querySelectorAll('.notification-checkbox');
+    const checkedBoxes = document.querySelectorAll('.notification-checkbox:checked');
+
+    if (!selectAllCheckbox) return;
+
+    if (checkedBoxes.length === 0) {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+    } else if (checkedBoxes.length === checkboxes.length) {
+      selectAllCheckbox.checked = true;
+      selectAllCheckbox.indeterminate = false;
+    } else {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = true;
+    }
+  }
+
+  /**
+   * Get selected notification IDs
+   */
+  getSelectedNotificationIds() {
+    const checkboxes = document.querySelectorAll('.notification-checkbox:checked');
+    return Array.from(checkboxes).map(checkbox => checkbox.dataset.id);
+  }
+
+  /**
+   * Update bulk action buttons state
+   */
+  updateBulkActionButtons() {
+    const selectedIds = this.getSelectedNotificationIds();
+    const markSelectedBtn = document.getElementById('markSelectedReadBtn');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+
+    const hasSelection = selectedIds.length > 0;
+
+    if (markSelectedBtn) {
+      markSelectedBtn.disabled = !hasSelection;
+    }
+    if (deleteSelectedBtn) {
+      deleteSelectedBtn.disabled = !hasSelection;
+    }
+  }
+
+  /**
+   * Mark selected notifications as read
+   */
+  async markSelectedAsRead() {
+    const selectedIds = this.getSelectedNotificationIds();
+    if (selectedIds.length === 0) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('notifications')
+        .update({ status: 'read' })
+        .eq('user_id', user.id)
+        .in('id', selectedIds);
+
+      // Update local state
+      selectedIds.forEach(id => {
+        const notification = this.notifications.find(n => n.id === id);
+        if (notification) {
+          notification.status = 'read';
+        }
+      });
+
+      this.updateBadge();
+      this.render();
+      this.updateBulkActionButtons();
+    } catch (error) {
+      console.error('Error marking selected as read:', error);
+    }
+  }
+
+  /**
+   * Delete selected notifications
+   */
+  async deleteSelectedNotifications() {
+    const selectedIds = this.getSelectedNotificationIds();
+    if (selectedIds.length === 0) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('notifications')
+        .update({ status: 'deleted' })
+        .eq('user_id', user.id)
+        .in('id', selectedIds);
+
+      // Update local state
+      this.notifications = this.notifications.filter(n => !selectedIds.includes(n.id));
+      this.updateBadge();
+      this.render();
+      this.updateBulkActionButtons();
+    } catch (error) {
+      console.error('Error deleting selected notifications:', error);
+    }
   }
 
   /**

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Notification Features Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/notifications-unified.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2 style="padding: 20px; margin: 0; border-bottom: 1px solid #e0e0e0;">Enhanced Notification Features</h2>
+
+        <!-- Notification Modal Structure for Testing -->
+        <div class="notification-modal active" id="testModal" style="position: relative; z-index: 1;">
+            <div class="notification-modal-content">
+                <div class="notification-modal-header">
+                    <h2>Test Notifications</h2>
+                </div>
+
+                <div class="notification-modal-toolbar">
+                    <div class="notification-modal-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="notificationSearch" placeholder="Search notifications...">
+                    </div>
+                    <div class="notification-modal-bulk-actions">
+                        <label class="notification-select-all">
+                            <input type="checkbox" id="selectAllNotifications">
+                            <span>Select All</span>
+                        </label>
+                        <div class="notification-modal-actions">
+                            <button class="notification-modal-btn" id="markSelectedReadBtn" disabled>
+                                <i class="fas fa-envelope-open"></i> Mark Selected Read
+                            </button>
+                            <button class="notification-modal-btn danger" id="deleteSelectedBtn" disabled>
+                                <i class="fas fa-trash"></i> Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="notification-modal-filters">
+                    <button class="notification-filter-btn active" data-filter="all">All</button>
+                    <button class="notification-filter-btn" data-filter="success">
+                        <i class="fas fa-check-circle"></i> Success
+                    </button>
+                    <button class="notification-filter-btn" data-filter="error">
+                        <i class="fas fa-exclamation-circle"></i> Error
+                    </button>
+                </div>
+
+                <div class="notification-modal-list" id="testNotificationList">
+                    <!-- Test notifications with expand/collapse -->
+                    <div class="notification-modal-item success unread" data-id="1">
+                        <div class="notification-modal-item-selection">
+                            <input type="checkbox" class="notification-checkbox" data-id="1">
+                        </div>
+                        <div class="notification-modal-item-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="notification-modal-item-content">
+                            <p class="notification-modal-item-message truncated" data-full-message="This is a very long notification message that should be truncated in the preview but can be expanded to show the full content when the user clicks read more. This demonstrates the expand/collapse functionality.">
+                                This is a very long notification message that should be truncated in the preview but can be expanded...
+                            </p>
+                            <button class="notification-read-more" data-id="1">Read more</button>
+                            <p class="notification-modal-item-time">2 hours ago</p>
+                        </div>
+                        <div class="notification-modal-item-actions">
+                            <button class="notification-modal-item-btn mark-read" title="Mark as read">
+                                <i class="fas fa-envelope-open"></i>
+                            </button>
+                            <button class="notification-modal-item-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="notification-modal-item-unread-indicator"></div>
+                    </div>
+
+                    <div class="notification-modal-item error" data-id="2">
+                        <div class="notification-modal-item-selection">
+                            <input type="checkbox" class="notification-checkbox" data-id="2">
+                        </div>
+                        <div class="notification-modal-item-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="notification-modal-item-content">
+                            <p class="notification-modal-item-message" data-full-message="Error: Failed to process your request">Error: Failed to process your request</p>
+                            <p class="notification-modal-item-time">1 hour ago</p>
+                        </div>
+                        <div class="notification-modal-item-actions">
+                            <button class="notification-modal-item-btn mark-unread" title="Mark as unread">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                            <button class="notification-modal-item-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="notification-modal-item info unread" data-id="3">
+                        <div class="notification-modal-item-selection">
+                            <input type="checkbox" class="notification-checkbox" data-id="3">
+                        </div>
+                        <div class="notification-modal-item-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="notification-modal-item-content">
+                            <p class="notification-modal-item-message truncated" data-full-message="This is another long notification that demonstrates the expand functionality. When expanded, you can see the full message content without any truncation. This helps users read longer notifications without cluttering the interface.">
+                                This is another long notification that demonstrates the expand functionality. When expanded, you can see...
+                            </p>
+                            <button class="notification-read-more" data-id="3">Read more</button>
+                            <p class="notification-modal-item-time">30 minutes ago</p>
+                        </div>
+                        <div class="notification-modal-item-actions">
+                            <button class="notification-modal-item-btn mark-read" title="Mark as read">
+                                <i class="fas fa-envelope-open"></i>
+                            </button>
+                            <button class="notification-modal-item-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="notification-modal-item-unread-indicator"></div>
+                    </div>
+                </div>
+
+                <div class="notification-modal-footer">
+                    <button class="notification-modal-footer-btn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test the expand/collapse functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('notification-read-more')) {
+                const notificationId = e.target.dataset.id;
+                const item = document.querySelector(`.notification-modal-item[data-id="${notificationId}"]`);
+                const messageElement = item.querySelector('.notification-modal-item-message');
+                const readMoreBtn = e.target;
+
+                const isExpanded = item.classList.contains('expanded');
+
+                if (isExpanded) {
+                    // Collapse
+                    item.classList.remove('expanded');
+                    const previewMessage = messageElement.dataset.fullMessage.length > 100
+                        ? messageElement.dataset.fullMessage.substring(0, 100) + '...'
+                        : messageElement.dataset.fullMessage;
+                    messageElement.textContent = previewMessage;
+                    readMoreBtn.textContent = 'Read more';
+                } else {
+                    // Expand
+                    item.classList.add('expanded');
+                    messageElement.textContent = messageElement.dataset.fullMessage;
+                    readMoreBtn.textContent = 'Read less';
+                }
+            }
+        });
+
+        // Test select all functionality
+        document.getElementById('selectAllNotifications').addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('.notification-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+            });
+            updateBulkButtons();
+        });
+
+        // Update individual checkbox states
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('notification-checkbox')) {
+                updateSelectAllState();
+                updateBulkButtons();
+            }
+        });
+
+        function updateSelectAllState() {
+            const selectAllCheckbox = document.getElementById('selectAllNotifications');
+            const checkboxes = document.querySelectorAll('.notification-checkbox');
+            const checkedBoxes = document.querySelectorAll('.notification-checkbox:checked');
+
+            if (checkedBoxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedBoxes.length === checkboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+
+        function updateBulkButtons() {
+            const checkedBoxes = document.querySelectorAll('.notification-checkbox:checked');
+            const markSelectedBtn = document.getElementById('markSelectedReadBtn');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+
+            const hasSelection = checkedBoxes.length > 0;
+            markSelectedBtn.disabled = !hasSelection;
+            deleteSelectedBtn.disabled = !hasSelection;
+        }
+
+        console.log('Enhanced notification features test loaded successfully!');
+        console.log('Features to test:');
+        console.log('1. Click "Read more" on long notifications to expand/collapse');
+        console.log('2. Check individual checkboxes to select notifications');
+        console.log('3. Use "Select All" to select/deselect all notifications');
+        console.log('4. Bulk action buttons (Mark Selected Read, Delete Selected) enable/disable based on selection');
+    </script>
+</body>
+</html>
