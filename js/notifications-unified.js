@@ -32,7 +32,7 @@ class UnifiedNotificationSystem {
       console.log('✅ Bell created');
       this.createModal();
       console.log('✅ Modal created');
-      this.attachEventListeners();
+      this.attachModalListeners();
       console.log('✅ Event listeners attached');
 
       // Try to get current user

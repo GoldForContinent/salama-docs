@@ -266,7 +266,7 @@ function initializeUI() {
 
     // Sidebar navigation
     document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', async function() {
             const section = this.getAttribute('data-section');
             if (section) {
                 await showSection(section);
