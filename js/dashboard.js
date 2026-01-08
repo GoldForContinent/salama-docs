@@ -193,13 +193,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         // to prevent dashboard loading issues
         console.log('🔍 Automated matching disabled during initialization to prevent loading issues');
 
-        // Set up periodic automated matching every 5 minutes (reduced frequency)
+        // Set up periodic automated matching every 30 seconds for testing (change back to 5 minutes in production)
         setInterval(async () => {
             if (typeof window.runAutomatedMatching === 'function') {
                 console.log('🔍 Running periodic automated matching...');
                 await window.runAutomatedMatching();
             }
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 30 * 1000); // 30 seconds for testing
         
         populateMyReportsSection('all');
 
@@ -1233,15 +1233,40 @@ window.runAutomatedMatching = async function() {
         });
         
         const matches = [];
+        console.log('🔍 Starting detailed matching process...');
+
         for (const lostReport of lostReports) {
-            if (!lostReport.report_documents || lostReport.report_documents.length === 0) continue;
+            if (!lostReport.report_documents || lostReport.report_documents.length === 0) {
+                console.log(`⚠️ Lost report ${lostReport.id} has no documents, skipping`);
+                continue;
+            }
+
             for (const lostDoc of lostReport.report_documents) {
+                console.log(`📋 Checking lost doc: ${lostDoc.document_type} (${lostDoc.document_number}) from report ${lostReport.id}`);
+
                 for (const foundReport of foundReports) {
-                    if (!foundReport.report_documents || foundReport.report_documents.length === 0) continue;
+                    if (!foundReport.report_documents || foundReport.report_documents.length === 0) {
+                        console.log(`⚠️ Found report ${foundReport.id} has no documents, skipping`);
+                        continue;
+                    }
+
                     for (const foundDoc of foundReport.report_documents) {
-                        console.log(`🔍 Comparing: Lost "${lostDoc.document_type}" (${lostDoc.document_number}) vs Found "${foundDoc.document_type}" (${foundDoc.document_number})`);
-                        
-                        if (lostDoc.document_type === foundDoc.document_type && lostDoc.document_number === foundDoc.document_number && lostDoc.document_number && foundDoc.document_number) {
+                        console.log(`🔍 Comparing:
+                            Lost: "${lostDoc.document_type}" (${lostDoc.document_number}) [Report: ${lostReport.id}]
+                            Found: "${foundDoc.document_type}" (${foundDoc.document_number}) [Report: ${foundReport.id}]`);
+
+                        const typeMatch = lostDoc.document_type === foundDoc.document_type;
+                        const numberMatch = lostDoc.document_number === foundDoc.document_number;
+                        const hasNumbers = lostDoc.document_number && foundDoc.document_number;
+
+                        console.log(`   Type match: ${typeMatch}, Number match: ${numberMatch}, Has numbers: ${hasNumbers}`);
+
+                        if (typeMatch && numberMatch && hasNumbers) {
+                            console.log('🎯 MATCH FOUND!', {
+                                lostReport: lostReport.id,
+                                foundReport: foundReport.id,
+                                document: `${lostDoc.document_type} (${lostDoc.document_number})`
+                            });
                             // Check if this match already exists in recovered_reports
                             const { data: existingMatch } = await supabase
                                 .from('recovered_reports')
@@ -1282,7 +1307,9 @@ window.runAutomatedMatching = async function() {
                 });
 
                 // 🔔 Send notifications to both users for potential match
+                console.log('🔔 Creating notifications for match...');
                 try {
+                    console.log('📤 Sending notification to LOST OWNER:', match.lostReport.user_id);
                     // --- STEP 1: Notify LOST OWNER of Potential Match ---
                     await UnifiedNotificationSystem.createNotification(
                         match.lostReport.user_id,
@@ -1294,7 +1321,9 @@ window.runAutomatedMatching = async function() {
                             actionData: { reportId: match.lostReport.id }
                         }
                     );
+                    console.log('✅ Lost owner notification sent');
 
+                    console.log('📤 Sending notification to FOUND OWNER:', match.foundReport.user_id);
                     // --- STEP 2: Notify FOUND OWNER of Awaiting Verification ---
                     await UnifiedNotificationSystem.createNotification(
                         match.foundReport.user_id,
@@ -1306,6 +1335,7 @@ window.runAutomatedMatching = async function() {
                             actionData: { reportId: match.foundReport.id }
                         }
                     );
+                    console.log('✅ Found owner notification sent');
 
                     console.log('✅ Match processed and notifications sent for reports:', match.lostReport.id, match.foundReport.id);
                 } catch (notifError) {
