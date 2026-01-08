@@ -513,21 +513,16 @@ class UnifiedNotificationSystem {
 
     console.log('🎨 VENICE DEBUG: Rendering', notifications.length, 'notifications');
 
-    // VENICE AI: Verify Rendering Logic
-    const type = notification.type || 'info';
-    const isUnread = notification.status === 'unread';
-    const time = this.formatRelativeTime(notification.created_at);
-    const hasAction = notification.notification_action && notification.action_data;
+    // Build HTML using renderNotification for each item
+    const html = notifications.map(n => {
+      console.log('🎨 VENICE DEBUG: Creating HTML for notification:', n.id, (n.message || '').substring(0, 30) + '...');
+      return this.renderNotification(n);
+    }).join('');
 
-    // Truncate message for preview (show first 100 characters) - guard against null/undefined
-    const fullMessage = notification.message || '';
-    const previewMessage = fullMessage.length > 100 ? fullMessage.substring(0, 100) + '...' : fullMessage;
-    const shouldTruncate = fullMessage.length > 100;
+    console.log('🎨 VENICE DEBUG: Total HTML length:', html.length);
+    console.log('🎨 VENICE DEBUG: Setting innerHTML...');
 
-    // Safely encode action data into attribute using encodeURIComponent
-    const safeActionData = encodeURIComponent(JSON.stringify(notification.action_data || {}));
-
-    return `
+    list.innerHTML = html;
 
     console.log('🎨 VENICE DEBUG: HTML set, list children now:', list.children.length);
     console.log('🎨 VENICE DEBUG: Attaching listeners...');
