@@ -362,18 +362,11 @@ class UnifiedNotificationSystem {
       this.currentUser = user;
     }
 
-    console.log('📬 Fetching notifications for user:', this.currentUser.id, this.currentUser.email);
+    console.log('📬 VENICE DEBUG: Fetching notifications for user:', this.currentUser.id, this.currentUser.email);
 
     try {
-      // DEBUG: Temporarily test if RLS is working by checking total notification count
-      const { count: totalCount, error: countError } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .neq('status', 'deleted');
-
-      console.log('🔍 Total notifications in DB (should be filtered by RLS):', totalCount);
-
-      console.log('🔍 Querying notifications with user_id:', this.currentUser.id);
+      // VENICE AI: Verify Data Fetching
+      console.log('📬 VENICE DEBUG: About to query Supabase...');
 
       const { data, error } = await supabase
         .from('notifications')
@@ -383,33 +376,27 @@ class UnifiedNotificationSystem {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Supabase query error:', error);
+        console.error('❌ VENICE DEBUG: Supabase query error:', error);
         throw error;
       }
 
-      console.log('🔍 Raw query result count:', data?.length || 0);
-
-      // Debug: Check if RLS is working by logging all notification user_ids
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(n => n.user_id))];
-        console.log('🔍 Unique user_ids in results:', userIds);
-        console.log('🔍 Current user ID:', this.currentUser.id);
-        console.log('🔍 RLS working?', userIds.length === 1 && userIds[0] === this.currentUser.id);
-
-        // Extra safety: manually filter to ensure only current user's notifications
-        if (userIds.length > 1 || (userIds.length === 1 && userIds[0] !== this.currentUser.id)) {
-          console.warn('⚠️ RLS not working properly, manually filtering notifications');
-          data = data.filter(n => n.user_id === this.currentUser.id);
-        }
-      }
+      console.log('📬 VENICE DEBUG: Raw query result:', data);
+      console.log('📬 VENICE DEBUG: Query returned', data?.length || 0, 'notifications');
 
       this.notifications = data || [];
-      console.log('📬 Fetched notifications:', this.notifications.length, 'for user:', this.currentUser.id);
-      console.log('📬 Notification details:', this.notifications.map(n => ({ id: n.id, user_id: n.user_id, message: n.message.substring(0, 50) + '...' })));
+      console.log('📬 VENICE DEBUG: Set notifications array to:', this.notifications.length, 'items');
+      console.log('📬 VENICE DEBUG: Notification details:', this.notifications.map(n => ({
+        id: n.id,
+        user_id: n.user_id,
+        message: n.message.substring(0, 50) + '...',
+        type: n.type,
+        status: n.status
+      })));
 
       this.updateBadge();
+      console.log('📬 VENICE DEBUG: Badge updated, fetchNotifications complete');
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('❌ VENICE DEBUG: Error in fetchNotifications:', error);
       this.notifications = [];
     }
   }
@@ -481,34 +468,45 @@ class UnifiedNotificationSystem {
    * Render notifications
    */
   render(searchQuery = '') {
+    console.log('🎨 VENICE DEBUG: ===== RENDER START =====');
+    console.log('🎨 VENICE DEBUG: render() called with searchQuery:', searchQuery);
+
     const list = document.getElementById('notificationList');
     if (!list) {
-      console.error('❌ Notification list element not found');
+      console.error('❌ VENICE DEBUG: Notification list element not found!');
       return;
     }
 
-    console.log('🎨 Starting render. Total notifications:', this.notifications.length);
-    console.log('Notifications data:', this.notifications);
+    console.log('🎨 VENICE DEBUG: List element found, proceeding...');
+
+    // VENICE AI: Check Filtering Logic
+    console.log('🎨 VENICE DEBUG: Total notifications in array:', this.notifications.length);
+    console.log('🎨 VENICE DEBUG: Current filter:', this.currentFilter);
 
     let notifications = [...this.notifications]; // Create copy
-    console.log('🎨 Rendering notifications. Total:', notifications.length, 'Filter:', this.currentFilter);
+    console.log('🎨 VENICE DEBUG: Initial copy has', notifications.length, 'notifications');
 
     // Filter by type
     if (this.currentFilter !== 'all') {
+      const beforeFilter = notifications.length;
       notifications = notifications.filter(n => n.type === this.currentFilter);
-      console.log('After type filter:', notifications.length);
+      console.log(`🎨 VENICE DEBUG: Type filter '${this.currentFilter}': ${beforeFilter} -> ${notifications.length}`);
     }
 
     // Filter by search
-    if (searchQuery) {
+    const searchQueryLower = searchQuery.toLowerCase();
+    if (searchQueryLower) {
+      const beforeSearch = notifications.length;
       notifications = notifications.filter(n =>
-        n.message.toLowerCase().includes(searchQuery.toLowerCase())
+        n.message.toLowerCase().includes(searchQueryLower)
       );
-      console.log('After search filter:', notifications.length);
+      console.log(`🎨 VENICE DEBUG: Search filter '${searchQueryLower}': ${beforeSearch} -> ${notifications.length}`);
     }
 
+    console.log('🎨 VENICE DEBUG: Final filtered notifications:', notifications.length);
+
     if (notifications.length === 0) {
-      console.log('No notifications to display');
+      console.log('🎨 VENICE DEBUG: No notifications to display, showing empty state');
       list.innerHTML = `
         <div class="notification-modal-empty">
           <i class="fas fa-inbox"></i>
@@ -519,24 +517,36 @@ class UnifiedNotificationSystem {
       return;
     }
 
-    console.log('Rendering', notifications.length, 'notifications');
+    console.log('🎨 VENICE DEBUG: Rendering', notifications.length, 'notifications');
+
+    // VENICE AI: Verify Rendering Logic
     const html = notifications.map(n => {
-      console.log('Creating HTML for notification:', n.id, n.message);
-      return this.renderNotification(n);
+      console.log('🎨 VENICE DEBUG: Creating HTML for notification:', n.id, n.message.substring(0, 30) + '...');
+      const itemHtml = this.renderNotification(n);
+      console.log('🎨 VENICE DEBUG: Generated HTML length:', itemHtml.length);
+      return itemHtml;
     }).join('');
-    
-    console.log('Setting innerHTML with', html.length, 'characters');
+
+    console.log('🎨 VENICE DEBUG: Total HTML length:', html.length);
+    console.log('🎨 VENICE DEBUG: Setting innerHTML...');
+
     list.innerHTML = html;
-    console.log('HTML set, attaching listeners...');
+
+    console.log('🎨 VENICE DEBUG: HTML set, list children now:', list.children.length);
+    console.log('🎨 VENICE DEBUG: Attaching listeners...');
+
     this.attachItemListeners();
     this.updateBulkActionButtons();
-    console.log('✅ Render complete');
+
+    console.log('🎨 VENICE DEBUG: ===== RENDER COMPLETE =====');
   }
 
   /**
    * Render single notification
    */
   renderNotification(notification) {
+    console.log('🎨 VENICE DEBUG: ===== CREATE ITEM START =====');
+    console.log('🎨 VENICE DEBUG: Creating item for notification:', notification.id);
     const icons = {
       success: 'fas fa-check-circle',
       error: 'fas fa-exclamation-circle',
@@ -592,6 +602,12 @@ class UnifiedNotificationSystem {
         ${isUnread ? '<div class="notification-modal-item-unread-indicator"></div>' : ''}
       </div>
     `;
+
+    console.log('🎨 VENICE DEBUG: Generated notification item HTML length:', html.length);
+    console.log('🎨 VENICE DEBUG: HTML preview:', html.substring(0, 100) + '...');
+    console.log('🎨 VENICE DEBUG: ===== CREATE ITEM END =====');
+
+    return html;
   }
 
   /**
