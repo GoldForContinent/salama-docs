@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Height & Scrollbar Fix Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: 100vh; /* Full viewport height */
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            flex: 0 0 250px; /* Fixed width sidebar */
+            display: flex;
+            flex-direction: column;
+            background: #2c3e50;
+            color: white;
+            height: 100%; /* Fill container height */
+            padding: 20px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-item {
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+
+        .main-content {
+            flex: 1; /* Take remaining space */
+            padding: 20px;
+            background: #f8f9fa;
+            overflow-y: auto; /* Scrollable if content overflows */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            height: 100%; /* Fill container height */
+        }
+
+        .content-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .long-content {
+            height: 2000px;
+            background: linear-gradient(to bottom, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .status-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            font-size: 12px;
+        }
+
+        .status-item {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .status-panel {
+                position: static;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <h3>Sidebar</h3>
+            <div class="sidebar-content">
+                <div class="sidebar-item">Dashboard</div>
+                <div class="sidebar-item">Reports</div>
+                <div class="sidebar-item">Profile</div>
+                <div class="sidebar-item">Settings</div>
+                <div class="sidebar-item">Help</div>
+            </div>
+            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+                <div class="sidebar-item">Logout</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="content-section">
+                <h2>Dashboard Content</h2>
+                <p>This is the main content area. The sidebar should reach all the way to the bottom of the viewport.</p>
+                <p>Scroll down to see if there are multiple scrollbars.</p>
+            </div>
+
+            <div class="long-content">
+                SCROLL TEST - This content is 2000px tall
+                <br><br>
+                If you see a horizontal scrollbar, there's a layout issue.
+                <br><br>
+                If the sidebar doesn't reach the bottom, there's a height issue.
+                <br><br>
+                Only one vertical scrollbar should be visible.
+            </div>
+
+            <div class="content-section">
+                <h3>Test Results</h3>
+                <div id="testResults">
+                    <div class="status-item warning">🔍 Analyzing layout...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-panel" id="statusPanel">
+        <strong>Layout Status:</strong>
+        <div id="layoutStatus">Testing...</div>
+    </div>
+
+    <script>
+        function analyzeLayout() {
+            const results = [];
+            const statusDiv = document.getElementById('layoutStatus');
+            const testResultsDiv = document.getElementById('testResults');
+
+            // Check viewport dimensions
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+
+            // Check sidebar dimensions
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarHeight = sidebar.offsetHeight;
+            const sidebarWidth = sidebar.offsetWidth;
+
+            // Check main content dimensions
+            const mainContent = document.querySelector('.main-content');
+            const mainHeight = mainContent.offsetHeight;
+            const mainWidth = mainContent.offsetWidth;
+
+            // Check for scrollbars
+            const hasHorizontalScroll = document.body.scrollWidth > window.innerWidth;
+            const hasVerticalScroll = document.body.scrollHeight > window.innerHeight;
+
+            // Check container dimensions
+            const container = document.querySelector('.dashboard-container');
+            const containerHeight = container.offsetHeight;
+            const containerWidth = container.offsetWidth;
+
+            // Analyze results
+            let allGood = true;
+
+            // Sidebar height test
+            if (sidebarHeight >= viewportHeight - 10) { // Allow small margin
+                results.push({ status: 'success', message: '✅ Sidebar reaches bottom of viewport' });
+            } else {
+                results.push({ status: 'error', message: `❌ Sidebar height (${sidebarHeight}px) < viewport (${viewportHeight}px)` });
+                allGood = false;
+            }
+
+            // Horizontal scrollbar test
+            if (!hasHorizontalScroll) {
+                results.push({ status: 'success', message: '✅ No horizontal scrollbar' });
+            } else {
+                results.push({ status: 'error', message: '❌ Horizontal scrollbar detected' });
+                allGood = false;
+            }
+
+            // Container height test
+            if (containerHeight >= viewportHeight) {
+                results.push({ status: 'success', message: '✅ Container fills viewport height' });
+            } else {
+                results.push({ status: 'error', message: `❌ Container height (${containerHeight}px) < viewport (${viewportHeight}px)` });
+                allGood = false;
+            }
+
+            // Flex layout test
+            const containerStyle = window.getComputedStyle(container);
+            if (containerStyle.display === 'flex') {
+                results.push({ status: 'success', message: '✅ Using Flexbox layout' });
+            } else {
+                results.push({ status: 'warning', message: `⚠️ Using ${containerStyle.display} layout instead of flex` });
+            }
+
+            // Mobile test
+            const isMobile = viewportWidth <= 768;
+            if (isMobile) {
+                if (sidebar.offsetWidth === 0) {
+                    results.push({ status: 'success', message: '✅ Sidebar hidden on mobile' });
+                } else {
+                    results.push({ status: 'error', message: '❌ Sidebar visible on mobile' });
+                    allGood = false;
+                }
+            }
+
+            // Update status panel
+            statusDiv.innerHTML = `
+                <div class="status-item ${allGood ? 'success' : 'error'}">
+                    ${allGood ? '🎉 All layout issues fixed!' : '⚠️ Layout issues detected'}
+                </div>
+                <div>Viewport: ${viewportWidth}×${viewportHeight}px</div>
+                <div>Container: ${containerWidth}×${containerHeight}px</div>
+                <div>Sidebar: ${sidebarWidth}×${sidebarHeight}px</div>
+                <div>Main: ${mainWidth}×${mainHeight}px</div>
+                <div>Scrollbars: H=${hasHorizontalScroll}, V=${hasVerticalScroll}</div>
+            `;
+
+            // Update test results
+            testResultsDiv.innerHTML = results.map(result =>
+                `<div class="status-item ${result.status}">${result.message}</div>`
+            ).join('');
+
+            console.log('Layout Analysis Results:', results);
+        }
+
+        // Run analysis on load and resize
+        window.addEventListener('load', analyzeLayout);
+        window.addEventListener('resize', analyzeLayout);
+
+        // Initial analysis
+        setTimeout(analyzeLayout, 100);
+    </script>
+</body>
+</html>
