@@ -301,15 +301,15 @@ class UnifiedNotificationSystem {
         this.showToast(payload.new);
         break;
       case 'UPDATE':
-        // Update existing notification
-        const index = this.notifications.findIndex(n => n.id === payload.new.id);
+        // Update existing notification (string-safe ID comparison)
+        const index = this.notifications.findIndex(n => String(n.id) === String(payload.new.id));
         if (index !== -1) {
           this.notifications[index] = payload.new;
         }
         break;
       case 'DELETE':
-        // Remove notification from list
-        this.notifications = this.notifications.filter(n => n.id !== payload.old.id);
+        // Remove notification from list (string-safe ID comparison)
+        this.notifications = this.notifications.filter(n => String(n.id) !== String(payload.old.id));
         break;
     }
 
@@ -345,20 +345,14 @@ class UnifiedNotificationSystem {
    * Fetch notifications from Supabase
    */
   async fetchNotifications() {
-    if (!this.currentUser) {
-      console.warn('No user logged in for notifications');
-      return;
-    }
-
-    // Double-check auth status
+    // Ensure we have an authenticated user (handle auth timing issues)
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
       console.warn('Auth check failed, user not authenticated');
       return;
     }
 
-    if (user.id !== this.currentUser.id) {
-      console.warn('User ID mismatch, updating current user');
+    if (!this.currentUser || user.id !== this.currentUser.id) {
       this.currentUser = user;
     }
 
@@ -388,7 +382,7 @@ class UnifiedNotificationSystem {
       console.log('📬 VENICE DEBUG: Notification details:', this.notifications.map(n => ({
         id: n.id,
         user_id: n.user_id,
-        message: n.message.substring(0, 50) + '...',
+        message: (n.message || '').substring(0, 50) + '...',
         type: n.type,
         status: n.status
       })));
@@ -520,17 +514,20 @@ class UnifiedNotificationSystem {
     console.log('🎨 VENICE DEBUG: Rendering', notifications.length, 'notifications');
 
     // VENICE AI: Verify Rendering Logic
-    const html = notifications.map(n => {
-      console.log('🎨 VENICE DEBUG: Creating HTML for notification:', n.id, n.message.substring(0, 30) + '...');
-      const itemHtml = this.renderNotification(n);
-      console.log('🎨 VENICE DEBUG: Generated HTML length:', itemHtml.length);
-      return itemHtml;
-    }).join('');
+    const type = notification.type || 'info';
+    const isUnread = notification.status === 'unread';
+    const time = this.formatRelativeTime(notification.created_at);
+    const hasAction = notification.notification_action && notification.action_data;
 
-    console.log('🎨 VENICE DEBUG: Total HTML length:', html.length);
-    console.log('🎨 VENICE DEBUG: Setting innerHTML...');
+    // Truncate message for preview (show first 100 characters) - guard against null/undefined
+    const fullMessage = notification.message || '';
+    const previewMessage = fullMessage.length > 100 ? fullMessage.substring(0, 100) + '...' : fullMessage;
+    const shouldTruncate = fullMessage.length > 100;
 
-    list.innerHTML = html;
+    // Safely encode action data into attribute using encodeURIComponent
+    const safeActionData = encodeURIComponent(JSON.stringify(notification.action_data || {}));
+
+    return `
 
     console.log('🎨 VENICE DEBUG: HTML set, list children now:', list.children.length);
     console.log('🎨 VENICE DEBUG: Attaching listeners...');
@@ -545,8 +542,6 @@ class UnifiedNotificationSystem {
    * Render single notification
    */
   renderNotification(notification) {
-    console.log('🎨 VENICE DEBUG: ===== CREATE ITEM START =====');
-    console.log('🎨 VENICE DEBUG: Creating item for notification:', notification.id);
     const icons = {
       success: 'fas fa-check-circle',
       error: 'fas fa-exclamation-circle',
@@ -559,10 +554,13 @@ class UnifiedNotificationSystem {
     const time = this.formatRelativeTime(notification.created_at);
     const hasAction = notification.notification_action && notification.action_data;
 
-    // Truncate message for preview (show first 100 characters)
-    const fullMessage = notification.message;
+    // Truncate message for preview (show first 100 characters) - guard against null/undefined
+    const fullMessage = notification.message || '';
     const previewMessage = fullMessage.length > 100 ? fullMessage.substring(0, 100) + '...' : fullMessage;
     const shouldTruncate = fullMessage.length > 100;
+
+    // Safely encode action data into attribute using encodeURIComponent
+    const safeActionData = encodeURIComponent(JSON.stringify(notification.action_data || {}));
 
     return `
       <div class="notification-modal-item ${type} ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
@@ -582,7 +580,7 @@ class UnifiedNotificationSystem {
         </div>
         <div class="notification-modal-item-actions">
           ${hasAction ? `
-            <button class="notification-modal-item-btn action" title="${notification.notification_action}" data-id="${notification.id}" data-action="${notification.notification_action}" data-action-data="${this.escapeHtml(JSON.stringify(notification.action_data || {}))}">
+            <button class="notification-modal-item-btn action" title="${this.escapeHtml(notification.notification_action || '')}" data-id="${notification.id}" data-action="${this.escapeHtml(notification.notification_action || '')}" data-action-data="${this.escapeHtml(safeActionData)}">
               <i class="fas fa-external-link-alt"></i>
             </button>
           ` : ''}
@@ -602,12 +600,6 @@ class UnifiedNotificationSystem {
         ${isUnread ? '<div class="notification-modal-item-unread-indicator"></div>' : ''}
       </div>
     `;
-
-    console.log('🎨 VENICE DEBUG: Generated notification item HTML length:', html.length);
-    console.log('🎨 VENICE DEBUG: HTML preview:', html.substring(0, 100) + '...');
-    console.log('🎨 VENICE DEBUG: ===== CREATE ITEM END =====');
-
-    return html;
   }
 
   /**
@@ -673,13 +665,13 @@ class UnifiedNotificationSystem {
               .update({ status: newStatus })
               .eq('id', id);
 
-            // Update local state without refetching
-            const notification = this.notifications.find(n => n.id === id);
-            if (notification) {
-              notification.status = newStatus;
-              this.updateBadge();
-              this.render();
-            }
+              // Update local state without refetching (string-safe ID comparison)
+              const notification = this.notifications.find(n => String(n.id) === String(id));
+              if (notification) {
+                notification.status = newStatus;
+                this.updateBadge();
+                this.render();
+              }
           } catch (error) {
             console.error('Error updating notification:', error);
           }
@@ -697,8 +689,8 @@ class UnifiedNotificationSystem {
               .update({ status: 'deleted' })
               .eq('id', id);
 
-            // Update local state without refetching
-            this.notifications = this.notifications.filter(n => n.id !== id);
+            // Update local state without refetching (string-safe ID comparison)
+            this.notifications = this.notifications.filter(n => String(n.id) !== String(id));
             this.updateBadge();
             this.render();
           } catch (error) {
@@ -817,7 +809,7 @@ class UnifiedNotificationSystem {
 
       // Update local state
       selectedIds.forEach(id => {
-        const notification = this.notifications.find(n => n.id === id);
+        const notification = this.notifications.find(n => String(n.id) === String(id));
         if (notification) {
           notification.status = 'read';
         }
@@ -863,7 +855,24 @@ class UnifiedNotificationSystem {
    */
   handleNotificationAction(action, actionDataStr) {
     try {
-      const actionData = JSON.parse(actionDataStr || '{}');
+      // actionDataStr is encoded via encodeURIComponent when rendered into attributes
+      let decoded = '{}';
+      if (actionDataStr) {
+        try {
+          decoded = decodeURIComponent(actionDataStr);
+        } catch (e) {
+          // fallback to raw string if decode fails
+          decoded = actionDataStr;
+        }
+      }
+
+      let actionData = {};
+      try {
+        actionData = JSON.parse(decoded || '{}');
+      } catch (e) {
+        console.warn('Could not parse action data, using empty object', e);
+        actionData = {};
+      }
 
       switch (action) {
         case 'view_report':

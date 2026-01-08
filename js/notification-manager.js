@@ -167,7 +167,7 @@ class NotificationManager {
    * @param {number} id - Notification ID
    */
   dismiss(id) {
-    const index = this.notifications.findIndex(n => n.id === id);
+    const index = this.notifications.findIndex(n => String(n.id) === String(id));
     if (index === -1) return;
 
     const notification = this.notifications[index];
@@ -213,7 +213,7 @@ class NotificationManager {
    * @returns {Object|null} Notification object or null
    */
   getById(id) {
-    return this.notifications.find(n => n.id === id) || null;
+    return this.notifications.find(n => String(n.id) === String(id)) || null;
   }
 
   /**
