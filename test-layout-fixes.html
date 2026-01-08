@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Fixes Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .dashboard-container {
+            min-height: 100vh;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        .sidebar {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            height: 100vh;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            padding: 20px;
+            background: white;
+            overflow-y: auto;
+            overflow-x: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* Mobile Menu Toggle Button */
+        #mobileMenuToggle {
+            display: none;
+        }
+
+        /* Profile dropdown chevron - hide on mobile */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+            .user-profile i.fa-chevron-down {
+                display: none;
+            }
+            #mobileMenuToggle {
+                display: flex;
+            }
+        }
+
+        /* Show mobile menu toggle on mobile, hide on desktop */
+        @media (min-width: 769px) {
+            #mobileMenuToggle {
+                display: none !important;
+            }
+        }
+
+        .test-content {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .scroll-test {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(to right, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <h3>Sidebar</h3>
+            <p>Test sidebar content</p>
+        </div>
+
+        <div class="main-content">
+            <div class="status-bar">
+                <div>
+                    <h1>Welcome to Dashboard</h1>
+                    <p>Testing layout fixes</p>
+                </div>
+                <div class="user-profile" id="profileDropdownBtn">
+                    <img src="https://ui-avatars.com/api/?name=Test+User" alt="User Profile" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+                    <span>Test User <i class="fas fa-chevron-down"></i></span>
+                    <button id="mobileMenuToggle" aria-label="Toggle mobile menu" style="background:none;border:none;cursor:pointer;margin-left:10px;font-size:1.3em;display:flex;align-items:center;" onclick="alert('Mobile menu would toggle here')">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button id="themeToggleBtn" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;margin-left:10px;font-size:1.3em;display:flex;align-items:center;" onclick="alert('Theme toggle')">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="testResults"></div>
+
+            <div class="test-content">
+                <h3>Layout Test Results</h3>
+                <div class="scroll-test">
+                    This is a long content area to test horizontal scrolling. If you see a horizontal scrollbar below this text, there's an overflow issue. The background should be a gradient and should not extend beyond the container width.
+                </div>
+
+                <div id="layoutStatus" class="status info">
+                    Analyzing layout...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test layout issues
+        function analyzeLayout() {
+            const results = document.getElementById('testResults');
+            const layoutStatus = document.getElementById('layoutStatus');
+
+            const issues = [];
+            let hasHorizontalScroll = false;
+
+            // Check for horizontal scrollbar
+            if (document.body.scrollWidth > window.innerWidth) {
+                hasHorizontalScroll = true;
+                issues.push('❌ Horizontal scrollbar detected - layout overflow');
+            } else {
+                issues.push('✅ No horizontal scrollbar - layout correct');
+            }
+
+            // Check viewport width vs content width
+            const viewportWidth = window.innerWidth;
+            const bodyScrollWidth = document.body.scrollWidth;
+            issues.push(`📏 Viewport: ${viewportWidth}px, Content: ${bodyScrollWidth}px`);
+
+            // Check mobile/desktop menu visibility
+            const isMobile = window.innerWidth <= 768;
+            const chevronIcon = document.querySelector('.fa-chevron-down');
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+
+            if (isMobile) {
+                if (chevronIcon && chevronIcon.style.display !== 'none') {
+                    issues.push('❌ Chevron icon visible on mobile (should be hidden)');
+                } else {
+                    issues.push('✅ Chevron icon hidden on mobile');
+                }
+                if (mobileToggle && mobileToggle.style.display !== 'none') {
+                    issues.push('✅ Mobile menu toggle visible on mobile');
+                } else {
+                    issues.push('❌ Mobile menu toggle not visible on mobile');
+                }
+            } else {
+                if (chevronIcon && chevronIcon.style.display !== 'none') {
+                    issues.push('✅ Chevron icon visible on desktop');
+                } else {
+                    issues.push('❌ Chevron icon hidden on desktop');
+                }
+                if (mobileToggle && mobileToggle.style.display === 'none') {
+                    issues.push('✅ Mobile menu toggle hidden on desktop');
+                } else {
+                    issues.push('❌ Mobile menu toggle visible on desktop');
+                }
+            }
+
+            // Update status
+            if (hasHorizontalScroll || issues.some(i => i.includes('❌'))) {
+                layoutStatus.className = 'status error';
+                layoutStatus.innerHTML = '❌ Layout issues detected - see details below';
+            } else {
+                layoutStatus.className = 'status success';
+                layoutStatus.innerHTML = '✅ Layout looks good - no overflow or visibility issues';
+            }
+
+            // Display results
+            results.innerHTML = issues.map(issue =>
+                `<div class="status ${issue.includes('❌') ? 'error' : issue.includes('✅') ? 'success' : 'info'}">${issue}</div>`
+            ).join('');
+
+            console.log('Layout Analysis:', issues);
+        }
+
+        // Run analysis on load and resize
+        window.addEventListener('load', analyzeLayout);
+        window.addEventListener('resize', analyzeLayout);
+
+        // Initial analysis
+        setTimeout(analyzeLayout, 100);
+    </script>
+</body>
+</html>
