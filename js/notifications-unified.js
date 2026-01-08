@@ -379,13 +379,27 @@ class UnifiedNotificationSystem {
 
       this.notifications = data || [];
       console.log('📬 VENICE DEBUG: Set notifications array to:', this.notifications.length, 'items');
-      console.log('📬 VENICE DEBUG: Notification details:', this.notifications.map(n => ({
+      // Additional debug: show types and sample values to help diagnose RLS/ID mismatches
+      console.log('📬 VENICE DEBUG: Current user id (type):', this.currentUser?.id, typeof this.currentUser?.id);
+      console.log('📬 VENICE DEBUG: Notification details (first 5):', this.notifications.slice(0,5).map(n => ({
         id: n.id,
+        id_type: typeof n.id,
         user_id: n.user_id,
+        user_id_type: typeof n.user_id,
         message: (n.message || '').substring(0, 50) + '...',
         type: n.type,
         status: n.status
       })));
+
+      // Expose quick debug helper on window for interactive inspection
+      try {
+        window._debugNotifications = () => ({
+          currentUser: this.currentUser,
+          notifications: this.notifications.slice(0, 10)
+        });
+      } catch (e) {
+        /* ignore in non-browser contexts */
+      }
 
       this.updateBadge();
       console.log('📬 VENICE DEBUG: Badge updated, fetchNotifications complete');
