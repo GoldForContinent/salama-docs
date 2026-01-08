@@ -492,7 +492,7 @@ class UnifiedNotificationSystem {
     if (searchQueryLower) {
       const beforeSearch = notifications.length;
       notifications = notifications.filter(n =>
-        n.message.toLowerCase().includes(searchQueryLower)
+        (n.message || '').toLowerCase().includes(searchQueryLower)
       );
       console.log(`🎨 VENICE DEBUG: Search filter '${searchQueryLower}': ${beforeSearch} -> ${notifications.length}`);
     }
