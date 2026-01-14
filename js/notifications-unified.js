@@ -409,16 +409,98 @@ class UnifiedNotificationSystem {
         }
       }
 
-      // Expose quick debug helper on window for interactive inspection
+      // Expose comprehensive debug helpers on window
       try {
-        window._debugNotifications = () => ({
-          currentUser: this.currentUser,
-          notifications: this.notifications,
-          count: this.notifications.length
-        });
-        console.log('💡 Debug helper available: window._debugNotifications()');
+        // Simple debug function - just type: checkNotifications()
+        window.checkNotifications = () => {
+          console.log('=== NOTIFICATION DEBUG INFO ===');
+          console.log('Current User:', this.currentUser?.email || 'Not logged in', this.currentUser?.id);
+          console.log('Notifications Count:', this.notifications.length);
+          console.log('Notifications Array:', this.notifications);
+          console.log('Unread Count:', this.notifications.filter(n => n.status === 'unread').length);
+          
+          if (this.notifications.length > 0) {
+            console.log('First Notification:', this.notifications[0]);
+          } else {
+            console.log('⚠️ No notifications found!');
+            console.log('💡 Try: testNotification() to create a test notification');
+          }
+          
+          // Check database directly
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('notifications')
+                .select('*')
+                .eq('user_id', user.id)
+                .neq('status', 'deleted')
+                .then(({ data, error }) => {
+                  console.log('📊 Direct DB Query Result:', data?.length || 0, 'notifications');
+                  if (error) console.error('❌ DB Query Error:', error);
+                  if (data && data.length > 0) {
+                    console.log('📊 DB Notifications:', data);
+                  }
+                });
+            }
+          });
+          
+          return {
+            user: this.currentUser,
+            count: this.notifications.length,
+            notifications: this.notifications
+          };
+        };
+        
+        // Test notification creator
+        window.testNotification = async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            console.error('❌ Not logged in!');
+            return;
+          }
+          
+          console.log('🧪 Creating test notification...');
+          try {
+            await UnifiedNotificationSystem.createNotification(
+              user.id,
+              '🧪 This is a test notification to verify the system is working!',
+              { type: 'info' }
+            );
+            console.log('✅ Test notification created! Click the bell to see it.');
+            console.log('💡 Run: checkNotifications() to verify');
+            
+            // Refresh notifications
+            if (window.unifiedNotifications) {
+              await window.unifiedNotifications.fetchNotifications();
+              window.unifiedNotifications.updateBadge();
+            }
+          } catch (error) {
+            console.error('❌ Failed to create test notification:', error);
+          }
+        };
+        
+        // Force refresh
+        window.refreshNotifications = async () => {
+          console.log('🔄 Refreshing notifications...');
+          if (window.unifiedNotifications) {
+            await window.unifiedNotifications.fetchNotifications();
+            window.unifiedNotifications.updateBadge();
+            if (window.unifiedNotifications.isOpen) {
+              window.unifiedNotifications.render();
+            }
+            console.log('✅ Notifications refreshed!');
+            console.log('💡 Run: checkNotifications() to see results');
+          } else {
+            console.error('❌ Notification system not initialized!');
+          }
+        };
+        
+        console.log('✅ Debug helpers loaded!');
+        console.log('💡 Type in console:');
+        console.log('   - checkNotifications() - See notification status');
+        console.log('   - testNotification() - Create a test notification');
+        console.log('   - refreshNotifications() - Force refresh');
       } catch (e) {
-        /* ignore in non-browser contexts */
+        console.warn('Could not set up debug helpers:', e);
       }
 
       this.updateBadge();
@@ -558,11 +640,22 @@ class UnifiedNotificationSystem {
 
     if (notifications.length === 0) {
       console.log('📭 No notifications to display, showing empty state');
+      const emptyMessage = searchQuery 
+        ? 'No matching notifications found' 
+        : (this.notifications.length === 0 
+          ? 'You\'re all caught up! No notifications yet.' 
+          : 'No notifications match the current filter.');
+      
       list.innerHTML = `
-        <div class="notification-modal-empty">
-          <i class="fas fa-inbox"></i>
-          <h3>No notifications</h3>
-          <p>${searchQuery ? 'No matching notifications found' : 'You\'re all caught up!'}</p>
+        <div class="notification-modal-empty" style="padding: 40px 20px; text-align: center; color: #666;">
+          <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+          <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #333;">No notifications</h3>
+          <p style="margin: 0; font-size: 14px;">${emptyMessage}</p>
+          ${this.notifications.length === 0 ? `
+            <p style="margin-top: 16px; font-size: 12px; color: #999;">
+              💡 Tip: Run <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">testNotification()</code> in console to test
+            </p>
+          ` : ''}
         </div>
       `;
       return;
@@ -1216,11 +1309,20 @@ class UnifiedNotificationSystem {
 let unifiedNotifications;
 document.addEventListener('DOMContentLoaded', () => {
   unifiedNotifications = new UnifiedNotificationSystem();
+  
+  // Expose globally for debugging
+  window.unifiedNotifications = unifiedNotifications;
 
   // Listen for auth changes
   supabase.auth.onAuthStateChange(async (event, session) => {
     await unifiedNotifications.handleAuthChange(session?.user || null);
   });
+  
+  console.log('✅ Notification system initialized!');
+  console.log('💡 Debug commands available:');
+  console.log('   - checkNotifications() - Check notification status');
+  console.log('   - testNotification() - Create a test notification');
+  console.log('   - refreshNotifications() - Force refresh');
 });
 
 // Cleanup on page unload
