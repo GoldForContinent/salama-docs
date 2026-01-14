@@ -586,10 +586,11 @@
         </div>
     </div>
 
-   <script type="module" src="./js/notification-manager.js"></script>
-  <script type="module" src="./js/notifications-unified.js"></script>
+  <!-- Load supabase first as it's required by other modules -->
   <script type="module" src="./js/supabase.js"></script>
-<script type="module" src="./js/dashboard.js"></script>
-<script type="module" src="./js/payments.js"></script>
+  <script type="module" src="./js/notification-manager.js"></script>
+  <script type="module" src="./js/notifications-unified.js"></script>
+  <script type="module" src="./js/dashboard.js"></script>
+  <script type="module" src="./js/payments.js"></script>
 </body>
 </html>

@@ -346,9 +346,11 @@ class UnifiedNotificationSystem {
    */
   async fetchNotifications() {
     // Ensure we have an authenticated user (handle auth timing issues)
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
-      console.warn('Auth check failed, user not authenticated');
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.warn('⚠️ Auth check failed, user not authenticated:', authError);
+      this.notifications = [];
+      this.updateBadge();
       return;
     }
 
@@ -356,11 +358,10 @@ class UnifiedNotificationSystem {
       this.currentUser = user;
     }
 
-    console.log('📬 VENICE DEBUG: Fetching notifications for user:', this.currentUser.id, this.currentUser.email);
+    console.log('📬 Fetching notifications for user:', this.currentUser.id, this.currentUser.email);
 
     try {
-      // VENICE AI: Verify Data Fetching
-      console.log('📬 VENICE DEBUG: About to query Supabase...');
+      console.log('📬 Querying Supabase notifications table...');
 
       const { data, error } = await supabase
         .from('notifications')
@@ -370,42 +371,63 @@ class UnifiedNotificationSystem {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ VENICE DEBUG: Supabase query error:', error);
+        console.error('❌ Supabase query error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
 
-      console.log('📬 VENICE DEBUG: Raw query result:', data);
-      console.log('📬 VENICE DEBUG: Query returned', data?.length || 0, 'notifications');
+      console.log('📬 Raw query result:', data);
+      console.log('📬 Query returned', data?.length || 0, 'notifications');
 
-      this.notifications = data || [];
-      console.log('📬 VENICE DEBUG: Set notifications array to:', this.notifications.length, 'items');
-      // Additional debug: show types and sample values to help diagnose RLS/ID mismatches
-      console.log('📬 VENICE DEBUG: Current user id (type):', this.currentUser?.id, typeof this.currentUser?.id);
-      console.log('📬 VENICE DEBUG: Notification details (first 5):', this.notifications.slice(0,5).map(n => ({
-        id: n.id,
-        id_type: typeof n.id,
-        user_id: n.user_id,
-        user_id_type: typeof n.user_id,
-        message: (n.message || '').substring(0, 50) + '...',
-        type: n.type,
-        status: n.status
-      })));
+      // Ensure we have a valid array
+      if (!Array.isArray(data)) {
+        console.error('❌ Query did not return an array!', typeof data);
+        this.notifications = [];
+      } else {
+        this.notifications = data;
+        console.log('✅ Set notifications array to:', this.notifications.length, 'items');
+        
+        // Additional debug: show types and sample values to help diagnose RLS/ID mismatches
+        if (this.notifications.length > 0) {
+          console.log('📊 Current user id (type):', this.currentUser?.id, typeof this.currentUser?.id);
+          console.log('📊 Notification details (first 3):', this.notifications.slice(0, 3).map(n => ({
+            id: n.id,
+            id_type: typeof n.id,
+            user_id: n.user_id,
+            user_id_type: typeof n.user_id,
+            message: (n.message || '').substring(0, 50) + '...',
+            type: n.type || 'missing',
+            status: n.status || 'missing'
+          })));
+        } else {
+          console.log('ℹ️ No notifications found for this user');
+        }
+      }
 
       // Expose quick debug helper on window for interactive inspection
       try {
         window._debugNotifications = () => ({
           currentUser: this.currentUser,
-          notifications: this.notifications.slice(0, 10)
+          notifications: this.notifications,
+          count: this.notifications.length
         });
+        console.log('💡 Debug helper available: window._debugNotifications()');
       } catch (e) {
         /* ignore in non-browser contexts */
       }
 
       this.updateBadge();
-      console.log('📬 VENICE DEBUG: Badge updated, fetchNotifications complete');
+      console.log('✅ Badge updated, fetchNotifications complete');
     } catch (error) {
-      console.error('❌ VENICE DEBUG: Error in fetchNotifications:', error);
+      console.error('❌ Error in fetchNotifications:', error);
+      console.error('❌ Error stack:', error.stack);
       this.notifications = [];
+      this.updateBadge();
     }
   }
 
@@ -434,11 +456,15 @@ class UnifiedNotificationSystem {
     try {
       console.log('Modal element found, fetching notifications...');
       await this.fetchNotifications();
-      console.log('Notifications fetched:', this.notifications.length);
+      console.log('📊 Notifications fetched:', this.notifications.length);
+      console.log('📊 Notifications data:', this.notifications);
       
       // Make sure modal is visible before rendering
       modal.classList.add('active');
       this.isOpen = true;
+      
+      // Small delay to ensure modal is fully visible
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       // Ensure list element exists
       const list = document.getElementById('notificationList');
@@ -447,9 +473,19 @@ class UnifiedNotificationSystem {
         return;
       }
       
-      console.log('Rendering notifications...');
+      console.log('🎨 Rendering notifications...');
+      console.log('🎨 Current notifications array length:', this.notifications.length);
       this.render();
-      console.log('✅ Modal opened and rendered');
+      
+      // Verify rendering worked
+      const renderedItems = list.querySelectorAll('.notification-modal-item');
+      console.log('✅ Modal opened and rendered. Items in DOM:', renderedItems.length);
+      
+      if (renderedItems.length === 0 && this.notifications.length > 0) {
+        console.error('⚠️ WARNING: Notifications exist but were not rendered!');
+        console.error('⚠️ Re-attempting render...');
+        this.render();
+      }
 
       // Focus search
       const searchInput = document.getElementById('notificationSearch');
@@ -457,7 +493,8 @@ class UnifiedNotificationSystem {
         setTimeout(() => searchInput.focus(), 100);
       }
     } catch (error) {
-      console.error('Error opening modal:', error);
+      console.error('❌ Error opening modal:', error);
+      console.error('❌ Error stack:', error.stack);
     }
   }
 
@@ -476,29 +513,35 @@ class UnifiedNotificationSystem {
    * Render notifications
    */
   render(searchQuery = '') {
-    console.log('🎨 VENICE DEBUG: ===== RENDER START =====');
-    console.log('🎨 VENICE DEBUG: render() called with searchQuery:', searchQuery);
+    console.log('🎨 ===== RENDER START =====');
+    console.log('🎨 render() called with searchQuery:', searchQuery);
+    console.log('🎨 Current notifications array:', this.notifications);
 
     const list = document.getElementById('notificationList');
     if (!list) {
-      console.error('❌ VENICE DEBUG: Notification list element not found!');
+      console.error('❌ Notification list element not found!');
       return;
     }
 
-    console.log('🎨 VENICE DEBUG: List element found, proceeding...');
+    console.log('✅ List element found, proceeding...');
 
-    // VENICE AI: Check Filtering Logic
-    console.log('🎨 VENICE DEBUG: Total notifications in array:', this.notifications.length);
-    console.log('🎨 VENICE DEBUG: Current filter:', this.currentFilter);
+    // Check if notifications array is valid
+    if (!Array.isArray(this.notifications)) {
+      console.error('❌ Notifications is not an array!', typeof this.notifications);
+      this.notifications = [];
+    }
+
+    console.log('📊 Total notifications in array:', this.notifications.length);
+    console.log('📊 Current filter:', this.currentFilter);
 
     let notifications = [...this.notifications]; // Create copy
-    console.log('🎨 VENICE DEBUG: Initial copy has', notifications.length, 'notifications');
+    console.log('📊 Initial copy has', notifications.length, 'notifications');
 
     // Filter by type
     if (this.currentFilter !== 'all') {
       const beforeFilter = notifications.length;
       notifications = notifications.filter(n => n.type === this.currentFilter);
-      console.log(`🎨 VENICE DEBUG: Type filter '${this.currentFilter}': ${beforeFilter} -> ${notifications.length}`);
+      console.log(`📊 Type filter '${this.currentFilter}': ${beforeFilter} -> ${notifications.length}`);
     }
 
     // Filter by search
@@ -508,13 +551,13 @@ class UnifiedNotificationSystem {
       notifications = notifications.filter(n =>
         (n.message || '').toLowerCase().includes(searchQueryLower)
       );
-      console.log(`🎨 VENICE DEBUG: Search filter '${searchQueryLower}': ${beforeSearch} -> ${notifications.length}`);
+      console.log(`📊 Search filter '${searchQueryLower}': ${beforeSearch} -> ${notifications.length}`);
     }
 
-    console.log('🎨 VENICE DEBUG: Final filtered notifications:', notifications.length);
+    console.log('📊 Final filtered notifications:', notifications.length);
 
     if (notifications.length === 0) {
-      console.log('🎨 VENICE DEBUG: No notifications to display, showing empty state');
+      console.log('📭 No notifications to display, showing empty state');
       list.innerHTML = `
         <div class="notification-modal-empty">
           <i class="fas fa-inbox"></i>
@@ -525,32 +568,69 @@ class UnifiedNotificationSystem {
       return;
     }
 
-    console.log('🎨 VENICE DEBUG: Rendering', notifications.length, 'notifications');
+    console.log('🎨 Rendering', notifications.length, 'notifications');
 
     // Build HTML using renderNotification for each item
-    const html = notifications.map(n => {
-      console.log('🎨 VENICE DEBUG: Creating HTML for notification:', n.id, (n.message || '').substring(0, 30) + '...');
-      return this.renderNotification(n);
-    }).join('');
+    let html = '';
+    try {
+      html = notifications.map(n => {
+        if (!n || !n.id) {
+          console.warn('⚠️ Invalid notification object:', n);
+          return '';
+        }
+        console.log('🎨 Creating HTML for notification:', n.id, (n.message || '').substring(0, 30) + '...');
+        return this.renderNotification(n);
+      }).join('');
+    } catch (error) {
+      console.error('❌ Error building HTML:', error);
+      list.innerHTML = `
+        <div class="notification-modal-empty">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Error rendering notifications</h3>
+          <p>Please refresh the page</p>
+        </div>
+      `;
+      return;
+    }
 
-    console.log('🎨 VENICE DEBUG: Total HTML length:', html.length);
-    console.log('🎨 VENICE DEBUG: Setting innerHTML...');
+    console.log('📝 Total HTML length:', html.length);
+    console.log('📝 Setting innerHTML...');
 
-    list.innerHTML = html;
+    try {
+      list.innerHTML = html;
+      console.log('✅ HTML set successfully');
+      console.log('✅ List children count:', list.children.length);
+      
+      // Verify items were actually added
+      const items = list.querySelectorAll('.notification-modal-item');
+      console.log('✅ Notification items in DOM:', items.length);
+      
+      if (items.length === 0 && notifications.length > 0) {
+        console.error('❌ CRITICAL: HTML was set but no items found in DOM!');
+        console.error('❌ HTML preview:', html.substring(0, 500));
+      }
+    } catch (error) {
+      console.error('❌ Error setting innerHTML:', error);
+      return;
+    }
 
-    console.log('🎨 VENICE DEBUG: HTML set, list children now:', list.children.length);
-    console.log('🎨 VENICE DEBUG: Attaching listeners...');
-
+    console.log('🔗 Attaching listeners...');
     this.attachItemListeners();
     this.updateBulkActionButtons();
 
-    console.log('🎨 VENICE DEBUG: ===== RENDER COMPLETE =====');
+    console.log('✅ ===== RENDER COMPLETE =====');
   }
 
   /**
    * Render single notification
    */
   renderNotification(notification) {
+    // Validate notification object
+    if (!notification || !notification.id) {
+      console.error('❌ Invalid notification object:', notification);
+      return '';
+    }
+
     const icons = {
       success: 'fas fa-check-circle',
       error: 'fas fa-exclamation-circle',
@@ -560,55 +640,68 @@ class UnifiedNotificationSystem {
 
     const type = notification.type || 'info';
     const isUnread = notification.status === 'unread';
-    const time = this.formatRelativeTime(notification.created_at);
+    const time = this.formatRelativeTime(notification.created_at || new Date().toISOString());
     const hasAction = notification.notification_action && notification.action_data;
 
     // Truncate message for preview (show first 100 characters) - guard against null/undefined
-    const fullMessage = notification.message || '';
+    const fullMessage = notification.message || 'No message';
     const previewMessage = fullMessage.length > 100 ? fullMessage.substring(0, 100) + '...' : fullMessage;
     const shouldTruncate = fullMessage.length > 100;
 
     // Safely encode action data into attribute using encodeURIComponent
-    const safeActionData = encodeURIComponent(JSON.stringify(notification.action_data || {}));
+    let safeActionData = '{}';
+    try {
+      safeActionData = encodeURIComponent(JSON.stringify(notification.action_data || {}));
+    } catch (e) {
+      console.warn('⚠️ Could not encode action data:', e);
+    }
 
-    return `
-      <div class="notification-modal-item ${type} ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
-        <div class="notification-modal-item-selection">
-          <input type="checkbox" class="notification-checkbox" data-id="${notification.id}">
-        </div>
-        <div class="notification-modal-item-icon">
-          <i class="${icons[type] || icons.info}"></i>
-        </div>
-        <div class="notification-modal-item-content">
-          <p class="notification-modal-item-message ${shouldTruncate ? 'truncated' : ''}" data-full-message="${this.escapeHtml(fullMessage)}">
-            ${this.escapeHtml(previewMessage)}
-          </p>
-          ${shouldTruncate ? '<button class="notification-read-more" data-id="' + notification.id + '">Read more</button>' : ''}
-          <p class="notification-modal-item-time">${time}</p>
-          ${hasAction ? `<div class="notification-modal-item-action-hint">Click to take action</div>` : ''}
-        </div>
-        <div class="notification-modal-item-actions">
-          ${hasAction ? `
-            <button class="notification-modal-item-btn action" title="${this.escapeHtml(notification.notification_action || '')}" data-id="${notification.id}" data-action="${this.escapeHtml(notification.notification_action || '')}" data-action-data="${this.escapeHtml(safeActionData)}">
-              <i class="fas fa-external-link-alt"></i>
+    // Ensure ID is a string for data attributes
+    const notificationId = String(notification.id);
+
+    try {
+      return `
+        <div class="notification-modal-item ${type} ${isUnread ? 'unread' : ''}" data-id="${notificationId}">
+          <div class="notification-modal-item-selection">
+            <input type="checkbox" class="notification-checkbox" data-id="${notificationId}">
+          </div>
+          <div class="notification-modal-item-icon">
+            <i class="${icons[type] || icons.info}"></i>
+          </div>
+          <div class="notification-modal-item-content">
+            <p class="notification-modal-item-message ${shouldTruncate ? 'truncated' : ''}" data-full-message="${this.escapeHtml(fullMessage)}">
+              ${this.escapeHtml(previewMessage)}
+            </p>
+            ${shouldTruncate ? '<button class="notification-read-more" data-id="' + notificationId + '">Read more</button>' : ''}
+            <p class="notification-modal-item-time">${time}</p>
+            ${hasAction ? `<div class="notification-modal-item-action-hint">Click to take action</div>` : ''}
+          </div>
+          <div class="notification-modal-item-actions">
+            ${hasAction ? `
+              <button class="notification-modal-item-btn action" title="${this.escapeHtml(notification.notification_action || '')}" data-id="${notificationId}" data-action="${this.escapeHtml(notification.notification_action || '')}" data-action-data="${this.escapeHtml(safeActionData)}">
+                <i class="fas fa-external-link-alt"></i>
+              </button>
+            ` : ''}
+            ${isUnread ? `
+              <button class="notification-modal-item-btn mark-read" title="Mark as read" data-id="${notificationId}">
+                <i class="fas fa-envelope-open"></i>
+              </button>
+            ` : `
+              <button class="notification-modal-item-btn mark-unread" title="Mark as unread" data-id="${notificationId}">
+                <i class="fas fa-envelope"></i>
+              </button>
+            `}
+            <button class="notification-modal-item-btn delete" title="Delete" data-id="${notificationId}">
+              <i class="fas fa-trash"></i>
             </button>
-          ` : ''}
-          ${isUnread ? `
-            <button class="notification-modal-item-btn mark-read" title="Mark as read" data-id="${notification.id}">
-              <i class="fas fa-envelope-open"></i>
-            </button>
-          ` : `
-            <button class="notification-modal-item-btn mark-unread" title="Mark as unread" data-id="${notification.id}">
-              <i class="fas fa-envelope"></i>
-            </button>
-          `}
-          <button class="notification-modal-item-btn delete" title="Delete" data-id="${notification.id}">
-            <i class="fas fa-trash"></i>
-          </button>
+          </div>
+          ${isUnread ? '<div class="notification-modal-item-unread-indicator"></div>' : ''}
         </div>
-        ${isUnread ? '<div class="notification-modal-item-unread-indicator"></div>' : ''}
-      </div>
-    `;
+      `;
+    } catch (error) {
+      console.error('❌ Error rendering notification:', error, notification);
+      return '';
+    }
   }
 
   /**
