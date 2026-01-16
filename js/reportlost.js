@@ -259,15 +259,22 @@ function validateEmail(email) {
 // Handle form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
+    console.log('🚀 Form submission started');
     
     const errors = validateForm();
     if (errors.length > 0) {
+        console.log('❌ Form validation failed:', errors);
         showValidationErrors(errors);
         return;
     }
+    console.log('✅ Form validation passed');
     
     const formData = collectFormData();
-    if (!formData) return;
+    if (!formData) {
+        console.log('❌ Form data collection failed');
+        return;
+    }
+    console.log('✅ Form data collected:', formData);
     
     // Ensure timeline is valid
     const allowedTimelines = ['today', 'yesterday', 'week', 'month'];
@@ -277,16 +284,26 @@ async function handleFormSubmit(e) {
     }
     
     const submitBtn = document.querySelector('.submit-btn');
-    if (!submitBtn) return;
+    if (!submitBtn) {
+        console.error('❌ Submit button not found');
+        return;
+    }
     
+    console.log('🔄 Setting loading state on submit button');
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
     submitBtn.disabled = true;
     
     try {
+        console.log('🔐 Getting current user...');
         // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) throw new Error("User not logged in");
+        if (userError || !user) {
+            console.error('❌ User authentication failed:', userError);
+            throw new Error("User not logged in");
+        }
+        console.log('✅ User authenticated:', user.email);
 
+        console.log('💾 Submitting report to Supabase...');
         // Submit to Supabase
         const { data: report, error: reportError } = await supabase
             .from('reports')
@@ -305,20 +322,28 @@ async function handleFormSubmit(e) {
             .select()
             .single();
 
-        if (reportError) throw reportError;
+        if (reportError) {
+            console.error('❌ Report submission failed:', reportError);
+            throw reportError;
+        }
+        console.log('✅ Report submitted successfully:', report);
 
+        console.log('🔔 Creating notification...');
         // 🔔 Send notification to user
         try {
+            // Use the static method from UnifiedNotificationSystem class
             await UnifiedNotificationSystem.createNotification(
                 user.id,
                 `🔍 Search started for your lost ${formData.documents[0]?.typeName || 'document'}. We'll notify you when we find a match.`,
                 { type: 'info', reportId: report.id }
             );
+            console.log('✅ Notification created successfully');
         } catch (notifError) {
-            console.error('Notification error:', notifError);
+            console.error('❌ Notification error:', notifError);
             // Don't fail the report creation if notification fails
         }
 
+        console.log('📄 Saving documents...');
         // Save documents
         console.log('formData.documents:', formData.documents); // DEBUG LOG
         const documentPromises = formData.documents.map(doc => 
@@ -331,20 +356,32 @@ async function handleFormSubmit(e) {
             })
         );
 
+        console.log('⏳ Waiting for document saves to complete...');
         await Promise.all(documentPromises);
+        console.log('✅ All documents saved successfully');
+        
+        console.log('🎉 Showing confirmation screen...');
         showConfirmation(report);
+        
+        console.log('📢 Showing success alert...');
         // Success notification
         alert("Report submitted successfully!");
+        
+        console.log('🔄 Resetting form...');
         // Optionally reset the form
         document.getElementById('lost-form').reset();
         // Optionally clear saved form data
         clearSavedForm();
+        
+        console.log('✅ Form submission completed successfully');
     } catch (error) {
-        console.error("Submission failed:", error);
+        console.error("❌ Submission failed:", error);
         alert("Error submitting report. Please try again.\n" + (error.message || error));
     } finally {
+        console.log('🔄 Resetting submit button state...');
         submitBtn.innerHTML = 'Submit Report';
         submitBtn.disabled = false;
+        console.log('✅ Submit button reset complete');
     }
 }
 
