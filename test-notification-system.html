@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .test-section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #007bff; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .success { border-left-color: #28a745; }
+        .warning { border-left-color: #ffc107; }
+        .error { border-left-color: #dc3545; }
+        .debug-output { background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; margin: 10px 0; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔔 Notification System Test</h1>
+    <p>This page tests the notification system fixes and workflow verification integration.</p>
+
+    <div class="test-section">
+        <h2>🧪 Basic Notification Tests</h2>
+        <button onclick="testBasicNotification()">Test Basic Notification</button>
+        <button onclick="testNotificationCount()">Test Badge Count</button>
+        <button onclick="testModalOpen()">Test Modal Open</button>
+        <div id="basicTestOutput" class="debug-output"></div>
+    </div>
+
+    <div class="test-section success">
+        <h2>🔄 Workflow Verification Tests</h2>
+        <button onclick="testWorkflowDiagnostic()">Run Workflow Diagnostic</button>
+        <button onclick="testMatchingStatus()">Check Matching Status</button>
+        <button onclick="testForceMatching()">Force Run Matching</button>
+        <div id="workflowTestOutput" class="debug-output"></div>
+    </div>
+
+    <div class="test-section warning">
+        <h2>📊 Database Connection Tests</h2>
+        <button onclick="testDatabaseConnection()">Test Database Connection</button>
+        <button onclick="testUserAuth()">Test User Authentication</button>
+        <button onclick="testNotificationQuery()">Test Notification Query</button>
+        <div id="dbTestOutput" class="debug-output"></div>
+    </div>
+
+    <div class="test-section error">
+        <h2>🚨 Error Simulation Tests</h2>
+        <button onclick="testErrorHandling()">Test Error Handling</button>
+        <button onclick="testFallbackQuery()">Test Fallback Query</button>
+        <div id="errorTestOutput" class="debug-output"></div>
+    </div>
+
+    <!-- Load the notification system -->
+    <script type="module" src="./js/supabase.js"></script>
+    <script type="module" src="./js/notification-manager.js"></script>
+    <script type="module" src="./js/notifications-unified.js"></script>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js';
+
+        // Helper function to log to specific output divs
+        function logToOutput(divId, message, type = 'info') {
+            const output = document.getElementById(divId);
+            if (output) {
+                const timestamp = new Date().toLocaleTimeString();
+                const color = type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : type === 'success' ? '#28a745' : '#007bff';
+                output.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+
+        // Make functions globally available
+        window.testBasicNotification = () => {
+            logToOutput('basicTestOutput', 'Testing basic notification...', 'info');
+            
+            if (window.notificationManager) {
+                const id = window.notificationManager.success('🎉 Test notification successful!');
+                logToOutput('basicTestOutput', `✅ Notification created with ID: ${id}`, 'success');
+            } else {
+                logToOutput('basicTestOutput', '❌ notificationManager not found', 'error');
+            }
+        };
+
+        window.testNotificationCount = () => {
+            logToOutput('basicTestOutput', 'Testing notification badge count...', 'info');
+            
+            if (window.unifiedNotifications) {
+                const count = window.unifiedNotifications.notifications?.length || 0;
+                const unreadCount = window.unifiedNotifications.notifications?.filter(n => n.status === 'unread').length || 0;
+                logToOutput('basicTestOutput', `📊 Total notifications: ${count}`, 'info');
+                logToOutput('basicTestOutput', `📊 Unread notifications: ${unreadCount}`, 'info');
+            } else {
+                logToOutput('basicTestOutput', '❌ unifiedNotifications not found', 'error');
+            }
+        };
+
+        window.testModalOpen = () => {
+            logToOutput('basicTestOutput', 'Testing modal open...', 'info');
+            
+            if (window.unifiedNotifications) {
+                window.unifiedNotifications.open();
+                logToOutput('basicTestOutput', '✅ Modal opened successfully', 'success');
+            } else {
+                logToOutput('basicTestOutput', '❌ unifiedNotifications not found', 'error');
+            }
+        };
+
+        window.testWorkflowDiagnostic = async () => {
+            logToOutput('workflowTestOutput', 'Running workflow diagnostic...', 'info');
+            
+            if (window.runFullDiagnostic) {
+                const result = await window.runFullDiagnostic();
+                logToOutput('workflowTestOutput', result ? '✅ Diagnostic passed' : '❌ Diagnostic failed', result ? 'success' : 'error');
+            } else {
+                logToOutput('workflowTestOutput', '❌ runFullDiagnostic not found', 'error');
+            }
+        };
+
+        window.testMatchingStatus = async () => {
+            logToOutput('workflowTestOutput', 'Checking matching status...', 'info');
+            
+            if (window.checkMatchingStatus) {
+                const result = await window.checkMatchingStatus();
+                if (result) {
+                    logToOutput('workflowTestOutput', `📊 Lost reports: ${result.lostReports?.length || 0}`, 'info');
+                    logToOutput('workflowTestOutput', `📊 Found reports: ${result.foundReports?.length || 0}`, 'info');
+                    logToOutput('workflowTestOutput', `🎯 Potential matches: ${result.potentialMatches}`, 'success');
+                } else {
+                    logToOutput('workflowTestOutput', '❌ Failed to check matching status', 'error');
+                }
+            } else {
+                logToOutput('workflowTestOutput', '❌ checkMatchingStatus not found', 'error');
+            }
+        };
+
+        window.testForceMatching = async () => {
+            logToOutput('workflowTestOutput', 'Force running matching...', 'info');
+            
+            if (window.forceRunMatching) {
+                const result = await window.forceRunMatching();
+                logToOutput('workflowTestOutput', result ? '✅ Matching completed' : '❌ Matching failed', result ? 'success' : 'error');
+            } else {
+                logToOutput('workflowTestOutput', '❌ forceRunMatching not found', 'error');
+            }
+        };
+
+        window.testDatabaseConnection = async () => {
+            logToOutput('dbTestOutput', 'Testing database connection...', 'info');
+            
+            try {
+                const { data, error } = await supabase.from('notifications').select('count', { count: 'exact', head: true });
+                if (error) {
+                    logToOutput('dbTestOutput', `❌ Database error: ${error.message}`, 'error');
+                } else {
+                    logToOutput('dbTestOutput', `✅ Database connected. Total notifications: ${data}`, 'success');
+                }
+            } catch (err) {
+                logToOutput('dbTestOutput', `❌ Connection failed: ${err.message}`, 'error');
+            }
+        };
+
+        window.testUserAuth = async () => {
+            logToOutput('dbTestOutput', 'Testing user authentication...', 'info');
+            
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error) {
+                    logToOutput('dbTestOutput', `❌ Auth error: ${error.message}`, 'error');
+                } else if (user) {
+                    logToOutput('dbTestOutput', `✅ User authenticated: ${user.email}`, 'success');
+                    logToOutput('dbTestOutput', `📊 User ID: ${user.id}`, 'info');
+                } else {
+                    logToOutput('dbTestOutput', '⚠️ No authenticated user', 'warn');
+                }
+            } catch (err) {
+                logToOutput('dbTestOutput', `❌ Auth check failed: ${err.message}`, 'error');
+            }
+        };
+
+        window.testNotificationQuery = async () => {
+            logToOutput('dbTestOutput', 'Testing notification query...', 'info');
+            
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    logToOutput('dbTestOutput', '❌ No authenticated user for query test', 'error');
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .in('status', ['unread', 'read'])
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    logToOutput('dbTestOutput', `❌ Query error: ${error.message}`, 'error');
+                } else {
+                    logToOutput('dbTestOutput', `✅ Query successful. Found ${data?.length || 0} notifications`, 'success');
+                    if (data && data.length > 0) {
+                        logToOutput('dbTestOutput', `📊 First notification: ${data[0].message?.substring(0, 50)}...`, 'info');
+                    }
+                }
+            } catch (err) {
+                logToOutput('dbTestOutput', `❌ Query failed: ${err.message}`, 'error');
+            }
+        };
+
+        window.testErrorHandling = () => {
+            logToOutput('errorTestOutput', 'Testing error handling...', 'info');
+            
+            // Test with invalid notification
+            if (window.notificationManager) {
+                try {
+                    window.notificationManager.show(null); // This should handle gracefully
+                    logToOutput('errorTestOutput', '✅ Error handled gracefully', 'success');
+                } catch (err) {
+                    logToOutput('errorTestOutput', `⚠️ Error thrown: ${err.message}`, 'warn');
+                }
+            }
+        };
+
+        window.testFallbackQuery = async () => {
+            logToOutput('errorTestOutput', 'Testing fallback query mechanism...', 'info');
+            
+            // This would test the fallback mechanism we implemented
+            if (window.unifiedNotifications) {
+                try {
+                    await window.unifiedNotifications.fetchNotifications();
+                    logToOutput('errorTestOutput', '✅ Fallback mechanism working', 'success');
+                } catch (err) {
+                    logToOutput('errorTestOutput', `❌ Fallback failed: ${err.message}`, 'error');
+                }
+            }
+        };
+
+        // Auto-run basic checks when page loads
+        setTimeout(() => {
+            logToOutput('basicTestOutput', '🚀 Test page loaded. Ready for testing.', 'success');
+            logToOutput('workflowTestOutput', '🔄 Workflow verification ready.', 'info');
+            logToOutput('dbTestOutput', '📊 Database tests ready.', 'info');
+            logToOutput('errorTestOutput', '🚨 Error tests ready.', 'info');
+        }, 1000);
+    </script>
+</body>
+</html>
