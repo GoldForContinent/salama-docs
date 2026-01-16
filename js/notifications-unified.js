@@ -500,6 +500,27 @@ class UnifiedNotificationSystem {
             console.error('❌ Failed to create test notification:', error);
           }
         };
+
+        // Test rendering directly
+        window.testRender = () => {
+          console.log('🎨 Testing render directly...');
+          if (window.unifiedNotifications) {
+            // Create a test notification directly in the array
+            window.unifiedNotifications.notifications = [{
+              id: 'test-' + Date.now(),
+              user_id: window.unifiedNotifications.currentUser?.id,
+              message: '🧪 Direct test notification',
+              type: 'info',
+              status: 'unread',
+              created_at: new Date().toISOString()
+            }];
+            
+            console.log('🎨 Added test notification, opening modal...');
+            window.unifiedNotifications.open();
+          } else {
+            console.error('❌ Notification system not available');
+          }
+        };
         
         // Force refresh
         window.refreshNotifications = async () => {
@@ -638,6 +659,17 @@ class UnifiedNotificationSystem {
 
     console.log('📊 Total notifications in array:', this.notifications.length);
     console.log('📊 Current filter:', this.currentFilter);
+    
+    // DEBUG: Log first notification details
+    if (this.notifications.length > 0) {
+      console.log('🔍 First notification details:', {
+        id: this.notifications[0].id,
+        message: this.notifications[0].message,
+        type: this.notifications[0].type,
+        status: this.notifications[0].status,
+        created_at: this.notifications[0].created_at
+      });
+    }
 
     let notifications = [...this.notifications]; // Create copy
     console.log('📊 Initial copy has', notifications.length, 'notifications');
@@ -660,6 +692,16 @@ class UnifiedNotificationSystem {
     }
 
     console.log('📊 Final filtered notifications:', notifications.length);
+    
+    // DEBUG: Log what would be rendered
+    if (notifications.length > 0) {
+      console.log('🎯 About to render notifications:', notifications.map(n => ({
+        id: n.id,
+        message: n.message?.substring(0, 50) + '...',
+        type: n.type,
+        status: n.status
+      })));
+    }
 
     if (notifications.length === 0) {
       console.log('📭 No notifications to display, showing empty state');
@@ -686,6 +728,12 @@ class UnifiedNotificationSystem {
 
     console.log('🎨 Rendering', notifications.length, 'notifications');
 
+    // TEMP DEBUG: If we have notifications but they're not showing, try rendering a test one
+    if (this.notifications.length > 0 && notifications.length === 0) {
+      console.warn('⚠️ DEBUG: Has notifications but filtered to 0. Using first notification for testing...');
+      notifications = [this.notifications[0]];
+    }
+
     // Build HTML using renderNotification for each item
     let html = '';
     try {
@@ -695,7 +743,9 @@ class UnifiedNotificationSystem {
           return '';
         }
         console.log('🎨 Creating HTML for notification:', n.id, (n.message || '').substring(0, 30) + '...');
-        return this.renderNotification(n);
+        const renderedHtml = this.renderNotification(n);
+        console.log('🎨 Rendered HTML length:', renderedHtml.length);
+        return renderedHtml;
       }).join('');
     } catch (error) {
       console.error('❌ Error building HTML:', error);
