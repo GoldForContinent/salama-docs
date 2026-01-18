@@ -83,7 +83,10 @@ class UnifiedNotificationSystem {
       <i class="fas fa-bell"></i>
       <span class="notification-badge" id="topNotificationCount">0</span>
     `;
-    bell.addEventListener('click', () => this.toggle());
+    bell.addEventListener('click', () => {
+    // Open notifications page instead of modal
+    window.location.href = 'notifications.html';
+  });
 
     // Add to profile dropdown area
     const profileDropdown = document.getElementById('profileDropdownBtn');
