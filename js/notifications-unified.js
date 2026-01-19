@@ -352,6 +352,8 @@ class UnifiedNotificationSystem {
    * Fetch notifications from Supabase
    */
   async fetchNotifications() {
+    console.log('📬 Starting fetchNotifications...');
+
     // Ensure we have an authenticated user (handle auth timing issues)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -370,14 +372,20 @@ class UnifiedNotificationSystem {
     try {
       console.log('📬 Querying Supabase notifications table...');
 
-      // FIXED: Remove status filter to get all notifications except deleted ones
-      // Your schema shows status can be 'unread', 'read', or 'deleted'
-      const { data, error } = await supabase
+      // Add timeout protection for the database query
+      const queryPromise = supabase
         .from('notifications')
         .select('*')
         .eq('user_id', this.currentUser.id)
         .in('status', ['unread', 'read'])  // Only exclude 'deleted' notifications
         .order('created_at', { ascending: false });
+
+      const { data, error } = await Promise.race([
+        queryPromise,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 15000)
+        )
+      ]);
 
       if (error) {
         console.error('❌ Supabase query error:', error);
@@ -389,16 +397,21 @@ class UnifiedNotificationSystem {
         });
         
         // FALLBACK: Try a broader query to debug RLS issues
-        console.log('� Trying fallback query for debugging...');
+        console.log('🔍 Trying fallback query for debugging...');
         try {
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('notifications')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(10);
+          const { data: fallbackData, error: fallbackError } = await Promise.race([
+            supabase
+              .from('notifications')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .limit(10),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Fallback query timeout')), 10000)
+            )
+          ]);
 
           if (!fallbackError && fallbackData) {
-            console.log('� Fallback query successful:', fallbackData.length, 'total notifications');
+            console.log('🔍 Fallback query successful:', fallbackData.length, 'total notifications');
             console.log('🔍 User notifications in fallback:', 
               fallbackData.filter(n => n.user_id === this.currentUser.id).length);
             
@@ -1584,15 +1597,43 @@ class UnifiedNotificationSystem {
     console.log('Current user before change:', this.currentUser?.email || 'none');
 
     if (user && !this.currentUser) {
-      // User logged in - initialize the system
+      // User logged in - initialize the system with timeout protection
       console.log('🔐 User logging in, initializing notification system...');
       this.currentUser = user;
-      this.createBell();
-      this.createModal();
-      this.attachModalListeners();
-
-      // Fetch notifications for the newly logged in user
-      await this.fetchNotifications();
+      
+      try {
+        // Add timeout protection to prevent hanging
+        const initPromise = Promise.all([
+          Promise.resolve(this.createBell()),
+          Promise.resolve(this.createModal()),
+          Promise.resolve(this.attachModalListeners())
+        ]);
+        
+        // Wait for initialization with timeout
+        await Promise.race([
+          initPromise,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Notification system initialization timeout')), 5000)
+          )
+        ]);
+        
+        console.log('✅ Notification system UI initialized');
+        
+        // Fetch notifications with timeout protection
+        await Promise.race([
+          this.fetchNotifications(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Notification fetch timeout')), 10000)
+          )
+        ]);
+        
+        console.log('✅ Notification system fully initialized');
+      } catch (error) {
+        console.error('❌ Notification system initialization failed:', error);
+        // Don't block the dashboard - continue with minimal functionality
+        this.notifications = [];
+        this.updateBadge();
+      }
     } else if (!user && this.currentUser) {
       // User logged out
       console.log('🔐 User logging out, clearing notifications...');
@@ -1603,7 +1644,18 @@ class UnifiedNotificationSystem {
       // User switched
       console.log('🔐 User switched, updating...');
       this.currentUser = user;
-      await this.fetchNotifications();
+      try {
+        await Promise.race([
+          this.fetchNotifications(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Notification fetch timeout')), 10000)
+          )
+        ]);
+      } catch (error) {
+        console.error('❌ Failed to fetch notifications for switched user:', error);
+        this.notifications = [];
+        this.updateBadge();
+      }
     }
     console.log('Current user after change:', this.currentUser?.email || 'none');
   }

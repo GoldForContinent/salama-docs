@@ -12,25 +12,51 @@
     <link rel="stylesheet" href="./css/style.css">
     
     <style>
+        /* Import Dashboard Variables */
+        :root {
+            --kenya-black: #000000;
+            --kenya-red: #BB0000;
+            --kenya-green: #006600;
+            --kenya-white: #FFFFFF;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333333;
+            --darker-green: #004d00;
+            --success-green: #28a745;
+            --warning-yellow: #ffc107;
+            --danger-red: #dc3545;
+            --background: #f9f9f9;
+            --card-bg: #fff;
+            --card-text-color: #222;
+            --text-color: #111;
+            --secondary-text: #666;
+            --border-color: #ddd;
+            --sidebar-bg: linear-gradient(135deg, #000000, #006600);
+            --sidebar-text: #fff;
+            --accent: #006600;
+            --button-bg: #006600;
+            --button-text: #fff;
+        }
+
         /* Notifications Page Specific Styles */
         .notifications-page {
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: var(--background);
             padding: 20px;
+            font-family: 'Poppins', sans-serif;
         }
 
         .notifications-container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
+            background: var(--card-bg);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
         .notifications-header {
-            background: linear-gradient(135deg, var(--kenya-red), #c41e3a);
-            color: white;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
             padding: 30px;
             text-align: center;
             position: relative;
@@ -54,8 +80,8 @@
             top: 20px;
             left: 20px;
             background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid white;
+            color: var(--sidebar-text);
+            border: 2px solid var(--sidebar-text);
             padding: 10px 20px;
             border-radius: 25px;
             text-decoration: none;
@@ -74,8 +100,8 @@
 
         .notifications-controls {
             padding: 20px 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            background: var(--light-gray);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -91,13 +117,14 @@
 
         .filter-btn {
             padding: 8px 16px;
-            border: 2px solid #dee2e6;
-            background: white;
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
             font-size: 0.9rem;
+            color: var(--text-color);
         }
 
         .filter-btn:hover {
@@ -107,7 +134,7 @@
 
         .filter-btn.active {
             background: var(--kenya-red);
-            color: white;
+            color: var(--kenya-white);
             border-color: var(--kenya-red);
         }
 
@@ -120,16 +147,18 @@
         .search-box input {
             width: 100%;
             padding: 10px 40px 10px 15px;
-            border: 2px solid #dee2e6;
+            border: 2px solid var(--border-color);
             border-radius: 25px;
             font-size: 0.9rem;
             transition: all 0.3s ease;
+            background: var(--card-bg);
+            color: var(--text-color);
         }
 
         .search-box input:focus {
             outline: none;
             border-color: var(--kenya-red);
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+            box-shadow: 0 0 0 3px rgba(187, 0, 0, 0.1);
         }
 
         .search-box i {
@@ -137,13 +166,14 @@
             right: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #6c757d;
+            color: var(--secondary-text);
         }
 
         .bulk-actions {
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .bulk-actions button {
@@ -154,32 +184,42 @@
             font-weight: 500;
             transition: all 0.3s ease;
             font-size: 0.9rem;
+            font-family: 'Poppins', sans-serif;
         }
 
         .mark-all-read {
             background: var(--kenya-green);
-            color: white;
+            color: var(--kenya-white);
         }
 
         .mark-all-read:hover {
-            background: #218838;
+            background: var(--darker-green);
             transform: translateY(-2px);
         }
 
         .delete-selected {
             background: var(--kenya-red);
-            color: white;
+            color: var(--kenya-white);
         }
 
         .delete-selected:hover {
-            background: #c41e3a;
+            background: #8B0000;
             transform: translateY(-2px);
         }
 
         .delete-selected:disabled {
-            background: #6c757d;
+            background: var(--secondary-text);
             cursor: not-allowed;
             transform: none;
+        }
+
+        .notification-count-badge {
+            background: var(--kenya-red);
+            color: var(--kenya-white);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
         .notifications-list {
@@ -188,8 +228,8 @@
         }
 
         .notification-item {
-            background: white;
-            border: 2px solid #e9ecef;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 15px;
@@ -237,17 +277,17 @@
 
         .notification-icon.success {
             background: #e8f5e8;
-            color: #4caf50;
+            color: var(--success-green);
         }
 
         .notification-icon.warning {
             background: #fff3e0;
-            color: #ff9800;
+            color: var(--warning-yellow);
         }
 
         .notification-icon.error {
             background: #ffebee;
-            color: #f44336;
+            color: var(--danger-red);
         }
 
         .notification-content {
@@ -258,7 +298,7 @@
         .notification-message {
             font-size: 1rem;
             line-height: 1.5;
-            color: #333;
+            color: var(--card-text-color);
             margin-bottom: 8px;
             word-wrap: break-word;
         }
@@ -270,7 +310,7 @@
             flex-wrap: wrap;
             gap: 10px;
             font-size: 0.85rem;
-            color: #6c757d;
+            color: var(--secondary-text);
         }
 
         .notification-time {
@@ -284,12 +324,14 @@
 
         .notification-actions button {
             padding: 4px 12px;
-            border: 1px solid #dee2e6;
-            background: white;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
             border-radius: 15px;
             cursor: pointer;
             font-size: 0.8rem;
             transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
         }
 
         .notification-actions button:hover {
@@ -300,7 +342,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #6c757d;
+            color: var(--secondary-text);
         }
 
         .empty-state i {
@@ -312,7 +354,7 @@
         .empty-state h3 {
             margin: 0 0 10px 0;
             font-size: 1.5rem;
-            color: #495057;
+            color: var(--text-color);
         }
 
         .empty-state p {
@@ -323,7 +365,7 @@
         .loading-state {
             text-align: center;
             padding: 60px 20px;
-            color: #6c757d;
+            color: var(--secondary-text);
         }
 
         .loading-state i {
@@ -335,15 +377,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .notification-count-badge {
-            background: var(--kenya-red);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
         }
 
         /* Responsive Design */
@@ -375,6 +408,14 @@
                 position: static;
                 margin-bottom: 20px;
                 align-self: flex-start;
+            }
+
+            .bulk-actions {
+                justify-content: center;
+            }
+
+            .notification-filters {
+                justify-content: center;
             }
         }
     </style>
