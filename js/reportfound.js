@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js';
-import { UnifiedNotificationSystem } from './notifications-unified.js';
 
 // Enhanced County → Constituency → Chief's Office selection
 const counties = {
@@ -938,11 +937,14 @@ function setupFormSubmission() {
             // 🔔 Send notification to user
             console.log('📤 About to create notification for found report:', { userId: user.id, reportId: report.id, userEmail: user.email });
             try {
-                const notifResult = await UnifiedNotificationSystem.createNotification(
-                    user.id,
-                    `📋 Your found ${formData.documents[0]?.type || 'document'} report has been registered. You'll be notified when the owner reports a lost document and we find a match.`,
-                    { type: 'info', reportId: report.id }
-                );
+                const notifResult = await supabase.from('notifications').insert({
+                    user_id: user.id,
+                    message: `📋 Your found ${formData.documents[0]?.type || 'document'} report has been registered. You'll be notified when the owner reports a lost document and we find a match.`,
+                    type: 'info',
+                    status: 'unread',
+                    report_id: report.id,
+                    created_at: new Date().toISOString()
+                });
                 console.log('📤 Notification creation result:', notifResult);
             } catch (notifError) {
                 console.error('Notification error:', notifError);

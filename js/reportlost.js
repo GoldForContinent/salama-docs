@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js';
-import { UnifiedNotificationSystem } from './notifications-unified.js';
 
 let documentCounter = 1;
 let selectedTimeline = 'today';
@@ -331,12 +330,15 @@ async function handleFormSubmit(e) {
         console.log('🔔 Creating notification...');
         // 🔔 Send notification to user
         try {
-            // Use the static method from UnifiedNotificationSystem class
-            await UnifiedNotificationSystem.createNotification(
-                user.id,
-                `🔍 Search started for your lost ${formData.documents[0]?.typeName || 'document'}. We'll notify you when we find a match.`,
-                { type: 'info', reportId: report.id }
-            );
+            // Direct notification creation without importing UnifiedNotificationSystem
+            await supabase.from('notifications').insert({
+                user_id: user.id,
+                message: `🔍 Search started for your lost ${formData.documents[0]?.typeName || 'document'}. We'll notify you when we find a match.`,
+                type: 'info',
+                status: 'unread',
+                report_id: report.id,
+                created_at: new Date().toISOString()
+            });
             console.log('✅ Notification created successfully');
         } catch (notifError) {
             console.error('❌ Notification error:', notifError);
