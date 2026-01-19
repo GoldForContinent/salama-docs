@@ -27,13 +27,21 @@ class UnifiedNotificationSystem {
     try {
       console.log('🚀 Initializing UnifiedNotificationSystem...');
 
-      // Always create the UI elements (bell and modal) regardless of auth state
+      // Always create bell UI element
       this.createBell();
       console.log('✅ Bell created');
-      this.createModal();
-      console.log('✅ Modal created');
-      this.attachModalListeners();
-      console.log('✅ Event listeners attached');
+      
+      // Only create modal if NOT on notifications, reportlost, or reportfound pages
+      if (!window.location.pathname.includes('notifications.html') && 
+          !window.location.pathname.includes('reportlost.html') && 
+          !window.location.pathname.includes('reportfound.html')) {
+        this.createModal();
+        console.log('✅ Modal created');
+        this.attachModalListeners();
+        console.log('✅ Event listeners attached');
+      } else {
+        console.log('🚫 Skipping modal creation on', window.location.pathname);
+      }
 
       // Try to get current user
       const { data: { user }, error } = await supabase.auth.getUser();
