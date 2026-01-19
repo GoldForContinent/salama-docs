@@ -100,6 +100,14 @@ class UnifiedNotificationSystem {
    * Create notification modal
    */
   createModal() {
+    // Don't create modal on notifications, reportlost, or reportfound pages
+    if (window.location.pathname.includes('notifications.html') || 
+        window.location.pathname.includes('reportlost.html') || 
+        window.location.pathname.includes('reportfound.html')) {
+      console.log('🚫 Skipping modal creation on', window.location.pathname);
+      return;
+    }
+
     if (document.getElementById('notificationModal')) {
       return;
     }
