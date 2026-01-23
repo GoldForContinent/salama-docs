@@ -349,9 +349,9 @@ async function handleFormSubmit(e) {
             console.log('✅ Lost report notification created successfully');
             
             // Start match detection system if not already running
-            if (typeof window.startMatchDetection === 'function') {
-                window.startMatchDetection();
-                console.log('🔍 Match detection system started');
+            if (window.unifiedNotifications && typeof window.unifiedNotifications.startMatchDetection === 'function') {
+                window.unifiedNotifications.startMatchDetection();
+                console.log('🔍 Match detection system started from reportlost');
             }
             
         } catch (notifError) {

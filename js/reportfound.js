@@ -955,9 +955,9 @@ function setupFormSubmission() {
                 console.log('📤 Found report notification created successfully:', notifResult);
                 
                 // Start match detection system if not already running
-                if (typeof window.startMatchDetection === 'function') {
-                    window.startMatchDetection();
-                    console.log('🔍 Match detection system started');
+                if (window.unifiedNotifications && typeof window.unifiedNotifications.startMatchDetection === 'function') {
+                    window.unifiedNotifications.startMatchDetection();
+                    console.log('🔍 Match detection system started from reportfound');
                 }
                 
             } catch (notifError) {
@@ -1010,11 +1010,11 @@ function setupFormSubmission() {
                         console.error('❌ Error uploading document photo:', uploadError);
                     }
                 }
-                
+                        
                 // Insert document record with owner info
                 const documentInsert = {
                     report_id: report.id,
-                    document_type: doc.value,
+                    document_type: doc.type, // Use doc.type to match reportlost.js
                     document_number: doc.number,
                     category: doc.category,
                     photo_url: photoUrl,
@@ -1022,10 +1022,11 @@ function setupFormSubmission() {
                     owner_name: formData.ownerName, // Store owner name per document
                     owner_id_number: formData.ownerId // Store owner ID per document
                 };
-                
+                        
                 console.log(`📄 Inserting document #${i+1}:`, documentInsert);
-                
+                        
                 const { error: docError } = await supabase.from('report_documents').insert(documentInsert);
+                        
                 
                 if (docError) {
                     console.error(`❌ Error inserting document #${i+1}:`, docError);

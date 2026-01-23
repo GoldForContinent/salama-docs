@@ -1742,12 +1742,26 @@ class UnifiedNotificationSystem {
       }
 
       console.log(`📊 Checking ${lostReports.length} lost vs ${foundReports.length} found reports`);
+      
+      // Debug: Log document details
+      console.log('🔍 Lost reports documents:');
+      lostReports.forEach((report, index) => {
+        const doc = report.report_documents[0];
+        console.log(`  ${index + 1}. Type: "${doc.document_type}", Number: "${doc.document_number}"`);
+      });
+      
+      console.log('🔍 Found reports documents:');
+      foundReports.forEach((report, index) => {
+        const doc = report.report_documents[0];
+        console.log(`  ${index + 1}. Type: "${doc.document_type}", Number: "${doc.document_number}"`);
+      });
 
       // Find matches
       let matchesFound = 0;
       for (const lost of lostReports) {
         for (const found of foundReports) {
           if (this.documentsMatch(lost, found)) {
+            console.log(`🎯 MATCH FOUND! Lost ID: ${lost.id}, Found ID: ${found.id}`);
             await this.createMatch(lost, found);
             matchesFound++;
           }
@@ -1756,6 +1770,8 @@ class UnifiedNotificationSystem {
 
       if (matchesFound > 0) {
         console.log(`🎯 Found ${matchesFound} new matches!`);
+      } else {
+        console.log('❌ No matches found in this check');
       }
 
     } catch (error) {
@@ -1921,3 +1937,13 @@ window.addEventListener('beforeunload', () => {
 // Export for use in other files
 export { UnifiedNotificationSystem };
 window.UnifiedNotificationSystem = UnifiedNotificationSystem;
+
+// Global function for manual match detection (for debugging)
+window.triggerMatchDetection = async function() {
+  console.log('🔍 Manual match detection triggered');
+  if (window.unifiedNotifications) {
+    await window.unifiedNotifications.checkForMatches();
+  } else {
+    console.error('❌ UnifiedNotificationSystem not available');
+  }
+};
