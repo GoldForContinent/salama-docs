@@ -1,0 +1,729 @@
+// Police Station Admin Dashboard JavaScript
+class PoliceStationAdmin {
+    constructor() {
+        this.currentUser = null;
+        this.stationId = null;
+        this.stationDetails = null;
+        this.reports = [];
+        this.filteredReports = [];
+        this.currentPage = 1;
+        this.itemsPerPage = 10;
+        this.filters = {
+            status: 'all',
+            documentType: 'all',
+            search: ''
+        };
+    }
+
+    async initialize() {
+        console.log('🚓 Initializing Police Station Admin Dashboard...');
+        
+        // Check authentication
+        await this.checkAuth();
+        
+        // Load station details
+        await this.loadStationDetails();
+        
+        // Load dashboard data
+        await this.loadDashboardData();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        console.log('✅ Police Station Dashboard Ready');
+    }
+    
+    async checkAuth() {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+            console.log('No authenticated user, redirecting to login');
+            window.location.href = 'admin-login.html';
+            return;
+        }
+        
+        this.currentUser = user;
+        
+        // Check if user has station admin role
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('station_id, full_name')
+            .eq('user_id', user.id)
+            .single();
+        
+        if (!profile || !profile.station_id) {
+            alert('You are not assigned to any police station. Please contact system administrator.');
+            window.location.href = 'admin-login.html';
+            return;
+        }
+        
+        this.stationId = profile.station_id;
+        
+        // Update UI with user info
+        document.getElementById('adminName').textContent = profile.full_name || 'Officer';
+    }
+    
+    async loadStationDetails() {
+        try {
+            const { data: station, error } = await supabase
+                .from('stations')
+                .select('*')
+                .eq('id', this.stationId)
+                .single();
+            
+            if (error) throw error;
+            
+            this.stationDetails = station;
+            
+            // Update UI with station details
+            this.updateStationUI();
+            
+        } catch (error) {
+            console.error('Error loading station details:', error);
+            alert('Failed to load station details. Please refresh the page.');
+        }
+    }
+    
+    updateStationUI() {
+        if (!this.stationDetails) return;
+        
+        // Update header
+        document.getElementById('stationNameDisplay').textContent = this.stationDetails.name;
+        document.getElementById('stationCodeDisplay').textContent = this.stationDetails.station_code || 'POLICE';
+        
+        // Update station info card
+        document.getElementById('stationAddress').textContent = this.stationDetails.address || 'Not specified';
+        document.getElementById('stationPhone').textContent = this.stationDetails.phone || 'Not specified';
+        document.getElementById('officerInCharge').textContent = this.stationDetails.officer_in_charge || 'Not specified';
+        document.getElementById('commissionRate').textContent = `${this.stationDetails.commission_rate || 10}%`;
+        document.getElementById('partnershipDate').textContent = 
+            this.formatDate(this.stationDetails.partnership_start_date) || 'Not specified';
+    }
+    
+    async loadDashboardData() {
+        await Promise.all([
+            this.loadStatistics(),
+            this.loadReports(),
+            this.loadCommissionData()
+        ]);
+    }
+    
+    async loadStatistics() {
+        try {
+            // Load counts for each status
+            const counts = await this.getReportCountsByStatus();
+            
+            // Update UI
+            document.getElementById('statPendingDocs').textContent = counts.pending;
+            document.getElementById('statReceivedDocs').textContent = counts.received;
+            document.getElementById('statReadyDocs').textContent = counts.ready;
+            document.getElementById('statCollectedDocs').textContent = counts.collected;
+            
+        } catch (error) {
+            console.error('Error loading statistics:', error);
+        }
+    }
+    
+    async getReportCountsByStatus() {
+        const counts = { pending: 0, received: 0, ready: 0, collected: 0 };
+        
+        try {
+            // Get all reports for this station
+            const { data: reports, error } = await supabase
+                .from('reports')
+                .select('id, report_type, delivery_status, status')
+                .eq('collection_point', this.stationId);
+            
+            if (error) throw error;
+            
+            // Count by status
+            reports.forEach(report => {
+                if (report.report_type === 'found') {
+                    if (report.delivery_status === 'unclaimed_unverified') {
+                        counts.pending++;
+                    } else if (report.delivery_status === 'unclaimed_verified') {
+                        counts.received++;
+                    }
+                } else if (report.report_type === 'lost') {
+                    if (report.status === 'payment_pending') {
+                        counts.ready++;
+                    } else if (report.delivery_status === 'claimed') {
+                        counts.collected++;
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error counting reports:', error);
+        }
+        
+        return counts;
+    }
+    
+    async loadReports() {
+        try {
+            console.log('Loading reports for station:', this.stationId);
+            
+            // Query for reports assigned to this station
+            const { data: reports, error } = await supabase
+                .from('reports')
+                .select(`
+                    id,
+                    report_type,
+                    status,
+                    delivery_status,
+                    full_name,
+                    phone,
+                    email,
+                    collection_point,
+                    created_at,
+                    report_documents(document_type, document_number),
+                    matched_report:reports!reports_matched_report_id_fkey(
+                        id,
+                        full_name,
+                        phone,
+                        status
+                    )
+                `)
+                .or(`collection_point.eq.${this.stationId},matched_report.collection_point.eq.${this.stationId}`)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            this.reports = reports || [];
+            this.filteredReports = [...this.reports];
+            
+            // Update counts
+            document.getElementById('totalCount').textContent = this.reports.length;
+            
+            // Render table
+            this.renderReportsTable();
+            
+        } catch (error) {
+            console.error('Error loading reports:', error);
+            document.getElementById('reportsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="8" class="error-row">
+                        <i class="fas fa-exclamation-triangle"></i> Error loading reports. Please try again.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    renderReportsTable() {
+        const tableBody = document.getElementById('reportsTableBody');
+        if (!tableBody) return;
+        
+        // Apply pagination
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+        const pageReports = this.filteredReports.slice(startIndex, endIndex);
+        
+        if (pageReports.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-row">
+                        <i class="fas fa-inbox"></i> No documents found
+                    </td>
+                </tr>
+            `;
+            
+            // Update pagination controls
+            this.updatePagination();
+            return;
+        }
+        
+        // Generate table rows
+        tableBody.innerHTML = pageReports.map(report => {
+            const document = report.report_documents?.[0] || {};
+            const matchedReport = report.matched_report?.[0];
+            
+            // Determine status display
+            let statusText = '';
+            let statusClass = '';
+            
+            if (report.report_type === 'found') {
+                if (report.delivery_status === 'unclaimed_unverified') {
+                    statusText = 'Pending Delivery';
+                    statusClass = 'status-pending';
+                } else if (report.delivery_status === 'unclaimed_verified') {
+                    statusText = 'At Station';
+                    statusClass = 'status-received';
+                }
+            } else if (report.report_type === 'lost') {
+                if (report.status === 'payment_pending') {
+                    statusText = 'Ready for Pickup';
+                    statusClass = 'status-ready';
+                } else if (report.delivery_status === 'claimed') {
+                    statusText = 'Collected';
+                    statusClass = 'status-collected';
+                }
+            }
+            
+            return `
+                <tr data-report-id="${report.id}">
+                    <td>
+                        <span class="report-type ${report.report_type}">
+                            ${report.report_type.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>${this.formatDocumentType(document.document_type)}</td>
+                    <td>${document.document_number || 'N/A'}</td>
+                    <td>${report.full_name}</td>
+                    <td>
+                        <div class="contact-info">
+                            <div>${report.phone}</div>
+                            <small>${report.email}</small>
+                        </div>
+                    </td>
+                    <td>
+                        ${matchedReport ? `
+                            <div class="matched-party">
+                                <strong>${matchedReport.full_name}</strong><br>
+                                <small>${matchedReport.phone}</small><br>
+                                <span class="match-status">${matchedReport.status}</span>
+                            </div>
+                        ` : '<em>No match yet</em>'}
+                    </td>
+                    <td>
+                        <span class="status-badge ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons-small">
+                            ${report.report_type === 'found' && report.delivery_status === 'unclaimed_unverified' ? 
+                                `<button class="btn-action btn-verify" onclick="stationAdmin.verifyDocument('${report.id}')" 
+                                        title="Verify Document Received">
+                                    <i class="fas fa-check"></i>
+                                </button>` : ''}
+                            
+                            ${report.report_type === 'lost' && report.status === 'payment_pending' ? 
+                                `<button class="btn-action btn-collect" onclick="stationAdmin.collectDocument('${report.id}')" 
+                                        title="Verify Collection">
+                                    <i class="fas fa-box-open"></i>
+                                </button>` : ''}
+                            
+                            <button class="btn-action btn-contact" onclick="stationAdmin.contactParties('${report.id}')" 
+                                    title="Contact Parties">
+                                <i class="fas fa-phone"></i>
+                            </button>
+                            
+                            <button class="btn-action btn-view" onclick="stationAdmin.viewReport('${report.id}')" 
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // Update showing count
+        document.getElementById('showingCount').textContent = 
+            `${startIndex + 1}-${Math.min(endIndex, this.filteredReports.length)}`;
+        
+        // Update pagination controls
+        this.updatePagination();
+    }
+    
+    async loadCommissionData() {
+        try {
+            // Calculate total commission for this station
+            const { data: transactions, error } = await supabase
+                .from('transactions')
+                .select('amount, status')
+                .eq('status', 'completed');
+            
+            if (error) throw error;
+            
+            const totalRevenue = transactions.reduce((sum, t) => sum + t.amount, 0);
+            const commissionRate = this.stationDetails.commission_rate || 10;
+            const totalCommission = totalRevenue * (commissionRate / 100);
+            
+            // Update UI
+            document.getElementById('statTotalCommission').textContent = 
+                `KES ${totalCommission.toLocaleString()}`;
+            document.getElementById('totalCommission').textContent = 
+                `KES ${totalCommission.toLocaleString()}`;
+            
+            // Calculate next payout (last day of current month)
+            const today = new Date();
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            document.getElementById('statNextPayout').textContent = 
+                this.formatDate(lastDay);
+                
+        } catch (error) {
+            console.error('Error loading commission data:', error);
+        }
+    }
+    
+    // Filtering functions
+    filterReports() {
+        const statusFilter = document.getElementById('statusFilter').value;
+        const docTypeFilter = document.getElementById('documentTypeFilter').value;
+        const searchFilter = document.getElementById('searchReports').value.toLowerCase();
+        
+        this.filters = {
+            status: statusFilter,
+            documentType: docTypeFilter,
+            search: searchFilter
+        };
+        
+        this.applyFilters();
+    }
+    
+    applyFilters() {
+        this.filteredReports = this.reports.filter(report => {
+            const document = report.report_documents?.[0] || {};
+            
+            // Status filter
+            if (this.filters.status !== 'all') {
+                let matchesStatus = false;
+                
+                if (this.filters.status === 'pending') {
+                    matchesStatus = report.report_type === 'found' && 
+                                   report.delivery_status === 'unclaimed_unverified';
+                } else if (this.filters.status === 'received') {
+                    matchesStatus = report.report_type === 'found' && 
+                                   report.delivery_status === 'unclaimed_verified';
+                } else if (this.filters.status === 'ready') {
+                    matchesStatus = report.report_type === 'lost' && 
+                                   report.status === 'payment_pending';
+                } else if (this.filters.status === 'collected') {
+                    matchesStatus = report.delivery_status === 'claimed';
+                }
+                
+                if (!matchesStatus) return false;
+            }
+            
+            // Document type filter
+            if (this.filters.documentType !== 'all' && 
+                document.document_type !== this.filters.documentType) {
+                return false;
+            }
+            
+            // Search filter
+            if (this.filters.search) {
+                const searchableText = [
+                    report.full_name,
+                    report.phone,
+                    report.email,
+                    document.document_type,
+                    document.document_number,
+                    report.matched_report?.[0]?.full_name,
+                    report.matched_report?.[0]?.phone
+                ].join(' ').toLowerCase();
+                
+                if (!searchableText.includes(this.filters.search)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        // Reset to first page
+        this.currentPage = 1;
+        
+        // Re-render table
+        this.renderReportsTable();
+    }
+    
+    // Pagination functions
+    updatePagination() {
+        const totalPages = Math.ceil(this.filteredReports.length / this.itemsPerPage);
+        
+        document.getElementById('currentPage').textContent = this.currentPage;
+        document.getElementById('totalPages').textContent = totalPages;
+        
+        // Enable/disable buttons
+        document.getElementById('prevBtn').disabled = this.currentPage === 1;
+        document.getElementById('nextBtn').disabled = this.currentPage === totalPages || totalPages === 0;
+    }
+    
+    nextPage() {
+        const totalPages = Math.ceil(this.filteredReports.length / this.itemsPerPage);
+        if (this.currentPage < totalPages) {
+            this.currentPage++;
+            this.renderReportsTable();
+        }
+    }
+    
+    prevPage() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.renderReportsTable();
+        }
+    }
+    
+    // Action functions
+    async verifyDocument(reportId) {
+        const report = this.reports.find(r => r.id === reportId);
+        if (!report) return;
+        
+        // Show verification modal
+        this.showVerifyModal(report);
+    }
+    
+    async collectDocument(reportId) {
+        const report = this.reports.find(r => r.id === reportId);
+        if (!report) return;
+        
+        // Show collection verification modal
+        this.showCollectionModal(report);
+    }
+    
+    async contactParties(reportId) {
+        const report = this.reports.find(r => r.id === reportId);
+        if (!report) return;
+        
+        // Show contact modal
+        this.showContactModal(report);
+    }
+    
+    async viewReport(reportId) {
+        // Redirect to report details page or show in modal
+        window.open(`report-details.html?id=${reportId}`, '_blank');
+    }
+    
+    // Modal functions
+    showVerifyModal(report) {
+        const document = report.report_documents?.[0] || {};
+        const modalContent = document.getElementById('verifyDocumentContent');
+        
+        modalContent.innerHTML = `
+            <div class="verification-info">
+                <h3><i class="fas fa-file-alt"></i> Document Verification</h3>
+                <div class="document-details">
+                    <p><strong>Document Type:</strong> ${this.formatDocumentType(document.document_type)}</p>
+                    <p><strong>Document Number:</strong> ${document.document_number || 'N/A'}</p>
+                    <p><strong>Reported By:</strong> ${report.full_name}</p>
+                    <p><strong>Contact:</strong> ${report.phone}</p>
+                    <p><strong>Report Date:</strong> ${this.formatDate(report.created_at)}</p>
+                </div>
+                
+                <div class="verification-steps">
+                    <h4><i class="fas fa-clipboard-check"></i> Verification Checklist</h4>
+                    <div class="checklist">
+                        <label class="check-item">
+                            <input type="checkbox" id="checkPhysical"> Physical document matches description
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" id="checkCondition"> Document is in acceptable condition
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" id="checkFinder"> Finder's details verified
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" id="checkStorage"> Document stored securely
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="verification-notes">
+                    <label for="verificationNotes">Additional Notes:</label>
+                    <textarea id="verificationNotes" rows="3" 
+                              placeholder="Any additional observations or notes..."></textarea>
+                </div>
+                
+                <input type="hidden" id="verificationReportId" value="${report.id}">
+            </div>
+        `;
+        
+        // Show modal
+        document.getElementById('verifyDocumentModal').style.display = 'block';
+    }
+    
+    showContactModal(report) {
+        const document = report.report_documents?.[0] || {};
+        const matchedReport = report.matched_report?.[0];
+        const modalContent = document.getElementById('contactPartiesContent');
+        
+        modalContent.innerHTML = `
+            <div class="contact-party-info">
+                <h3><i class="fas fa-users"></i> Contact Information</h3>
+                
+                <div class="party-info-grid">
+                    <!-- Finder/Owner Card -->
+                    <div class="party-card">
+                        <h4><i class="fas fa-user-circle"></i> ${report.report_type === 'found' ? 'Finder' : 'Owner'}</h4>
+                        <div class="party-detail">
+                            <strong>Name:</strong>
+                            <span>${report.full_name}</span>
+                        </div>
+                        <div class="party-detail">
+                            <strong>Phone:</strong>
+                            <span>${report.phone}</span>
+                        </div>
+                        <div class="party-detail">
+                            <strong>Email:</strong>
+                            <span>${report.email}</span>
+                        </div>
+                        <div class="party-detail">
+                            <strong>Document:</strong>
+                            <span>${this.formatDocumentType(document.document_type)}</span>
+                        </div>
+                        <div class="contact-actions">
+                            <button class="contact-btn" onclick="stationAdmin.callNumber('${report.phone}')">
+                                <i class="fas fa-phone"></i> Call
+                            </button>
+                            <button class="contact-btn secondary" onclick="stationAdmin.sendSMS('${report.phone}')">
+                                <i class="fas fa-sms"></i> SMS
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Matched Party Card (if exists) -->
+                    ${matchedReport ? `
+                    <div class="party-card">
+                        <h4><i class="fas fa-handshake"></i> ${report.report_type === 'found' ? 'Owner' : 'Finder'}</h4>
+                        <div class="party-detail">
+                            <strong>Name:</strong>
+                            <span>${matchedReport.full_name}</span>
+                        </div>
+                        <div class="party-detail">
+                            <strong>Phone:</strong>
+                            <span>${matchedReport.phone}</span>
+                        </div>
+                        <div class="party-detail">
+                            <strong>Status:</strong>
+                            <span>${matchedReport.status}</span>
+                        </div>
+                        <div class="contact-actions">
+                            <button class="contact-btn" onclick="stationAdmin.callNumber('${matchedReport.phone}')">
+                                <i class="fas fa-phone"></i> Call
+                            </button>
+                            <button class="contact-btn secondary" onclick="stationAdmin.sendSMS('${matchedReport.phone}')">
+                                <i class="fas fa-sms"></i> SMS
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="quick-sms-templates">
+                    <h4><i class="fas fa-comment-alt"></i> Quick SMS Templates</h4>
+                    <div class="sms-templates">
+                        <div class="sms-template-card" onclick="stationAdmin.useSMSTemplate('reminder')">
+                            <h5>Document Reminder</h5>
+                            <div class="sms-preview">
+                                Hello ${report.full_name}, this is ${this.stationDetails.name}. 
+                                Please bring the ${document.document_type} to our station.
+                            </div>
+                        </div>
+                        <div class="sms-template-card" onclick="stationAdmin.useSMSTemplate('update')">
+                            <h5>Status Update</h5>
+                            <div class="sms-preview">
+                                Your document is ready for collection at ${this.stationDetails.name}. 
+                                Please bring your ID.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Show modal
+        document.getElementById('contactPartiesModal').style.display = 'block';
+    }
+    
+    // Utility functions
+    formatDocumentType(type) {
+        if (!type) return 'Unknown';
+        // Convert snake_case to Title Case
+        return type.split('_').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+    }
+    
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-KE', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
+    setupEventListeners() {
+        // Close modals when clicking outside
+        window.onclick = (event) => {
+            const modals = document.getElementsByClassName('modal-police');
+            for (let modal of modals) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        };
+        
+        // Escape key closes modals
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                const modals = document.getElementsByClassName('modal-police');
+                for (let modal of modals) {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+    }
+}
+
+// Global functions for HTML onclick handlers
+function refreshDashboard() {
+    stationAdmin.loadDashboardData();
+}
+
+function showVerifyDocumentModal() {
+    // Show modal for manual verification entry
+    document.getElementById('verifyDocumentModal').style.display = 'block';
+}
+
+function showCollectionModal() {
+    // Show modal for collection verification
+    alert('Collection verification modal - to be implemented');
+}
+
+function showSMSModal() {
+    // Show SMS templates modal
+    document.getElementById('smsModal').style.display = 'block';
+}
+
+function showReportsModal() {
+    alert('Reports generation modal - to be implemented');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function filterReports() {
+    stationAdmin.filterReports();
+}
+
+function searchReports() {
+    stationAdmin.filterReports();
+}
+
+function nextPage() {
+    stationAdmin.nextPage();
+}
+
+function prevPage() {
+    stationAdmin.prevPage();
+}
+
+function logout() {
+    supabase.auth.signOut().then(() => {
+        window.location.href = 'admin-login.html';
+    });
+}
+
+// Initialize dashboard
+let stationAdmin = null;
+document.addEventListener('DOMContentLoaded', async () => {
+    stationAdmin = new PoliceStationAdmin();
+    await stationAdmin.initialize();
+});

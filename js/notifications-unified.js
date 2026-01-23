@@ -1644,43 +1644,250 @@ class UnifiedNotificationSystem {
         ]);
         
         console.log('✅ Notification system fully initialized');
+        
+        // Start match detection system
+        this.startMatchDetection();
+        
       } catch (error) {
         console.error('❌ Notification system initialization failed:', error);
         // Don't block the dashboard - continue with minimal functionality
-        this.notifications = [];
-        this.updateBadge();
       }
     } else if (!user && this.currentUser) {
-      // User logged out
-      console.log('🔐 User logging out, clearing notifications...');
+      // User logged out - cleanup
+      console.log('🔐 User logging out, cleaning up...');
+      this.stopMatchDetection();
       this.currentUser = null;
       this.notifications = [];
       this.updateBadge();
-    } else if (user && this.currentUser && user.id !== this.currentUser.id) {
-      // User switched
-      console.log('🔐 User switched, updating...');
-      this.currentUser = user;
-      try {
-        await Promise.race([
-          this.fetchNotifications(),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Notification fetch timeout')), 10000)
-          )
-        ]);
-      } catch (error) {
-        console.error('❌ Failed to fetch notifications for switched user:', error);
-        this.notifications = [];
-        this.updateBadge();
-      }
     }
-    console.log('Current user after change:', this.currentUser?.email || 'none');
+  }
+
+  // ==================== MATCH DETECTION SYSTEM ====================
+  
+  /**
+   * Start automated match detection
+   */
+  startMatchDetection() {
+    if (this.matchDetectionInterval) {
+      console.log('🔍 Match detection already running');
+      return;
+    }
+
+    console.log('🔍 Starting match detection system');
+    this.matchDetectionInterval = setInterval(async () => {
+      await this.checkForMatches();
+    }, 30000); // Check every 30 seconds
+
+    // Initial check
+    this.checkForMatches();
+    console.log('✅ Match detection system started');
   }
 
   /**
-   * Cleanup on page unload
+   * Stop automated match detection
+   */
+  stopMatchDetection() {
+    if (this.matchDetectionInterval) {
+      clearInterval(this.matchDetectionInterval);
+      this.matchDetectionInterval = null;
+      console.log('🔍 Match detection stopped');
+    }
+  }
+
+  /**
+   * Check for document matches between lost and found reports
+   */
+  async checkForMatches() {
+    try {
+      console.log('🔍 Checking for document matches...');
+
+      // Get active lost reports (not already matched)
+      const { data: lostReports, error: lostError } = await supabase
+        .from('reports')
+        .select(`
+          *,
+          report_documents!inner(
+            document_type,
+            document_number,
+            category
+          )
+        `)
+        .eq('report_type', 'lost')
+        .eq('status', 'active')
+        .is('matched_report_id', null);
+
+      if (lostError) {
+        console.error('❌ Error fetching lost reports:', lostError);
+        return;
+      }
+
+      // Get active found reports (not already matched)
+      const { data: foundReports, error: foundError } = await supabase
+        .from('reports')
+        .select(`
+          *,
+          report_documents!inner(
+            document_type,
+            document_number,
+            category
+          )
+        `)
+        .eq('report_type', 'found')
+        .eq('status', 'active')
+        .is('matched_report_id', null);
+
+      if (foundError) {
+        console.error('❌ Error fetching found reports:', foundError);
+        return;
+      }
+
+      console.log(`📊 Checking ${lostReports.length} lost vs ${foundReports.length} found reports`);
+
+      // Find matches
+      let matchesFound = 0;
+      for (const lost of lostReports) {
+        for (const found of foundReports) {
+          if (this.documentsMatch(lost, found)) {
+            await this.createMatch(lost, found);
+            matchesFound++;
+          }
+        }
+      }
+
+      if (matchesFound > 0) {
+        console.log(`🎯 Found ${matchesFound} new matches!`);
+      }
+
+    } catch (error) {
+      console.error('❌ Error in match detection:', error);
+    }
+  }
+
+  /**
+   * Check if two documents match
+   */
+  documentsMatch(lost, found) {
+    const lostDoc = lost.report_documents[0];
+    const foundDoc = found.report_documents[0];
+
+    if (!lostDoc || !foundDoc) {
+      return false;
+    }
+
+    // EXACT MATCH LOGIC
+    const typeMatch = lostDoc.document_type === foundDoc.document_type;
+    const numberMatch = lostDoc.document_number === foundDoc.document_number;
+    
+    return typeMatch && numberMatch;
+  }
+
+  /**
+   * Create a match between lost and found reports
+   */
+  async createMatch(lostReport, foundReport) {
+    console.log(`🎯 Match found! Lost ID: ${lostReport.id}, Found ID: ${foundReport.id}`);
+
+    try {
+      // 1. Create recovered_reports record
+      const { data: recoveredRecord, error: recoveredError } = await supabase
+        .from('recovered_reports')
+        .insert({
+          lost_report_id: lostReport.id,
+          found_report_id: foundReport.id,
+          status: 'recovered',
+          created_at: new Date()
+        })
+        .select()
+        .single();
+
+      if (recoveredError) {
+        console.error('❌ Failed to create recovered record:', recoveredError);
+        return;
+      }
+
+      console.log('✅ Recovered record created:', recoveredRecord.id);
+
+      // 2. Update both reports to link to each other
+      await supabase
+        .from('reports')
+        .update({ 
+          matched_report_id: foundReport.id,
+          status: 'potential_match',
+          updated_at: new Date()
+        })
+        .eq('id', lostReport.id);
+
+      await supabase
+        .from('reports')
+        .update({ 
+          matched_report_id: lostReport.id,
+          status: 'potential_match',
+          updated_at: new Date()
+        })
+        .eq('id', foundReport.id);
+
+      // 3. Create notifications for BOTH parties
+      await this.createMatchNotifications(recoveredRecord, lostReport, foundReport);
+
+      console.log('✅ Match processing complete!');
+
+    } catch (error) {
+      console.error('❌ Error creating match:', error);
+    }
+  }
+
+  /**
+   * Create match notifications for both parties
+   */
+  async createMatchNotifications(recoveredRecord, lostReport, foundReport) {
+    const lostDoc = lostReport.report_documents[0];
+    const foundDoc = foundReport.report_documents[0];
+
+    // Notification for LOST report owner
+    await this.createNotification(
+      lostReport.user_id,
+      `🎯 Potential match found for your ${lostDoc.document_type}! ` +
+      `Document number: ${lostDoc.document_number}. ` +
+      `Please check potential matches to verify if this is yours.`,
+      'match',
+      {
+        action: 'view_match',
+        actionData: { 
+          recovered_report_id: recoveredRecord.id,
+          lost_report_id: lostReport.id,
+          found_report_id: foundReport.id
+        }
+      },
+      lostReport.id
+    );
+
+    // Notification for FOUND report owner  
+    await this.createNotification(
+      foundReport.user_id,
+      `👤 Potential owner found for the ${foundDoc.document_type} you reported! ` +
+      `Document number: ${foundDoc.document_number}. ` +
+      `Waiting for owner verification.`,
+      'info',
+      {
+        action: 'view_match',
+        actionData: { 
+          recovered_report_id: recoveredRecord.id,
+          lost_report_id: lostReport.id,
+          found_report_id: foundReport.id
+        }
+      },
+      foundReport.id
+    );
+
+    console.log('✅ Match notifications created for both parties');
+  }
+
+  /**
+   * Cleanup method
    */
   cleanup() {
-    this.cleanupSubscriptions();
+    this.stopMatchDetection();
+    // ... existing cleanup code
   }
 }
 

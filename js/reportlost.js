@@ -330,16 +330,30 @@ async function handleFormSubmit(e) {
         console.log('🔔 Creating notification...');
         // 🔔 Send notification to user
         try {
+            // Get the first document details for specific notification
+            const firstDoc = formData.documents[0];
+            const documentType = firstDoc?.type || 'document';
+            const documentNumber = firstDoc?.number || 'N/A';
+            
             // Direct notification creation without importing UnifiedNotificationSystem
             await supabase.from('notifications').insert({
                 user_id: user.id,
-                message: `🔍 Search started for your lost ${formData.documents[0]?.typeName || 'document'}. We'll notify you when we find a match.`,
+                message: `🔍 Search started for your lost ${documentType} (No: ${documentNumber}). We'll notify you when we find potential matches.`,
                 type: 'info',
                 status: 'unread',
-                report_id: report.id,
+                related_report_id: report.id,
+                notification_action: 'view_reports',
+                action_data: { report_id: report.id },
                 created_at: new Date().toISOString()
             });
-            console.log('✅ Notification created successfully');
+            console.log('✅ Lost report notification created successfully');
+            
+            // Start match detection system if not already running
+            if (typeof window.startMatchDetection === 'function') {
+                window.startMatchDetection();
+                console.log('🔍 Match detection system started');
+            }
+            
         } catch (notifError) {
             console.error('❌ Notification error:', notifError);
             // Don't fail the report creation if notification fails

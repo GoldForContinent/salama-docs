@@ -2625,6 +2625,44 @@ window.removeDuplicateTransactions = async function() {
 async function setupRealtimeSubscriptions() {
   if (!window.currentUser) return;
   
+  // Subscribe to notification changes for current user
+  const notificationsChannel = supabase
+    .channel('notifications_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${window.currentUser.id}`
+      },
+      (payload) => {
+        console.log('📨 New notification received:', payload.new);
+        
+        // Update notification badge immediately
+        if (window.unifiedNotifications) {
+          window.unifiedNotifications.updateBadge();
+        }
+        
+        // Show toast notification
+        showNotificationToast(payload.new);
+        
+        // If modal is open, refresh the list
+        const modal = document.getElementById('notificationModal');
+        if (modal && modal.style.display === 'block') {
+          if (window.unifiedNotifications) {
+            window.unifiedNotifications.render();
+          }
+        }
+        
+        // Update dashboard stats if function exists
+        if (typeof updateDashboardStats === 'function') {
+          updateDashboardStats();
+        }
+      }
+    )
+    .subscribe();
+  
   // Subscribe to transaction changes
   const transactionsChannel = supabase
     .channel('transactions_changes')
@@ -2665,10 +2703,185 @@ async function setupRealtimeSubscriptions() {
     )
     .subscribe();
   
+  // Subscribe to recovered_reports changes for workflow updates
+  const recoveredReportsChannel = supabase
+    .channel('recovered_reports_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'recovered_reports'
+      },
+      async (payload) => {
+        console.log('Recovered report change:', payload);
+        
+        // Refresh reports if user is involved in this match
+        const match = payload.new || payload.old;
+        if (match) {
+          // Check if current user is involved in this match
+          const { data: userReports } = await supabase
+            .from('reports')
+            .select('id')
+            .eq('user_id', window.currentUser.id)
+            .in('id', [match.lost_report_id, match.found_report_id]);
+          
+          if (userReports && userReports.length > 0) {
+            console.log('🔄 User involved in recovered report change, refreshing...');
+            populateMyReportsSection('all');
+            if (typeof updateDashboardStats === 'function') {
+              updateDashboardStats();
+            }
+          }
+        }
+      }
+    )
+    .subscribe();
+  
   return () => {
+    supabase.removeChannel(notificationsChannel);
     supabase.removeChannel(transactionsChannel);
     supabase.removeChannel(reportsChannel);
+    supabase.removeChannel(recoveredReportsChannel);
   };
+}
+
+// Toast notification function for real-time notifications
+function showNotificationToast(notification) {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = `notification-toast ${notification.type || 'info'}`;
+  toast.innerHTML = `
+    <div class="toast-icon">
+      <i class="fas fa-${getNotificationIcon(notification.type)}"></i>
+    </div>
+    <div class="toast-content">
+      <p class="toast-message">${notification.message}</p>
+      <small class="toast-time">Just now</small>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+  `;
+  
+  // Add styles if not already present
+  if (!document.querySelector('#toast-styles')) {
+    const style = document.createElement('style');
+    style.id = 'toast-styles';
+    style.textContent = `
+      .notification-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 400px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+        border-left: 4px solid #006600;
+      }
+      
+      .notification-toast.warning {
+        border-left-color: #ff9800;
+      }
+      
+      .notification-toast.error {
+        border-left-color: #f44336;
+      }
+      
+      .notification-toast.success {
+        border-left-color: #4caf50;
+      }
+      
+      .notification-toast.payment {
+        border-left-color: #9c27b0;
+      }
+      
+      .notification-toast.match {
+        border-left-color: #2196f3;
+      }
+      
+      .toast-icon {
+        font-size: 20px;
+        color: #006600;
+        flex-shrink: 0;
+      }
+      
+      .toast-content {
+        flex: 1;
+      }
+      
+      .toast-message {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      
+      .toast-time {
+        color: #666;
+        font-size: 12px;
+      }
+      
+      .toast-close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        color: #999;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .toast-close:hover {
+        color: #666;
+      }
+      
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Add to page
+  document.body.appendChild(toast);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.style.animation = 'slideIn 0.3s ease-out reverse';
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, 5000);
+}
+
+// Helper function to get notification icon
+function getNotificationIcon(type) {
+  const icons = {
+    'info': 'info-circle',
+    'success': 'check-circle',
+    'warning': 'exclamation-triangle',
+    'error': 'exclamation-circle',
+    'payment': 'credit-card',
+    'match': 'search',
+    'default': 'bell'
+  };
+  return icons[type] || icons.default;
 }
 
 // Function to clear all data for fresh testing

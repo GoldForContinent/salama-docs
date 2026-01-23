@@ -937,15 +937,29 @@ function setupFormSubmission() {
             // 🔔 Send notification to user
             console.log('📤 About to create notification for found report:', { userId: user.id, reportId: report.id, userEmail: user.email });
             try {
+                // Get the first document details for specific notification
+                const firstDoc = formData.documents[0];
+                const documentType = firstDoc?.type || 'document';
+                const documentNumber = firstDoc?.number || 'N/A';
+                
                 const notifResult = await supabase.from('notifications').insert({
                     user_id: user.id,
-                    message: `📋 Your found ${formData.documents[0]?.type || 'document'} report has been registered. You'll be notified when the owner reports a lost document and we find a match.`,
-                    type: 'info',
+                    message: `🔍 Search for owner started for the ${documentType} you found (No: ${documentNumber}). We'll notify you when we find the owner.`,
+                    type: 'success',
                     status: 'unread',
-                    report_id: report.id,
+                    related_report_id: report.id,
+                    notification_action: 'view_reports',
+                    action_data: { report_id: report.id },
                     created_at: new Date().toISOString()
                 });
-                console.log('📤 Notification creation result:', notifResult);
+                console.log('📤 Found report notification created successfully:', notifResult);
+                
+                // Start match detection system if not already running
+                if (typeof window.startMatchDetection === 'function') {
+                    window.startMatchDetection();
+                    console.log('🔍 Match detection system started');
+                }
+                
             } catch (notifError) {
                 console.error('Notification error:', notifError);
                 // Don't fail the report creation if notification fails
