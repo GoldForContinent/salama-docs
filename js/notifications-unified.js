@@ -1947,3 +1947,93 @@ window.triggerMatchDetection = async function() {
     console.error('❌ UnifiedNotificationSystem not available');
   }
 };
+
+// Global debug function to check match detection status
+window.debugMatchDetection = async function() {
+  console.log('🔍 === MATCH DETECTION DEBUG ===');
+  
+  try {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error('❌ User not authenticated');
+      return;
+    }
+    console.log('👤 Current user:', user.email);
+    
+    // Check all reports
+    const { data: allReports, error: reportsError } = await supabase
+      .from('reports')
+      .select('*, report_documents(*)')
+      .eq('status', 'active')
+      .in('report_type', ['lost', 'found']);
+      
+    if (reportsError) {
+      console.error('❌ Error fetching reports:', reportsError);
+      return;
+    }
+    
+    const lostReports = allReports.filter(r => r.report_type === 'lost');
+    const foundReports = allReports.filter(r => r.report_type === 'found');
+    
+    console.log(`📊 Found ${lostReports.length} lost reports and ${foundReports.length} found reports`);
+    
+    // Show details of each report
+    console.log('\n🔍 LOST REPORTS:');
+    lostReports.forEach((report, index) => {
+      console.log(`  ${index + 1}. ID: ${report.id}, User: ${report.email}`);
+      if (report.report_documents && report.report_documents.length > 0) {
+        report.report_documents.forEach((doc, docIndex) => {
+          console.log(`     Document ${docIndex + 1}: Type="${doc.document_type}", Number="${doc.document_number}"`);
+        });
+      }
+    });
+    
+    console.log('\n🔍 FOUND REPORTS:');
+    foundReports.forEach((report, index) => {
+      console.log(`  ${index + 1}. ID: ${report.id}, User: ${report.email}`);
+      if (report.report_documents && report.report_documents.length > 0) {
+        report.report_documents.forEach((doc, docIndex) => {
+          console.log(`     Document ${docIndex + 1}: Type="${doc.document_type}", Number="${doc.document_number}"`);
+        });
+      }
+    });
+    
+    // Check for potential matches manually
+    console.log('\n🎯 CHECKING FOR MATCHES:');
+    let matchCount = 0;
+    for (const lost of lostReports) {
+      for (const found of foundReports) {
+        if (lost.report_documents && found.report_documents && 
+            lost.report_documents.length > 0 && found.report_documents.length > 0) {
+          
+          const lostDoc = lost.report_documents[0];
+          const foundDoc = found.report_documents[0];
+          
+          console.log(`\n  Comparing: Lost(${lostDoc.document_type}, ${lostDoc.document_number}) vs Found(${foundDoc.document_type}, ${foundDoc.document_number})`);
+          
+          const typeMatch = lostDoc.document_type === foundDoc.document_type;
+          const numberMatch = lostDoc.document_number === foundDoc.document_number;
+          
+          console.log(`    Type match: ${typeMatch}, Number match: ${numberMatch}`);
+          
+          if (typeMatch && numberMatch) {
+            console.log(`    🎯 MATCH FOUND! Lost ID: ${lost.id}, Found ID: ${found.id}`);
+            matchCount++;
+          }
+        }
+      }
+    }
+    
+    console.log(`\n📊 Total matches found: ${matchCount}`);
+    
+    if (matchCount > 0) {
+      console.log('✅ If matches were found but no notifications were created, there might be an issue with the createMatch function');
+    } else {
+      console.log('❌ No matches found. Check if document types and numbers exactly match');
+    }
+    
+  } catch (error) {
+    console.error('❌ Debug error:', error);
+  }
+};
