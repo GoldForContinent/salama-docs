@@ -1783,16 +1783,31 @@ class UnifiedNotificationSystem {
    * Check if two documents match
    */
   documentsMatch(lost, found) {
+    // Check if reports have documents
+    if (!lost.report_documents || lost.report_documents.length === 0) {
+      console.warn(`⚠️ Lost report ${lost.id} has no documents`);
+      return false;
+    }
+    
+    if (!found.report_documents || found.report_documents.length === 0) {
+      console.warn(`⚠️ Found report ${found.id} has no documents`);
+      return false;
+    }
+
     const lostDoc = lost.report_documents[0];
     const foundDoc = found.report_documents[0];
 
     if (!lostDoc || !foundDoc) {
+      console.warn(`⚠️ Missing document data - Lost: ${!!lostDoc}, Found: ${!!foundDoc}`);
       return false;
     }
 
     // EXACT MATCH LOGIC
     const typeMatch = lostDoc.document_type === foundDoc.document_type;
     const numberMatch = lostDoc.document_number === foundDoc.document_number;
+    
+    console.log(`🔍 Comparing: Lost(${lostDoc.document_type}, ${lostDoc.document_number}) vs Found(${foundDoc.document_type}, ${foundDoc.document_number})`);
+    console.log(`    Type match: ${typeMatch}, Number match: ${numberMatch}`);
     
     return typeMatch && numberMatch;
   }
@@ -2035,5 +2050,44 @@ window.debugMatchDetection = async function() {
     
   } catch (error) {
     console.error('❌ Debug error:', error);
+  }
+};
+
+// Function to manually create a test match
+window.createTestMatch = async function(lostReportId, foundReportId) {
+  console.log('🧪 Creating test match...');
+  
+  try {
+    // Get the reports
+    const { data: lostReport, error: lostError } = await supabase
+      .from('reports')
+      .select('*, report_documents(*)')
+      .eq('id', lostReportId)
+      .single();
+      
+    const { data: foundReport, error: foundError } = await supabase
+      .from('reports')
+      .select('*, report_documents(*)')
+      .eq('id', foundReportId)
+      .single();
+      
+    if (lostError || foundError) {
+      console.error('❌ Error fetching reports:', lostError || foundError);
+      return;
+    }
+    
+    console.log('📋 Lost report:', lostReport);
+    console.log('📋 Found report:', foundReport);
+    
+    // Manually trigger match creation
+    if (window.unifiedNotifications) {
+      await window.unifiedNotifications.createMatch(lostReport, foundReport);
+      console.log('✅ Test match created successfully!');
+    } else {
+      console.error('❌ UnifiedNotificationSystem not available');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error creating test match:', error);
   }
 };
