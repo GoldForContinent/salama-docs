@@ -1083,19 +1083,27 @@ function collectFormData() {
     
     documentItems.forEach(item => {
         const typeSelect = item.querySelector('.document-type');
-        const selectedOption = typeSelect.options[typeSelect.selectedIndex];
         const documentNumber = item.querySelector('.document-number').value;
         const fileInput = item.querySelector('.file-input');
         
-        if (selectedOption && selectedOption.value) {
-            documents.push({
-                value: selectedOption.value, // This is the value key (e.g. 'national-id')
-                type: selectedOption.text,   // This is the visible text (e.g. 'National ID Card')
-                category: selectedOption.dataset.category || 'Other',
-                reward: parseInt(selectedOption.dataset.reward) || 50,
-                number: documentNumber,
-                hasPhoto: fileInput.files.length > 0
-            });
+        // Check if typeSelect exists and has a selected option
+        if (typeSelect && typeSelect.selectedIndex >= 0) {
+            const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.value) {
+                documents.push({
+                    value: selectedOption.value, // This is the value key (e.g. 'national-id')
+                    type: selectedOption.text,   // This is the visible text (e.g. 'National ID Card')
+                    category: selectedOption.dataset.category || 'Other',
+                    reward: parseInt(selectedOption.dataset.reward) || 50,
+                    number: documentNumber,
+                    hasPhoto: fileInput.files.length > 0
+                });
+            } else {
+                console.warn(' No valid document type selected for item');
+            }
+        } else {
+            console.warn(' Document type select not found or no selection made');
         }
     });
     
@@ -1126,10 +1134,14 @@ function validateForm(formData) {
         alert('Please add at least one document.');
         return false;
     }
-    // Validate every document has a non-empty type
+    // Validate every document has a non-empty type and number
     for (let i = 0; i < formData.documents.length; i++) {
         if (!formData.documents[i].type || formData.documents[i].type.trim() === '') {
             alert(`Please select a document type for document #${i + 1}.`);
+            return false;
+        }
+        if (!formData.documents[i].number || formData.documents[i].number.trim() === '') {
+            alert(`Please enter a document number for document #${i + 1}.`);
             return false;
         }
     }
