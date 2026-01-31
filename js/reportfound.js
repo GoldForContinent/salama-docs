@@ -1014,7 +1014,7 @@ function setupFormSubmission() {
                 // Insert document record with owner info
                 const documentInsert = {
                     report_id: report.id,
-                    document_type: doc.type, // Use doc.type to match reportlost.js
+                    document_type: doc.value, // Use doc.value (database value) instead of doc.type (display text)
                     document_number: doc.number,
                     category: doc.category,
                     photo_url: photoUrl,

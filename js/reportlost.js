@@ -365,7 +365,7 @@ async function handleFormSubmit(e) {
         const documentPromises = formData.documents.map(doc => 
             supabase.from('report_documents').insert({
                 report_id: report.id,
-                document_type: doc.type, // Always use the value key
+                document_type: doc.value, // Use doc.value (database value) instead of doc.type (display text)
                 document_number: doc.number,
                 category: doc.category,
                 is_recovered: false // Ensure this is set
@@ -421,8 +421,8 @@ function collectFormData() {
             totalFee += fee;
             
             documents.push({
-                type: documentType.value,
-                typeName: selectedOption.textContent,
+                value: documentType.value,        // Database value (e.g., 'towing_permit')
+                type: selectedOption.textContent,  // Display text (e.g., 'Towing Permit')
                 number: documentNumber?.value.trim() || '',
                 fee: fee,
                 category: selectedOption.dataset.category || 'Other'
