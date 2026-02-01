@@ -1743,6 +1743,17 @@ class UnifiedNotificationSystem {
 
       console.log(`📊 Checking ${lostReports.length} lost vs ${foundReports.length} found reports`);
       
+      // Debug: Log user IDs to see if we're getting cross-account data
+      console.log('🔍 Lost reports users:');
+      lostReports.forEach((report, index) => {
+        console.log(`  ${index + 1}. User: ${report.user_id}, Email: ${report.email}`);
+      });
+      
+      console.log('🔍 Found reports users:');
+      foundReports.forEach((report, index) => {
+        console.log(`  ${index + 1}. User: ${report.user_id}, Email: ${report.email}`);
+      });
+      
       // Debug: Log document details
       console.log('🔍 Lost reports documents:');
       lostReports.forEach((report, index) => {
@@ -1868,16 +1879,69 @@ class UnifiedNotificationSystem {
   }
 
   /**
+   * Convert database document type to readable name
+   */
+  getReadableDocumentType(dbType) {
+    const typeMap = {
+      'national_id': 'National ID Card',
+      'passport': 'Kenyan Passport',
+      'alien_id': 'Alien ID Card',
+      'refugee_id': 'Refugee ID',
+      'military_id': 'Military ID',
+      'driving_license': 'Driving License',
+      'logbook': 'Vehicle Logbook',
+      'psi_certificate': 'PSI Certificate',
+      'towing_permit': 'Towing Permit',
+      'badge': 'PSV Badge',
+      'kcpe_certificate': 'KCPE Certificate',
+      'kcse_certificate': 'KCSE Certificate',
+      'university_degree': 'University Degree',
+      'college_diploma': 'College Diploma/Certificate',
+      'transcript': 'Official Transcript',
+      'student_id': 'Student ID Card',
+      'work_permit': 'Work Permit',
+      'professional_license': 'Professional License',
+      'practicing_certificate': 'Practicing Certificate',
+      'kra_pin': 'KRA PIN Certificate',
+      'business_permit': 'Business Permit',
+      'title_deed': 'Title Deed',
+      'lease_agreement': 'Lease Agreement',
+      'allotment_letter': 'Land Allotment Letter',
+      'court_order': 'Court Order',
+      'power_attorney': 'Power of Attorney',
+      'bank_card': 'Bank/ATM Card',
+      'checkbook': 'Checkbook',
+      'loan_agreement': 'Loan Agreement',
+      'insurance_policy': 'Insurance Policy',
+      'birth_certificate': 'Birth Certificate',
+      'death_certificate': 'Death Certificate',
+      'marriage_certificate': 'Marriage Certificate',
+      'medical_report': 'Medical Report',
+      'nhif_card': 'NHIF Card',
+      'will': 'Will/Testament',
+      'adoption_papers': 'Adoption Papers',
+      'guardianship': 'Guardianship Papers',
+      'other': 'Other Document'
+    };
+    
+    return typeMap[dbType] || dbType || 'Unknown Document';
+  }
+
+  /**
    * Create match notifications for both parties
    */
   async createMatchNotifications(recoveredRecord, lostReport, foundReport) {
     const lostDoc = lostReport.report_documents[0];
     const foundDoc = foundReport.report_documents[0];
 
+    // Convert database values to readable names
+    const lostDocType = this.getReadableDocumentType(lostDoc.document_type);
+    const foundDocType = this.getReadableDocumentType(foundDoc.document_type);
+
     // Notification for LOST report owner
     await this.createNotification(
       lostReport.user_id,
-      `🎯 Potential match found for your ${lostDoc.document_type}! ` +
+      `🎯 Potential match found for your ${lostDocType}! ` +
       `Document number: ${lostDoc.document_number}. ` +
       `Please check potential matches to verify if this is yours.`,
       'match',
@@ -1895,7 +1959,7 @@ class UnifiedNotificationSystem {
     // Notification for FOUND report owner  
     await this.createNotification(
       foundReport.user_id,
-      `👤 Potential owner found for the ${foundDoc.document_type} you reported! ` +
+      `👤 Potential owner found for the ${foundDocType} you reported! ` +
       `Document number: ${foundDoc.document_number}. ` +
       `Waiting for owner verification.`,
       'info',
@@ -2089,5 +2153,105 @@ window.createTestMatch = async function(lostReportId, foundReportId) {
     
   } catch (error) {
     console.error('❌ Error creating test match:', error);
+  }
+};
+
+// Enhanced cross-account debug function
+window.debugCrossAccountMatching = async function() {
+  console.log('🔍 === CROSS-ACCOUNT MATCHING DEBUG ===');
+  
+  try {
+    // Get ALL reports regardless of user
+    const { data: allReports, error: reportsError } = await supabase
+      .from('reports')
+      .select('*, report_documents(*)')
+      .eq('status', 'active')
+      .in('report_type', ['lost', 'found']);
+      
+    if (reportsError) {
+      console.error('❌ Error fetching reports:', reportsError);
+      return;
+    }
+    
+    const lostReports = allReports.filter(r => r.report_type === 'lost');
+    const foundReports = allReports.filter(r => r.report_type === 'found');
+    
+    console.log(`📊 Total: ${lostReports.length} lost, ${foundReports.length} found reports`);
+    
+    // Group by user to see cross-account potential
+    const lostByUser = {};
+    const foundByUser = {};
+    
+    lostReports.forEach(report => {
+      if (!lostByUser[report.user_id]) {
+        lostByUser[report.user_id] = [];
+      }
+      lostByUser[report.user_id].push(report);
+    });
+    
+    foundReports.forEach(report => {
+      if (!foundByUser[report.user_id]) {
+        foundByUser[report.user_id] = [];
+      }
+      foundByUser[report.user_id].push(report);
+    });
+    
+    console.log('\n👥 Lost Reports by User:');
+    Object.keys(lostByUser).forEach(userId => {
+      console.log(`  User ${userId}: ${lostByUser[userId].length} reports`);
+      lostByUser[userId].forEach(report => {
+        const doc = report.report_documents[0];
+        console.log(`    - ${doc.document_type}: ${doc.document_number}`);
+      });
+    });
+    
+    console.log('\n👥 Found Reports by User:');
+    Object.keys(foundByUser).forEach(userId => {
+      console.log(`  User ${userId}: ${foundByUser[userId].length} reports`);
+      foundByUser[userId].forEach(report => {
+        const doc = report.report_documents[0];
+        console.log(`    - ${doc.document_type}: ${doc.document_number}`);
+      });
+    });
+    
+    // Check for cross-account matches
+    console.log('\n🎯 CROSS-ACCOUNT MATCHES:');
+    let crossAccountMatches = 0;
+    
+    for (const lostUserId in lostByUser) {
+      for (const foundUserId in foundByUser) {
+        if (lostUserId !== foundUserId) { // Different users
+          console.log(`\n  Checking User ${lostUserId} (lost) vs User ${foundUserId} (found):`);
+          
+          for (const lost of lostByUser[lostUserId]) {
+            for (const found of foundByUser[foundUserId]) {
+              const lostDoc = lost.report_documents[0];
+              const foundDoc = found.report_documents[0];
+              
+              if (lostDoc && foundDoc) {
+                const typeMatch = lostDoc.document_type === foundDoc.document_type;
+                const numberMatch = lostDoc.document_number === foundDoc.document_number;
+                
+                if (typeMatch && numberMatch) {
+                  console.log(`    🎯 MATCH! ${lostDoc.document_type}:${lostDoc.document_number}`);
+                  crossAccountMatches++;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    console.log(`\n📊 Total cross-account matches found: ${crossAccountMatches}`);
+    
+    if (crossAccountMatches > 0) {
+      console.log('✅ Cross-account matches exist! If no notifications were created, the issue is in the match creation process.');
+    } else {
+      console.log('❌ No cross-account matches found. Need matching document types and numbers across different users.');
+    }
+    
+  } catch (error) {
+    console.error('❌ Debug error:', error);
   }
 };
