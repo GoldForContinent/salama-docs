@@ -1938,40 +1938,44 @@ class UnifiedNotificationSystem {
     const lostDocType = this.getReadableDocumentType(lostDoc.document_type);
     const foundDocType = this.getReadableDocumentType(foundDoc.document_type);
 
+    console.log('🔔 Creating match notifications for both parties...');
+
     // Notification for LOST report owner
-    await this.createNotification(
+    await UnifiedNotificationSystem.createNotification(
       lostReport.user_id,
       `🎯 Potential match found for your ${lostDocType}! ` +
       `Document number: ${lostDoc.document_number}. ` +
       `Please check potential matches to verify if this is yours.`,
-      'match',
       {
+        type: 'match',
+        priority: 'high',
+        reportId: lostReport.id,
         action: 'view_match',
         actionData: { 
           recovered_report_id: recoveredRecord.id,
           lost_report_id: lostReport.id,
           found_report_id: foundReport.id
         }
-      },
-      lostReport.id
+      }
     );
 
     // Notification for FOUND report owner  
-    await this.createNotification(
+    await UnifiedNotificationSystem.createNotification(
       foundReport.user_id,
       `👤 Potential owner found for the ${foundDocType} you reported! ` +
       `Document number: ${foundDoc.document_number}. ` +
       `Waiting for owner verification.`,
-      'info',
       {
+        type: 'info',
+        priority: 'medium',
+        reportId: foundReport.id,
         action: 'view_match',
         actionData: { 
           recovered_report_id: recoveredRecord.id,
           lost_report_id: lostReport.id,
           found_report_id: foundReport.id
         }
-      },
-      foundReport.id
+      }
     );
 
     console.log('✅ Match notifications created for both parties');
@@ -2200,8 +2204,12 @@ window.debugCrossAccountMatching = async function() {
     Object.keys(lostByUser).forEach(userId => {
       console.log(`  User ${userId}: ${lostByUser[userId].length} reports`);
       lostByUser[userId].forEach(report => {
-        const doc = report.report_documents[0];
-        console.log(`    - ${doc.document_type}: ${doc.document_number}`);
+        if (report.report_documents && report.report_documents.length > 0) {
+          const doc = report.report_documents[0];
+          console.log(`    - ${doc.document_type}: ${doc.document_number}`);
+        } else {
+          console.log(`    - ❌ No document data`);
+        }
       });
     });
     
@@ -2209,8 +2217,12 @@ window.debugCrossAccountMatching = async function() {
     Object.keys(foundByUser).forEach(userId => {
       console.log(`  User ${userId}: ${foundByUser[userId].length} reports`);
       foundByUser[userId].forEach(report => {
-        const doc = report.report_documents[0];
-        console.log(`    - ${doc.document_type}: ${doc.document_number}`);
+        if (report.report_documents && report.report_documents.length > 0) {
+          const doc = report.report_documents[0];
+          console.log(`    - ${doc.document_type}: ${doc.document_number}`);
+        } else {
+          console.log(`    - ❌ No document data`);
+        }
       });
     });
     
@@ -2225,6 +2237,17 @@ window.debugCrossAccountMatching = async function() {
           
           for (const lost of lostByUser[lostUserId]) {
             for (const found of foundByUser[foundUserId]) {
+              // Check if both reports have document data
+              if (!lost.report_documents || lost.report_documents.length === 0) {
+                console.log(`    ⚠️ Skipping lost report ${lost.id} - no document data`);
+                continue;
+              }
+              
+              if (!found.report_documents || found.report_documents.length === 0) {
+                console.log(`    ⚠️ Skipping found report ${found.id} - no document data`);
+                continue;
+              }
+              
               const lostDoc = lost.report_documents[0];
               const foundDoc = found.report_documents[0];
               
@@ -2253,5 +2276,50 @@ window.debugCrossAccountMatching = async function() {
     
   } catch (error) {
     console.error('❌ Debug error:', error);
+  }
+};
+
+// Test function to manually create match notifications
+window.testMatchNotification = async function(lostUserId, foundUserId, documentType, documentNumber) {
+  console.log('🧪 Testing match notification creation...');
+  
+  try {
+    // Create fake recovered record
+    const fakeRecoveredRecord = { id: 'test-recovered-id' };
+    
+    // Create fake lost report
+    const fakeLostReport = {
+      id: 'test-lost-id',
+      user_id: lostUserId,
+      report_documents: [{
+        document_type: documentType,
+        document_number: documentNumber
+      }]
+    };
+    
+    // Create fake found report
+    const fakeFoundReport = {
+      id: 'test-found-id',
+      user_id: foundUserId,
+      report_documents: [{
+        document_type: documentType,
+        document_number: documentNumber
+      }]
+    };
+    
+    // Test notification creation
+    if (window.unifiedNotifications) {
+      await window.unifiedNotifications.createMatchNotifications(
+        fakeRecoveredRecord,
+        fakeLostReport,
+        fakeFoundReport
+      );
+      console.log('✅ Test match notifications created successfully!');
+    } else {
+      console.error('❌ UnifiedNotificationSystem not available');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error testing match notification:', error);
   }
 };
