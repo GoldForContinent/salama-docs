@@ -11,8 +11,8 @@
       "destination": "/station-dashboard.html"
     },
     {
-      "source": "/",
-      "destination": "/index.html"
+      "source": "/admin-login",
+      "destination": "/admin-login.html"
     },
     {
       "source": "/dashboard",
@@ -29,10 +29,6 @@
     {
       "source": "/digital-locker",
       "destination": "/digital-locker.html"
-    },
-    {
-      "source": "/admin-login",
-      "destination": "/admin-login.html"
     },
     {
       "source": "/login",
@@ -76,9 +72,9 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/$1.html"
+      "destination": "/index.html"
     }
   ],
-  "cleanUrls": true,
+  "cleanUrls": false,
   "trailingSlash": false
 }

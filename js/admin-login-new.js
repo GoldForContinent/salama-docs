@@ -6,7 +6,7 @@ const roleConfig = {
     system_admin: {
         hint: 'Signing in as System Administrator — full platform access.',
         hintClass: '',
-        redirect: '/sysadmin',
+        redirect: '/sysadmin-dashboard.html',
         features: [
             { icon: 'fa-chart-line', label: 'National Analytics' },
             { icon: 'fa-users-cog', label: 'User & Role Management' },
@@ -16,7 +16,7 @@ const roleConfig = {
     police_admin: {
         hint: 'Signing in as Police Station Admin — your station documents & deliveries.',
         hintClass: 'police-mode',
-        redirect: '/station',
+        redirect: '/station-dashboard.html',
         features: [
             { icon: 'fa-box-open', label: 'Received Documents' },
             { icon: 'fa-check-double', label: 'Verify Collections' },
