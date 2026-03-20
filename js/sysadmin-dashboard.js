@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { initNotifBell } from './notif.js';
 
 let currentUser = null;
 let allStations = [];
@@ -29,6 +30,9 @@ async function init() {
 
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('mainContainer').style.visibility = 'visible';
+
+    const bellAnchor = document.getElementById('notifBellAnchor');
+    if (bellAnchor) initNotifBell(bellAnchor, { userId: session.user.id });
 
     setupTheme();
     setupNavigation();

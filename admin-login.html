@@ -32,23 +32,34 @@
             <div class="logo">
                 <img src="assets/salamalogo3.png" alt="Salama Docs Logo">
             </div>
-            <h1>Admin Portal</h1>
+            <h1>Staff Portal</h1>
             <p>Secure access to Salama administration</p>
+        </div>
+
+        <!-- Role Toggle -->
+        <div class="role-toggle-wrap">
+            <button class="role-tab active" id="roleTabSysadmin" data-role="system_admin">
+                <i class="fas fa-shield-alt"></i> System Admin
+            </button>
+            <button class="role-tab" id="roleTabPolice" data-role="police_admin">
+                <i class="fas fa-building"></i> Police Station
+            </button>
+        </div>
+
+        <!-- Role description -->
+        <div class="role-hint" id="roleHint">
+            <i class="fas fa-info-circle"></i>
+            <span id="roleHintText">Signing in as System Administrator — full platform access.</span>
         </div>
         
         <div class="login-form">
-            <div class="security-tip">
-                <i class="fas fa-shield-alt"></i>
-                <span>Enhanced security enabled. Please authenticate with your admin credentials.</span>
-            </div>
-            
             <form id="adminSignInForm">
                 <div id="errorMessage" class="error-message"></div>
                 
                 <div class="input-group">
-                    <label for="adminEmail">Admin Email</label>
+                    <label for="adminEmail">Email Address</label>
                     <i class="fas fa-envelope"></i>
-                    <input type="email" id="adminEmail" name="adminEmail" placeholder="admin@salama.com" required autocomplete="email">
+                    <input type="email" id="adminEmail" name="adminEmail" placeholder="yourname@domain.com" required autocomplete="email">
                 </div>
                 
                 <div class="input-group">
@@ -71,26 +82,32 @@
                 </div>
                 
                 <button type="submit" class="login-btn" id="signinBtn">
-                    <span class="btn-text">SIGN IN TO DASHBOARD</span>
+                    <span class="btn-text" id="signinBtnText">SIGN IN</span>
                     <div class="spinner" id="spinner">
                         <i class="fas fa-circle-notch"></i>
                     </div>
                 </button>
             </form>
             
-            <div class="admin-features">
-                <div class="feature-item">
+            <div class="admin-features" id="featureList">
+                <div class="feature-item" id="feat1">
                     <i class="fas fa-chart-line"></i>
-                    <span>Analytics Dashboard</span>
+                    <span>National Analytics</span>
                 </div>
-                <div class="feature-item">
-                    <i class="fas fa-users"></i>
-                    <span>User Management</span>
+                <div class="feature-item" id="feat2">
+                    <i class="fas fa-users-cog"></i>
+                    <span>User & Role Management</span>
                 </div>
-                <div class="feature-item">
-                    <i class="fas fa-cog"></i>
-                    <span>System Settings</span>
+                <div class="feature-item" id="feat3">
+                    <i class="fas fa-building"></i>
+                    <span>Station Management</span>
                 </div>
+            </div>
+
+            <div style="margin-top:1.25rem;text-align:center;">
+                <a href="index.html" style="font-size:0.82rem;color:var(--admin-text-muted);text-decoration:none;">
+                    <i class="fas fa-arrow-left"></i> Back to Salama Docs home
+                </a>
             </div>
         </div>
     </div>

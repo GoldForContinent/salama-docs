@@ -1007,7 +1007,35 @@ function setupFormSubmission() {
                     created_at: new Date().toISOString()
                 });
                 console.log('📤 Found report notification created successfully:', notifResult);
-                
+
+                // Notify police admin of the assigned station
+                if (formData.stationId) {
+                    try {
+                        const { data: stationAdmins } = await supabase
+                            .from('profiles')
+                            .select('user_id, admin_roles(name)')
+                            .eq('station_id', formData.stationId)
+                            .not('role_id', 'is', null);
+
+                        const policeAdmins = (stationAdmins || []).filter(
+                            p => p.admin_roles?.name === 'police_admin'
+                        );
+
+                        for (const admin of policeAdmins) {
+                            await supabase.from('notifications').insert({
+                                user_id: admin.user_id,
+                                message: `New found ${documentType} reported by ${formData.finderName || 'a finder'}. The document will be delivered to your station. Check Awaiting Delivery for details.`,
+                                type: 'info',
+                                status: 'unread',
+                                related_report_id: report.id,
+                                notification_action: 'view_reports'
+                            });
+                        }
+                    } catch (adminNotifErr) {
+                        console.warn('Could not notify station admin:', adminNotifErr.message);
+                    }
+                }
+
                 // Start match detection system if not already running
                 if (window.unifiedNotifications && typeof window.unifiedNotifications.startMatchDetection === 'function') {
                     window.unifiedNotifications.startMatchDetection();

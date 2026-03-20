@@ -631,3 +631,79 @@ body.dark-mode {
         font-size: 35px;
     }
 }
+
+/* ── Role Toggle ────────────────────────────────────── */
+.role-toggle-wrap {
+    display: flex;
+    margin: 0 30px 0;
+    background: var(--light-gray);
+    border-radius: 12px;
+    padding: 5px;
+    gap: 4px;
+}
+
+body.dark-mode .role-toggle-wrap {
+    background: rgba(255,255,255,0.08);
+}
+
+.role-tab {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--admin-text-muted);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    transition: all 0.25s ease;
+}
+
+.role-tab.active {
+    background: #fff;
+    color: var(--admin-primary);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+body.dark-mode .role-tab.active {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+
+.role-tab:hover:not(.active) {
+    color: var(--admin-secondary);
+}
+
+.role-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 10px 30px 0;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: rgba(0,102,0,0.07);
+    font-size: 0.78rem;
+    color: var(--admin-accent);
+    font-weight: 500;
+}
+
+body.dark-mode .role-hint {
+    background: rgba(0,180,0,0.1);
+    color: #4ade80;
+}
+
+.role-hint.police-mode {
+    background: rgba(0,60,187,0.07);
+    color: #1d4ed8;
+}
+
+body.dark-mode .role-hint.police-mode {
+    background: rgba(59,130,246,0.12);
+    color: #93c5fd;
+}
