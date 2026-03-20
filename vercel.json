@@ -3,6 +3,14 @@
   "outputDirectory": ".",
   "rewrites": [
     {
+      "source": "/sysadmin",
+      "destination": "/sysadmin-dashboard.html"
+    },
+    {
+      "source": "/station",
+      "destination": "/station-dashboard.html"
+    },
+    {
       "source": "/",
       "destination": "/index.html"
     },
@@ -22,10 +30,7 @@
       "source": "/digital-locker",
       "destination": "/digital-locker.html"
     },
-    {
-      "source": "/admin-dashboard",
-      "destination": "/admin-dashboard.html"
-    },
+    
     {
       "source": "/admin-login",
       "destination": "/admin-login.html"
@@ -69,14 +74,6 @@
     {
       "source": "/debug",
       "destination": "/debug.html"
-    },
-    {
-      "source": "/sysadmin",
-      "destination": "/sysadmin-dashboard.html"
-    },
-    {
-      "source": "/station",
-      "destination": "/station-dashboard.html"
     },
     {
       "source": "/(.*)",
