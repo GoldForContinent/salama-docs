@@ -71,6 +71,14 @@
       "destination": "/debug.html"
     },
     {
+      "source": "/sysadmin",
+      "destination": "/sysadmin-dashboard.html"
+    },
+    {
+      "source": "/station",
+      "destination": "/station-dashboard.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/$1.html"
     }
