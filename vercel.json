@@ -30,7 +30,6 @@
       "source": "/digital-locker",
       "destination": "/digital-locker.html"
     },
-    
     {
       "source": "/admin-login",
       "destination": "/admin-login.html"
