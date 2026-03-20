@@ -780,67 +780,119 @@ function renumberDocuments() {
     });
 }
 
-// Location selection functions
-function setupLocationSelection() {
+// Location selection — loads registered police stations from database
+async function setupLocationSelection() {
     const countySelect = document.getElementById('county');
     const constituencySelect = document.getElementById('constituency');
-    const chiefsSelect = document.getElementById('chiefs-office');
-    
-    countySelect.addEventListener('change', function() {
-        const county = this.value;
-        
-        // Reset subsequent selections
-        constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
-        chiefsSelect.innerHTML = '<option value="">Select Chief\'s Office</option>';
+    const stationSelect = document.getElementById('chiefs-office');
+
+    countySelect.addEventListener('change', async function () {
+        const countyText = this.options[this.selectedIndex].text;
+
+        constituencySelect.innerHTML = '<option value="">Loading...</option>';
+        stationSelect.innerHTML = '<option value="">Select Police Station</option>';
         document.getElementById('constituency-selection').style.display = 'none';
         document.getElementById('chiefs-selection').style.display = 'none';
         document.getElementById('step2').classList.remove('active');
         document.getElementById('step3').classList.remove('active');
-        
-        if (county && counties[county]) {
-            // Populate constituencies
-            counties[county].constituencies.forEach(constituency => {
-                const option = document.createElement('option');
-                option.value = constituency.toLowerCase().replace(/\s+/g, '-');
-                option.textContent = constituency;
-                constituencySelect.appendChild(option);
+        document.getElementById('collection-point').value = '';
+        document.getElementById('station-id').value = '';
+
+        if (!this.value) return;
+
+        try {
+            const { data: stations, error } = await supabase
+                .from('stations')
+                .select('constituency')
+                .eq('county', countyText)
+                .eq('is_active', true)
+                .order('constituency');
+
+            if (error) throw error;
+
+            const constituencies = [...new Set(stations.map(s => s.constituency).filter(Boolean))].sort();
+
+            constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
+
+            if (constituencies.length === 0) {
+                constituencySelect.innerHTML = '<option value="" disabled>No registered stations in this county yet</option>';
+                document.getElementById('constituency-selection').style.display = 'block';
+                return;
+            }
+
+            constituencies.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                constituencySelect.appendChild(opt);
             });
-            
+
             document.getElementById('constituency-selection').style.display = 'block';
             document.getElementById('step2').classList.add('active');
+        } catch (err) {
+            console.error('Error loading constituencies:', err);
+            constituencySelect.innerHTML = '<option value="">Error loading. Please retry.</option>';
+            document.getElementById('constituency-selection').style.display = 'block';
         }
     });
-    
-    constituencySelect.addEventListener('change', function() {
-        const constituency = this.options[this.selectedIndex].text;
-        const county = countySelect.value;
-        
-        // Reset chiefs selection
-        chiefsSelect.innerHTML = '<option value="">Select Chief\'s Office</option>';
+
+    constituencySelect.addEventListener('change', async function () {
+        const constituency = this.value;
+        const countyText = countySelect.options[countySelect.selectedIndex].text;
+
+        stationSelect.innerHTML = '<option value="">Loading...</option>';
         document.getElementById('chiefs-selection').style.display = 'none';
         document.getElementById('step3').classList.remove('active');
-        
-        if (constituency && counties[county] && counties[county].chiefs[constituency]) {
-            // Populate chiefs offices
-            counties[county].chiefs[constituency].forEach(office => {
-                const option = document.createElement('option');
-                option.value = office.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
-                option.textContent = office;
-                chiefsSelect.appendChild(option);
+        document.getElementById('collection-point').value = '';
+        document.getElementById('station-id').value = '';
+
+        if (!constituency) return;
+
+        try {
+            const { data: stations, error } = await supabase
+                .from('stations')
+                .select('id, name, address')
+                .eq('county', countyText)
+                .eq('constituency', constituency)
+                .eq('is_active', true)
+                .order('name');
+
+            if (error) throw error;
+
+            stationSelect.innerHTML = '<option value="">Select Police Station</option>';
+
+            if (stations.length === 0) {
+                stationSelect.innerHTML = '<option value="" disabled>No registered stations in this area yet</option>';
+                document.getElementById('chiefs-selection').style.display = 'block';
+                return;
+            }
+
+            stations.forEach(station => {
+                const opt = document.createElement('option');
+                opt.value = station.id;
+                opt.dataset.name = station.name;
+                opt.textContent = station.name + (station.address ? ` — ${station.address}` : '');
+                stationSelect.appendChild(opt);
             });
-            
+
             document.getElementById('chiefs-selection').style.display = 'block';
             document.getElementById('step3').classList.add('active');
+        } catch (err) {
+            console.error('Error loading police stations:', err);
+            stationSelect.innerHTML = '<option value="">Error loading stations. Please retry.</option>';
+            document.getElementById('chiefs-selection').style.display = 'block';
         }
     });
-    
-    chiefsSelect.addEventListener('change', function() {
+
+    stationSelect.addEventListener('change', function () {
         if (this.value) {
-            const selectedOffice = this.options[this.selectedIndex].text;
-            const county = countySelect.options[countySelect.selectedIndex].text;
-            const constituency = constituencySelect.options[constituencySelect.selectedIndex].text;
-            
-            document.getElementById('collection-point').value = `${selectedOffice}, ${constituency}, ${county}`;
+            const selectedOption = this.options[this.selectedIndex];
+            const stationName = selectedOption.dataset.name || selectedOption.textContent.split(' — ')[0];
+            const countyText = countySelect.options[countySelect.selectedIndex].text;
+            const constituency = constituencySelect.value;
+
+            document.getElementById('collection-point').value = `${stationName}, ${constituency}, ${countyText}`;
+            document.getElementById('station-id').value = this.value;
         }
     });
 }
@@ -905,15 +957,17 @@ function setupFormSubmission() {
             // 2. Insert the main report (do NOT include finder details)
             const reportInsert = {
                 user_id: user.id,
-                report_type: 'found', // CRITICAL: This must be 'found'
+                report_type: 'found',
                 status: 'active',
                 full_name: formData.finderName,
                 phone: formData.finderPhone,
                 email: user.email,
                 location_description: formData.foundLocation,
                 collection_point: formData.collectionPoint,
-                reward_amount: formData.totalReward
+                reward_amount: formData.totalReward,
+                delivery_status: 'unclaimed_unverified'
             };
+            if (formData.stationId) reportInsert.station_id = formData.stationId;
             
             if (formData.timeline) reportInsert.timeline = formData.timeline;
             if (formData.additionalDetails) reportInsert.additional_details = formData.additionalDetails;
@@ -1113,6 +1167,7 @@ function collectFormData() {
         documents: documents,
         foundLocation: document.getElementById('found-location').value,
         collectionPoint: document.getElementById('collection-point').value,
+        stationId: document.getElementById('station-id').value,
         finderName: document.getElementById('your-name').value,
         finderId: document.getElementById('your-id').value,
         finderPhone: document.getElementById('your-phone').value,

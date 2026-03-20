@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/salamalogo3.png">
+    <title>Salama Docs — Police Station Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin-dashboard.css">
+    <link rel="stylesheet" href="css/station-dashboard.css">
+</head>
+<body>
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Loading Station Dashboard...</h3>
+            <p>Verifying your station credentials</p>
+        </div>
+    </div>
+
+    <div class="dashboard-container" style="visibility:hidden;" id="mainContainer">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-content">
+                <div class="logo">
+                    <img src="assets/salamalogo3.png" alt="Salama Docs">
+                    <h2 id="stationSidebarName">Police Station</h2>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-section="overview-section">
+                            <i class="nav-icon fas fa-chart-bar"></i>
+                            <span class="nav-text">Overview</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="pending-section">
+                            <i class="nav-icon fas fa-hourglass-half"></i>
+                            <span class="nav-text">Awaiting Delivery</span>
+                            <span class="badge" id="pendingBadge" style="display:none;"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="received-section">
+                            <i class="nav-icon fas fa-box-open"></i>
+                            <span class="nav-text">Received Docs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="claimed-section">
+                            <i class="nav-icon fas fa-check-double"></i>
+                            <span class="nav-text">Claimed</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="all-section">
+                            <i class="nav-icon fas fa-list"></i>
+                            <span class="nav-text">All Reports</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="sidebar-footer">
+                    <button class="logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <h1 id="pageTitle">Overview</h1>
+                    <p class="header-subtitle" id="stationFullName">Loading station info...</p>
+                </div>
+                <div class="header-right">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+                    <div class="profile-avatar" style="background:var(--primary-color);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;" id="avatarInitial">P</div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- ===== OVERVIEW ===== -->
+                <section id="overview-section" class="section active">
+                    <div class="welcome-section fade-in">
+                        <h1 class="welcome-title" id="stationWelcome">Welcome</h1>
+                        <p class="welcome-subtitle">Manage document deliveries and verifications for your station.</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card warning fade-in">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-title">Awaiting Delivery</div>
+                                    <div class="stat-value" id="statPending">—</div>
+                                </div>
+                                <div class="stat-icon warning"><i class="fas fa-hourglass-half"></i></div>
+                            </div>
+                            <div class="stat-change"><span>Documents finders committed to bring</span></div>
+                        </div>
+                        <div class="stat-card info fade-in">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-title">Received (Unverified)</div>
+                                    <div class="stat-value" id="statReceived">—</div>
+                                </div>
+                                <div class="stat-icon info"><i class="fas fa-box-open"></i></div>
+                            </div>
+                            <div class="stat-change"><span>Physically at station, owner notified</span></div>
+                        </div>
+                        <div class="stat-card success fade-in">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-title">Claimed</div>
+                                    <div class="stat-value" id="statClaimed">—</div>
+                                </div>
+                                <div class="stat-icon success"><i class="fas fa-check-double"></i></div>
+                            </div>
+                            <div class="stat-change"><span>Owner collected the document</span></div>
+                        </div>
+                        <div class="stat-card primary fade-in">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-title">Total At Station</div>
+                                    <div class="stat-value" id="statTotal">—</div>
+                                </div>
+                                <div class="stat-icon primary"><i class="fas fa-file-alt"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in" style="margin-top:1.5rem;">
+                        <h3 style="color:var(--primary-color);margin-bottom:1rem;">Recent Activity</h3>
+                        <div id="recentActivity">
+                            <p style="color:var(--light-text-muted);text-align:center;padding:2rem;">Loading recent activity...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== AWAITING DELIVERY ===== -->
+                <section id="pending-section" class="section" style="display:none;">
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                        <h2>Awaiting Delivery</h2>
+                        <span class="status-badge status-unclaimed-unverified" style="font-size:0.85rem;">Unclaimed – Unverified</span>
+                    </div>
+                    <p style="color:var(--light-text-muted);margin-bottom:1rem;">Finders have selected your station. When they physically bring the document, click "Mark as Received".</p>
+                    <div class="stat-card">
+                        <div class="table-wrapper">
+                            <table class="data-table" id="pendingTable">
+                                <thead>
+                                    <tr>
+                                        <th>Report Date</th>
+                                        <th>Finder Name</th>
+                                        <th>Finder Phone</th>
+                                        <th>Documents</th>
+                                        <th>Found At</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pendingBody">
+                                    <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--light-text-muted);">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== RECEIVED (unclaimed_verified) ===== -->
+                <section id="received-section" class="section" style="display:none;">
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                        <h2>Received Documents</h2>
+                        <span class="status-badge status-unclaimed-verified" style="font-size:0.85rem;">Unclaimed – Verified</span>
+                    </div>
+                    <p style="color:var(--light-text-muted);margin-bottom:1rem;">Documents physically at your station. The owner has been notified to come collect. Click "Mark as Claimed" when the owner arrives and you verify their identity.</p>
+                    <div class="stat-card">
+                        <div class="table-wrapper">
+                            <table class="data-table" id="receivedTable">
+                                <thead>
+                                    <tr>
+                                        <th>Received Date</th>
+                                        <th>Finder Name</th>
+                                        <th>Documents</th>
+                                        <th>Owner (if known)</th>
+                                        <th>Match Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receivedBody">
+                                    <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--light-text-muted);">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== CLAIMED ===== -->
+                <section id="claimed-section" class="section" style="display:none;">
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                        <h2>Claimed Documents</h2>
+                        <span class="status-badge status-claimed" style="font-size:0.85rem;">Claimed</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="table-wrapper">
+                            <table class="data-table" id="claimedTable">
+                                <thead>
+                                    <tr>
+                                        <th>Claimed Date</th>
+                                        <th>Finder</th>
+                                        <th>Documents</th>
+                                        <th>Owner</th>
+                                        <th>Recovery Fee Paid</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="claimedBody">
+                                    <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--light-text-muted);">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== ALL REPORTS ===== -->
+                <section id="all-section" class="section" style="display:none;">
+                    <h2 style="margin-bottom:1.5rem;">All Reports at This Station</h2>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label class="filter-label">Delivery Status</label>
+                            <select class="filter-select" id="allDeliveryFilter">
+                                <option value="">All</option>
+                                <option value="unclaimed_unverified">Awaiting Delivery</option>
+                                <option value="unclaimed_verified">Received</option>
+                                <option value="claimed">Claimed</option>
+                            </select>
+                        </div>
+                        <div class="filter-group" style="align-self:flex-end;">
+                            <button class="btn-primary" id="applyAllFilter" style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;cursor:pointer;background:var(--primary-color);color:#fff;font-weight:600;">Filter</button>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="margin-top:1.5rem;">
+                        <div class="table-wrapper">
+                            <table class="data-table" id="allTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Name</th>
+                                        <th>Documents</th>
+                                        <th>Status</th>
+                                        <th>Delivery</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allBody">
+                                    <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--light-text-muted);">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Confirm Action Modal -->
+    <div id="confirmModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">Confirm Action</h3>
+                <button class="modal-close" id="closeConfirmModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p id="confirmModalBody" style="margin-bottom:1.5rem;color:var(--light-text-muted);line-height:1.6;"></p>
+            <div class="form-group-modal" id="confirmNotesGroup">
+                <label>Station Notes (optional)</label>
+                <textarea id="confirmNotes" rows="3" placeholder="Any relevant notes..." style="width:100%;padding:0.75rem;border:1px solid var(--border-color);border-radius:0.5rem;resize:vertical;font-family:inherit;"></textarea>
+            </div>
+            <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem;">
+                <button type="button" class="btn-secondary" id="cancelConfirmModal">Cancel</button>
+                <button type="button" class="btn-primary" id="doConfirmBtn" style="background:var(--primary-color);">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/supabase.js"></script>
+    <script type="module" src="./js/station-dashboard.js"></script>
+</body>
+</html>

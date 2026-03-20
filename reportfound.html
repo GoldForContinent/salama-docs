@@ -162,11 +162,11 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Where should the owner collect it? (Select nearest Chief's Office)</label>
+                    <label>Where should the owner collect it? (Select the registered police station)</label>
                     <div class="location-steps">
                         <div class="location-step active" id="step1">1. Select County</div>
                         <div class="location-step" id="step2">2. Constituency</div>
-                        <div class="location-step" id="step3">3. Chief's Office</div>
+                        <div class="location-step" id="step3">3. Police Station</div>
                     </div>
                     
                     <div id="county-selection">
@@ -230,11 +230,12 @@
                     
                     <div id="chiefs-selection" style="display: none;">
                         <select id="chiefs-office" class="form-control" required>
-                            <option value="">Select Chief's Office</option>
+                            <option value="">Select Police Station</option>
                         </select>
                     </div>
                     
                     <input type="hidden" id="collection-point" required>
+                    <input type="hidden" id="station-id">
                 </div>
                 
                 <div class="form-group">
@@ -258,7 +259,7 @@
                     <h3><i class="fas fa-lightbulb"></i> Quick Tips for Higher Success Rate</h3>
                     <ul>
                         <li>Take clear photos showing document details without personal info</li>
-                        <li>Deliver to Chief's office within 24-48 hours for faster processing</li>
+                        <li>Deliver to the registered police station within 24-48 hours for faster processing</li>
                         <li>Higher value documents = Higher rewards (up to KSh 1,000)</li>
                         <li>Keep your phone accessible for verification calls</li>
                         <li>Ensure all text is readable in the photos</li>
@@ -282,16 +283,16 @@
             <div class="collection-point">
                 <h3><i class="fas fa-map-marker-alt"></i> Delivery Instructions</h3>
                 <p>Please take all documents to:</p>
-                <p><strong id="confirmed-location">[Selected Chief's Office]</strong></p>
+                <p><strong id="confirmed-location">[Selected Police Station]</strong></p>
                 <p>within <strong>48 hours</strong> for verification and reward processing.</p>
             </div>
             
-            <p>Your total reward of <strong id="confirmed-reward">KSh 0</strong> will be sent via M-Pesa once our officer confirms receipt and authenticity of all documents.</p>
+            <p>Your total reward of <strong id="confirmed-reward">KSh 0</strong> will be sent via M-Pesa once the police station confirms receipt and authenticity of all documents.</p>
             
             <div class="reward-note">
                 <p><i class="fas fa-info-circle"></i> <strong>Important Information:</strong></p>
                 <ul>
-                    <li>You'll receive SMS confirmation once documents are delivered to chief's office</li>
+                    <li>You'll receive SMS confirmation once documents are delivered to the police station</li>
                     <li>Reward will be sent to <strong id="confirmed-phone">0712345678</strong> via M-Pesa within 24 hours</li>
                     <li>Your ID must match our records for payment processing</li>
                     <li>SMS reminder will be sent if delivery is delayed beyond 24 hours</li>
