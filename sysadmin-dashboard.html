@@ -59,8 +59,8 @@
                         </a>
                     </li>
                 </ul>
-                <div class="sidebar-footer">
-                    <button class="logout-btn" id="logoutBtn">
+                <div class="sidebar-logout">
+                    <button class="btn btn-secondary" style="width: 100%; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </div>
@@ -79,7 +79,27 @@
                     <button class="theme-toggle" id="themeToggle">
                         <i class="fas fa-moon" id="themeIcon"></i>
                     </button>
-                    <div class="profile-avatar" style="background:var(--primary-color);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;" id="avatarInitial">A</div>
+                    <div class="profile-dropdown">
+                        <button class="profile-button" id="profileBtn">
+                            <div class="profile-avatar" id="avatarInitial">A</div>
+                            <span>Admin</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="profileDropdown">
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                <span>Profile</span>
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Settings</span>
+                            </a>
+                            <button class="dropdown-item" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </header>
 
