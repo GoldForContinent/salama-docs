@@ -4,174 +4,218 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/salamalogo3.png">
-    <title>Salama Docs - Report Found Document</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Salama Docs — Report Found Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/reportfound.css">
 </head>
 <body>
-     <div class="container">
-        <div class="header">
-            <div class="logo">
-                <img src="assets/salamalogo3.png" alt="Salama Docs Logo">
-            </div>
-            <h1>Report a Found Document</h1>
-            <p>Help reunite important documents with their owners through Salama Docs</p>
+
+    <!-- Top Navigation Bar -->
+    <nav class="topnav">
+        <a href="index.html" class="topnav-brand">
+            <img src="assets/salamalogo3.png" alt="Salama Docs">
+            <span>Salama Docs</span>
+        </a>
+        <div class="topnav-right">
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
         </div>
-        
-        <div class="form-section" id="form-section">
+    </nav>
+
+    <div class="page-wrapper">
+
+        <!-- Page Hero -->
+        <div class="page-hero">
+            <div class="hero-icon">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <div class="hero-text">
+                <h1>Report a Found Document</h1>
+                <p>Help reunite an important document with its rightful owner. You earn a reward when they collect it.</p>
+            </div>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="form-card" id="form-section">
             <form id="found-form">
-                <!-- Owner Information Section -->
-                <div class="owner-info-section">
-                    <h3><i class="fas fa-user"></i> Document Owner Information</h3>
-                    <p class="small">Fill this once for all documents belonging to the same person</p>
-                    
-                    <div class="form-group">
-                        <label for="owner-name">Name on Documents (if clearly visible)</label>
-                        <input type="text" id="owner-name" placeholder="Full name as it appears on the documents">
+
+                <!-- ── Section: Document Owner ── -->
+                <div class="form-section-block">
+                    <div class="section-label">
+                        <span class="section-num">1</span>
+                        <div>
+                            <h3>Document Owner Information</h3>
+                            <p>Fill once for all documents belonging to the same person</p>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="owner-id">ID Number (if visible on any document)</label>
-                        <input type="text" id="owner-id" placeholder="National ID or other identification number">
+                    <div class="fields-row">
+                        <div class="form-group">
+                            <label for="owner-name"><i class="fas fa-user-tag"></i> Name on Documents</label>
+                            <input type="text" id="owner-name" placeholder="Full name as it appears on the documents">
+                            <span class="field-hint">Optional — fill if clearly visible</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="owner-id"><i class="fas fa-id-card"></i> ID Number on Document</label>
+                            <input type="text" id="owner-id" placeholder="National ID or other number">
+                            <span class="field-hint">Optional — fill if visible</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Documents Section -->
-                <div class="documents-section">
-                    <h3><i class="fas fa-file-alt"></i> Documents Found</h3>
-                    <p class="small">Add all documents belonging to this person</p>
-                    
+                <!-- ── Section: Documents ── -->
+                <div class="form-section-block">
+                    <div class="section-label">
+                        <span class="section-num">2</span>
+                        <div>
+                            <h3>Documents Found</h3>
+                            <p>Add each document separately — more documents, more reward</p>
+                        </div>
+                    </div>
+
                     <div id="documents-container">
-                        <!-- First document (default) -->
+                        <!-- Document items injected here by JS -->
                         <div class="document-item" data-document-index="1">
-                            <h4><span class="document-counter">1</span> Document Details</h4>
-                            
-                            <div class="form-group">
-                                <label>What type of document is this? 
-                                    <span class="reward-badge document-reward">KSh 100</span>
-                                </label>
-                                <select class="document-type" required>
-                                    <option value="">Select document type</option>
-                                    
-                                    <!-- Government Identification -->
-                                    <optgroup label="🆔 Government Identification">
-                                        <option value="national_id" data-reward="150" data-category="Gov ID">National ID Card</option>
-                                        <option value="passport" data-reward="500" data-category="Gov ID">Kenyan Passport</option>
-                                        <option value="alien_id" data-reward="200" data-category="Gov ID">Alien ID Card</option>
-                                        <option value="refugee_id" data-reward="180" data-category="Gov ID">Refugee ID</option>
-                                        <option value="military_id" data-reward="250" data-category="Gov ID">Military ID</option>
-                                    </optgroup>
-                                    
-                                    <!-- Driving & Vehicle -->
-                                    <optgroup label="🚗 Driving & Vehicle">
-                                        <option value="driving_license" data-reward="200" data-category="Transport">Driving License</option>
-                                        <option value="logbook" data-reward="800" data-category="Transport">Vehicle Logbook</option>
-                                        <option value="psi_certificate" data-reward="150" data-category="Transport">PSI Certificate</option>
-                                        <option value="towing_permit" data-reward="100" data-category="Transport">Towing Permit</option>
-                                        <option value="badge" data-reward="120" data-category="Transport">PSV Badge</option>
-                                    </optgroup>
-                                    
-                                    <!-- Education -->
-                                    <optgroup label="🎓 Educational Documents">
-                                        <option value="kcpe_certificate" data-reward="150" data-category="Education">KCPE Certificate</option>
-                                        <option value="kcse_certificate" data-reward="200" data-category="Education">KCSE Certificate</option>
-                                        <option value="university_degree" data-reward="400" data-category="Education">University Degree</option>
-                                        <option value="college_diploma" data-reward="300" data-category="Education">College Diploma/Certificate</option>
-                                        <option value="transcript" data-reward="250" data-category="Education">Official Transcript</option>
-                                        <option value="student_id" data-reward="80" data-category="Education">Student ID Card</option>
-                                    </optgroup>
-                                    
-                                    <!-- Professional -->
-                                    <optgroup label="💼 Professional Documents">
-                                        <option value="work_permit" data-reward="400" data-category="Professional">Work Permit</option>
-                                        <option value="professional_license" data-reward="300" data-category="Professional">Professional License</option>
-                                        <option value="practicing_certificate" data-reward="350" data-category="Professional">Practicing Certificate</option>
-                                        <option value="tax_pin" data-reward="100" data-category="Professional">KRA PIN Certificate</option>
-                                        <option value="business_permit" data-reward="250" data-category="Professional">Business Permit</option>
-                                    </optgroup>
-                                    
-                                    <!-- Property & Legal -->
-                                    <optgroup label="🏠 Property & Legal">
-                                        <option value="title_deed" data-reward="1000" data-category="Property">Title Deed</option>
-                                        <option value="lease_agreement" data-reward="300" data-category="Property">Lease Agreement</option>
-                                        <option value="allotment_letter" data-reward="400" data-category="Property">Land Allotment Letter</option>
-                                        <option value="court_order" data-reward="500" data-category="Legal">Court Order</option>
-                                        <option value="power_attorney" data-reward="350" data-category="Legal">Power of Attorney</option>
-                                    </optgroup>
-                                    
-                                    <!-- Financial -->
-                                    <optgroup label="💳 Financial Documents">
-                                        <option value="bank_card" data-reward="100" data-category="Financial">Bank/ATM Card</option>
-                                        <option value="checkbook" data-reward="150" data-category="Financial">Checkbook</option>
-                                        <option value="loan_agreement" data-reward="200" data-category="Financial">Loan Agreement</option>
-                                        <option value="insurance_policy" data-reward="180" data-category="Financial">Insurance Policy</option>
-                                    </optgroup>
-                                    
-                                    <!-- Health -->
-                                    <optgroup label="🏥 Health Documents">
-                                        <option value="birth_certificate" data-reward="200" data-category="Health">Birth Certificate</option>
-                                        <option value="death_certificate" data-reward="250" data-category="Health">Death Certificate</option>
-                                        <option value="marriage_certificate" data-reward="300" data-category="Health">Marriage Certificate</option>
-                                        <option value="medical_report" data-reward="120" data-category="Health">Medical Report</option>
-                                        <option value="nhif_card" data-reward="80" data-category="Health">NHIF Card</option>
-                                    </optgroup>
-                                    
-                                    <!-- Other Important -->
-                                    <optgroup label="📄 Other Important">
-                                        <option value="will" data-reward="600" data-category="Legal">Will/Testament</option>
-                                        <option value="adoption_papers" data-reward="400" data-category="Legal">Adoption Papers</option>
-                                        <option value="guardianship" data-reward="350" data-category="Legal">Guardianship Papers</option>
-                                        <option value="other" data-reward="50" data-category="Other">Other Document</option>
-                                    </optgroup>
-                                </select>
+                            <h4 class="doc-item-title">
+                                <i class="fas fa-file-alt"></i>
+                                <span class="document-counter">1</span> — Document Details
+                            </h4>
+                            <div class="fields-row">
+                                <div class="form-group">
+                                    <label>Document Type
+                                        <span class="reward-badge document-reward">KSh 100</span>
+                                    </label>
+                                    <select class="document-type" required>
+                                        <option value="">Select document type</option>
+                                        <optgroup label="🆔 Government Identification">
+                                            <option value="national_id"         data-reward="150" data-category="Gov ID">National ID Card</option>
+                                            <option value="passport"            data-reward="500" data-category="Gov ID">Kenyan Passport</option>
+                                            <option value="alien_id"            data-reward="200" data-category="Gov ID">Alien ID Card</option>
+                                            <option value="refugee_id"          data-reward="180" data-category="Gov ID">Refugee ID</option>
+                                            <option value="military_id"         data-reward="250" data-category="Gov ID">Military ID</option>
+                                        </optgroup>
+                                        <optgroup label="🚗 Driving & Vehicle">
+                                            <option value="driving_license"     data-reward="200" data-category="Transport">Driving License</option>
+                                            <option value="logbook"             data-reward="800" data-category="Transport">Vehicle Logbook</option>
+                                            <option value="psi_certificate"     data-reward="150" data-category="Transport">PSI Certificate</option>
+                                            <option value="towing_permit"       data-reward="100" data-category="Transport">Towing Permit</option>
+                                            <option value="badge"               data-reward="120" data-category="Transport">PSV Badge</option>
+                                        </optgroup>
+                                        <optgroup label="🎓 Educational Documents">
+                                            <option value="kcpe_certificate"    data-reward="150" data-category="Education">KCPE Certificate</option>
+                                            <option value="kcse_certificate"    data-reward="200" data-category="Education">KCSE Certificate</option>
+                                            <option value="university_degree"   data-reward="400" data-category="Education">University Degree</option>
+                                            <option value="college_diploma"     data-reward="300" data-category="Education">College Diploma</option>
+                                            <option value="transcript"          data-reward="250" data-category="Education">Official Transcript</option>
+                                            <option value="student_id"          data-reward="80"  data-category="Education">Student ID Card</option>
+                                        </optgroup>
+                                        <optgroup label="💼 Professional Documents">
+                                            <option value="work_permit"         data-reward="400" data-category="Professional">Work Permit</option>
+                                            <option value="professional_license" data-reward="300" data-category="Professional">Professional License</option>
+                                            <option value="practicing_certificate" data-reward="350" data-category="Professional">Practicing Certificate</option>
+                                            <option value="tax_pin"             data-reward="100" data-category="Professional">KRA PIN Certificate</option>
+                                            <option value="business_permit"     data-reward="250" data-category="Professional">Business Permit</option>
+                                        </optgroup>
+                                        <optgroup label="🏠 Property & Legal">
+                                            <option value="title_deed"          data-reward="1000" data-category="Property">Title Deed</option>
+                                            <option value="lease_agreement"     data-reward="300"  data-category="Property">Lease Agreement</option>
+                                            <option value="allotment_letter"    data-reward="400"  data-category="Property">Land Allotment Letter</option>
+                                            <option value="court_order"         data-reward="500"  data-category="Legal">Court Order</option>
+                                            <option value="power_attorney"      data-reward="350"  data-category="Legal">Power of Attorney</option>
+                                        </optgroup>
+                                        <optgroup label="💳 Financial Documents">
+                                            <option value="bank_card"           data-reward="100" data-category="Financial">Bank/ATM Card</option>
+                                            <option value="checkbook"           data-reward="150" data-category="Financial">Checkbook</option>
+                                            <option value="loan_agreement"      data-reward="200" data-category="Financial">Loan Agreement</option>
+                                            <option value="insurance_policy"    data-reward="180" data-category="Financial">Insurance Policy</option>
+                                        </optgroup>
+                                        <optgroup label="🏥 Health Documents">
+                                            <option value="birth_certificate"   data-reward="200" data-category="Health">Birth Certificate</option>
+                                            <option value="death_certificate"   data-reward="250" data-category="Health">Death Certificate</option>
+                                            <option value="marriage_certificate" data-reward="300" data-category="Health">Marriage Certificate</option>
+                                            <option value="medical_report"      data-reward="120" data-category="Health">Medical Report</option>
+                                            <option value="nhif_card"           data-reward="80"  data-category="Health">NHIF Card</option>
+                                        </optgroup>
+                                        <optgroup label="📄 Other Documents">
+                                            <option value="will"                data-reward="600" data-category="Legal">Will/Testament</option>
+                                            <option value="adoption_papers"     data-reward="400" data-category="Legal">Adoption Papers</option>
+                                            <option value="guardianship"        data-reward="350" data-category="Legal">Guardianship Papers</option>
+                                            <option value="other"               data-reward="50"  data-category="Other">Other Document</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Document Number <span style="font-weight:400;color:#94a3b8;">(if visible)</span></label>
+                                    <input type="text" class="document-number" placeholder="e.g. 12345678">
+                                </div>
                             </div>
-                            
                             <div class="form-group">
-                                <label>Document Number (if visible)</label>
-                                <input type="text" class="document-number" placeholder="e.g. 12345678 or visible reference number">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Upload Clear Photo of Document</label>
+                                <label>Photo of Document <span style="font-weight:400;color:#94a3b8;">(helps speed up matching)</span></label>
                                 <div class="upload-area document-upload">
                                     <i class="fas fa-camera"></i>
-                                    <p><strong>Click to upload photo of this document</strong></p>
+                                    <p><strong>Click to upload a photo</strong></p>
                                     <p class="small">Clear photos help us verify ownership faster</p>
-                                    <input type="file" class="file-input" accept="image/*" style="display: none;">
+                                    <input type="file" class="file-input" accept="image/*" style="display:none;">
                                     <div class="file-name"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <button type="button" class="add-document-btn" id="add-document">
-                        <i class="fas fa-plus"></i> Add Another Document
+                        <i class="fas fa-plus-circle"></i> Add Another Document
                     </button>
-                    
-                    <div class="total-reward" id="total-reward">
-                        <h3>Total Reward</h3>
-                        <div class="amount">KSh 100</div>
-                        <p class="small">For <span id="document-count">1</span> document(s)</p>
+
+                    <div class="reward-summary" id="total-reward">
+                        <div class="reward-icon"><i class="fas fa-coins"></i></div>
+                        <div>
+                            <div class="reward-label">Your Total Reward</div>
+                            <div class="reward-amount">KSh 100</div>
+                        </div>
+                        <div class="reward-doc-count">for <span id="document-count">1</span> document(s)</div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="found-location">Where exactly did you find this document?</label>
-                    <input type="text" id="found-location" placeholder="e.g. 'Near Nairobi CBD, outside Kencom House' or 'Nakuru Town, near Municipal Market'" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Where should the owner collect it? (Select the registered police station)</label>
-                    <div class="location-steps">
-                        <div class="location-step active" id="step1">1. Select County</div>
-                        <div class="location-step" id="step2">2. Constituency</div>
-                        <div class="location-step" id="step3">3. Police Station</div>
+                <!-- ── Section: Where Found ── -->
+                <div class="form-section-block">
+                    <div class="section-label">
+                        <span class="section-num">3</span>
+                        <div>
+                            <h3>Where You Found It</h3>
+                            <p>Be specific — this helps the owner understand where to look</p>
+                        </div>
                     </div>
-                    
-                    <div id="county-selection">
+                    <div class="form-group">
+                        <label for="found-location"><i class="fas fa-map-marker-alt"></i> Exact Location Found</label>
+                        <input type="text" id="found-location"
+                            placeholder="e.g. Near Nairobi CBD outside Kencom House, or Nakuru Town near Municipal Market" required>
+                    </div>
+                </div>
+
+                <!-- ── Section: Delivery Station ── -->
+                <div class="form-section-block">
+                    <div class="section-label">
+                        <span class="section-num">4</span>
+                        <div>
+                            <h3>Select Delivery Police Station</h3>
+                            <p>Choose where you will bring the document for the owner to collect</p>
+                        </div>
+                    </div>
+
+                    <div class="location-stepper">
+                        <div class="location-step active" id="step1"><i class="fas fa-map"></i> County</div>
+                        <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+                        <div class="location-step" id="step2"><i class="fas fa-map-pin"></i> Constituency</div>
+                        <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+                        <div class="location-step" id="step3"><i class="fas fa-building"></i> Station</div>
+                    </div>
+
+                    <div id="county-selection" class="form-group" style="margin-top:1rem;">
+                        <label for="county">Select County</label>
                         <select id="county" class="form-control" required>
-                            <option value="">Select County</option>
+                            <option value="">— Choose County —</option>
                             <option value="baringo">Baringo</option>
                             <option value="bomet">Bomet</option>
                             <option value="bungoma">Bungoma</option>
@@ -221,90 +265,100 @@
                             <option value="pokot">West Pokot</option>
                         </select>
                     </div>
-                    
-                    <div id="constituency-selection" style="display: none;">
+
+                    <div id="constituency-selection" class="form-group" style="display:none;">
+                        <label for="constituency">Select Constituency</label>
                         <select id="constituency" class="form-control" required>
                             <option value="">Select Constituency</option>
                         </select>
                     </div>
-                    
-                    <div id="chiefs-selection" style="display: none;">
+
+                    <div id="chiefs-selection" class="form-group" style="display:none;">
+                        <label for="chiefs-office">Select Police Station</label>
                         <select id="chiefs-office" class="form-control" required>
                             <option value="">Select Police Station</option>
                         </select>
                     </div>
-                    
+
                     <input type="hidden" id="collection-point" required>
                     <input type="hidden" id="station-id">
                 </div>
-                
-                <div class="form-group">
-                    <label for="your-name">Your Full Name</label>
-                    <input type="text" id="your-name" placeholder="As it appears on your National ID" required>
+
+                <!-- ── Section: Your Details ── -->
+                <div class="form-section-block">
+                    <div class="section-label">
+                        <span class="section-num">5</span>
+                        <div>
+                            <h3>Your Details</h3>
+                            <p>Required for reward payment and verification</p>
+                        </div>
+                    </div>
+                    <div class="fields-row">
+                        <div class="form-group">
+                            <label for="your-name"><i class="fas fa-user"></i> Your Full Name</label>
+                            <input type="text" id="your-name" placeholder="As it appears on your National ID" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="your-id"><i class="fas fa-id-card"></i> Your National ID Number</label>
+                            <input type="text" id="your-id" placeholder="e.g. 12345678" required>
+                        </div>
+                    </div>
+                    <div class="form-group" style="max-width:400px;">
+                        <label for="your-phone"><i class="fas fa-mobile-alt"></i> Your M-Pesa Phone Number</label>
+                        <input type="tel" id="your-phone" placeholder="e.g. 0712345678" required>
+                        <span class="field-hint">Reward will be sent to this number via M-Pesa</span>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="your-id">Your National ID Number</label>
-                    <input type="text" id="your-id" placeholder="e.g. 12345678" required>
-                    <p class="small">Required for reward processing and verification</p>
-                </div>
-                
-                <div class="form-group">
-                    <label for="your-phone">Your Phone Number (M-Pesa registered)</label>
-                    <input type="tel" id="your-phone" placeholder="e.g. 0712345678" required>
-                    <p class="small">We'll send reward via M-Pesa and SMS updates</p>
-                </div>
-                
-                <div class="tips-section">
-                    <h3><i class="fas fa-lightbulb"></i> Quick Tips for Higher Success Rate</h3>
+
+                <!-- ── Tips ── -->
+                <div class="tips-card">
+                    <div class="tips-title"><i class="fas fa-lightbulb"></i> Tips for a Higher Success Rate</div>
                     <ul>
-                        <li>Take clear photos showing document details without personal info</li>
-                        <li>Deliver to the registered police station within 24-48 hours for faster processing</li>
-                        <li>Higher value documents = Higher rewards (up to KSh 1,000)</li>
-                        <li>Keep your phone accessible for verification calls</li>
-                        <li>Ensure all text is readable in the photos</li>
-                        <li>Group documents by the same owner to maximize efficiency</li>
-                        <li>Keep documents safe and dry until delivery</li>
+                        <li>Take clear photos showing document details clearly</li>
+                        <li>Deliver to the police station within 48 hours for faster processing</li>
+                        <li>Higher value documents earn higher rewards — up to KSh 1,000</li>
+                        <li>Group documents belonging to the same person in one report</li>
                     </ul>
                 </div>
-                
+
                 <button type="submit" class="submit-btn">
-                    <i class="fas fa-paper-plane"></i> Submit Found Document & Claim Reward
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Report &amp; Claim Reward
                 </button>
             </form>
         </div>
-        
-        <div class="confirmation" id="confirmation">
-            <i class="fas fa-check-circle"></i>
+
+        <!-- Confirmation Screen -->
+        <div class="confirmation-card" id="confirmation" style="display:none;">
+            <div class="confirm-icon"><i class="fas fa-check-circle"></i></div>
             <h2>Asante Sana for Your Kindness!</h2>
-            
+            <p>Your found document report has been submitted successfully.</p>
+
             <div id="documents-summary"></div>
-            
-            <div class="collection-point">
-                <h3><i class="fas fa-map-marker-alt"></i> Delivery Instructions</h3>
-                <p>Please take all documents to:</p>
-                <p><strong id="confirmed-location">[Selected Police Station]</strong></p>
-                <p>within <strong>48 hours</strong> for verification and reward processing.</p>
+
+            <div class="confirm-delivery">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                    <strong>Please deliver to:</strong>
+                    <p id="confirmed-location"></p>
+                    <span>within <strong>48 hours</strong></span>
+                </div>
             </div>
-            
-            <p>Your total reward of <strong id="confirmed-reward">KSh 0</strong> will be sent via M-Pesa once the police station confirms receipt and authenticity of all documents.</p>
-            
-            <div class="reward-note">
-                <p><i class="fas fa-info-circle"></i> <strong>Important Information:</strong></p>
-                <ul>
-                    <li>You'll receive SMS confirmation once documents are delivered to the police station</li>
-                    <li>Reward will be sent to <strong id="confirmed-phone">0712345678</strong> via M-Pesa within 24 hours</li>
-                    <li>Your ID must match our records for payment processing</li>
-                    <li>SMS reminder will be sent if delivery is delayed beyond 24 hours</li>
-                    <li>Document owner(s) will be notified immediately via our database matching</li>
-                </ul>
+
+            <div class="confirm-reward">
+                <i class="fas fa-coins"></i>
+                Your reward of <strong id="confirmed-reward">KSh 0</strong> will be sent to
+                <strong id="confirmed-phone"></strong> via M-Pesa once the station confirms receipt.
             </div>
-            
-          <button type="button" class="submit-btn" onclick="window.location.href='/dashboard'" style="margin-top: 30px; background: linear-gradient(135deg, var(--kenya-red), var(--kenya-black));">
-    <i class="fas fa-home"></i> Back to Dashboard
-</button>
+
+            <div class="confirm-actions">
+                <a href="/dashboard" class="submit-btn">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+            </div>
         </div>
-    </div>
+
+    </div><!-- /page-wrapper -->
 
 <script type="module" src="./js/supabase.js"></script>
 <script type="module" src="./js/reportfound.js"></script>
