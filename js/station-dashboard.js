@@ -80,17 +80,19 @@ async function loadOverview() {
         { count: pending },
         { count: received },
         { count: claimed },
+        { count: claimedVerified },
         { count: total }
     ] = await Promise.all([
         supabase.from('reports').select('*', { count: 'exact', head: true }).eq('station_id', currentStation.id).eq('delivery_status', 'unclaimed_unverified').eq('report_type', 'found'),
         supabase.from('reports').select('*', { count: 'exact', head: true }).eq('station_id', currentStation.id).eq('delivery_status', 'unclaimed_verified').eq('report_type', 'found'),
         supabase.from('reports').select('*', { count: 'exact', head: true }).eq('station_id', currentStation.id).eq('delivery_status', 'claimed').eq('report_type', 'found'),
+        supabase.from('reports').select('*', { count: 'exact', head: true }).eq('station_id', currentStation.id).eq('delivery_status', 'claimed_verified').eq('report_type', 'found'),
         supabase.from('reports').select('*', { count: 'exact', head: true }).eq('station_id', currentStation.id).eq('report_type', 'found')
     ]);
 
     document.getElementById('statPending').textContent = pending || 0;
     document.getElementById('statReceived').textContent = received || 0;
-    document.getElementById('statClaimed').textContent = claimed || 0;
+    document.getElementById('statClaimed').textContent = (claimed || 0) + (claimedVerified || 0);
     document.getElementById('statTotal').textContent = total || 0;
 
     const badgeEl = document.getElementById('pendingBadge');
@@ -139,6 +141,7 @@ function deliveryMeta(status) {
     if (status === 'unclaimed_unverified') return { icon: 'hourglass-half', color: '#d97706', bg: 'rgba(245,158,11,0.12)', label: 'Awaiting Delivery' };
     if (status === 'unclaimed_verified') return { icon: 'box-open', color: '#2563eb', bg: 'rgba(59,130,246,0.12)', label: 'Received at Station' };
     if (status === 'claimed') return { icon: 'check-double', color: '#059669', bg: 'rgba(16,185,129,0.12)', label: 'Claimed by Owner' };
+    if (status === 'claimed_verified') return { icon: 'user-check', color: '#059669', bg: 'rgba(16,185,129,0.12)', label: 'Claimed (Verified)' };
     return { icon: 'file', color: '#64748b', bg: 'rgba(100,116,139,0.12)', label: status || '—' };
 }
 
@@ -243,28 +246,28 @@ async function loadReceived() {
 // ===== CLAIMED =====
 async function loadClaimed() {
     const tbody = document.getElementById('claimedBody');
-    tbody.innerHTML = loadingRow(5);
+    tbody.innerHTML = loadingRow(6);
 
     const { data, error } = await supabase
         .from('reports')
         .select(`
-            id, full_name, updated_at, recovery_fee,
+            id, full_name, delivery_status, updated_at, recovery_fee,
             report_documents(document_type, owner_name),
             finder_info(finder_name),
             recovered_reports!found_report_id(status, reward_claimed)
         `)
         .eq('station_id', currentStation.id)
         .eq('report_type', 'found')
-        .eq('delivery_status', 'claimed')
+        .in('delivery_status', ['claimed', 'claimed_verified'])
         .order('updated_at', { ascending: false });
 
     if (error || !data) {
-        tbody.innerHTML = errorRow(5, error?.message);
+        tbody.innerHTML = errorRow(6, error?.message);
         return;
     }
 
     if (data.length === 0) {
-        tbody.innerHTML = emptyRow(5, 'No claimed documents yet.');
+        tbody.innerHTML = emptyRow(6, 'No claimed documents yet.');
         return;
     }
 
@@ -274,6 +277,7 @@ async function loadClaimed() {
         const finder = r.finder_info?.finder_name || r.full_name;
         const recovered = r.recovered_reports?.[0];
         const feePaid = recovered ? `<span style="color:#059669;font-weight:600;">Ksh ${(r.recovery_fee || 0).toLocaleString()}</span>` : '—';
+        const dm = deliveryMeta(r.delivery_status);
         return `
         <tr>
             <td>${new Date(r.updated_at).toLocaleDateString('en-KE')}</td>
@@ -281,6 +285,7 @@ async function loadClaimed() {
             <td style="max-width:180px;white-space:normal;">${docs}</td>
             <td>${ownerName}</td>
             <td>${feePaid}</td>
+            <td><span class="status-badge status-${r.delivery_status?.replace(/_/g, '-')}">${dm.label}</span></td>
         </tr>`;
     }).join('');
 }
@@ -300,7 +305,13 @@ async function loadAll(deliveryFilter = '') {
         .eq('report_type', 'found')
         .order('created_at', { ascending: false });
 
-    if (deliveryFilter) query = query.eq('delivery_status', deliveryFilter);
+    if (deliveryFilter) {
+        if (deliveryFilter === 'claimed') {
+            query = query.in('delivery_status', ['claimed', 'claimed_verified']);
+        } else {
+            query = query.eq('delivery_status', deliveryFilter);
+        }
+    }
 
     const { data, error } = await query;
 
@@ -351,7 +362,7 @@ window.triggerAction = function (reportId, type) {
         btn.style.background = '#2563eb';
     } else {
         title.textContent = 'Confirm Document Claimed';
-        body.textContent = 'By confirming, you are verifying that the document owner has collected their document(s) from your station and their identity has been verified. Delivery status will change to "Claimed".';
+        body.textContent = 'By confirming, you are verifying that the document owner has collected their document(s) from your station and their identity has been verified. Delivery status will change to "Claimed (Verified)".';
         btn.textContent = 'Confirm Claimed';
         btn.style.background = '#059669';
     }
@@ -363,7 +374,7 @@ async function executeStatusChange() {
     if (!pendingActionReportId || !pendingActionType) return;
 
     const notes = document.getElementById('confirmNotes').value.trim();
-    const newDeliveryStatus = pendingActionType === 'receive' ? 'unclaimed_verified' : 'claimed';
+    const newDeliveryStatus = pendingActionType === 'receive' ? 'unclaimed_verified' : 'claimed_verified';
 
     const { error: reportErr } = await supabase
         .from('reports')

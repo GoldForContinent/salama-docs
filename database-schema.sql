@@ -126,7 +126,22 @@ CREATE POLICY "transactions: users update own"
 ON transactions FOR UPDATE
 USING (user_id = auth.uid());
 
--- ── 3. create_match_transactions RPC ───────────────
+-- ── 3. Add claimed_verified to delivery_status ─────
+-- Run this AFTER the existing constraint if you already have one.
+-- If the constraint already exists, first drop it then recreate:
+--   ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_delivery_status_check;
+ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_delivery_status_check;
+ALTER TABLE reports ADD CONSTRAINT reports_delivery_status_check
+  CHECK (
+    delivery_status = ANY (ARRAY[
+      'unclaimed_unverified'::varchar,
+      'unclaimed_verified'::varchar,
+      'claimed'::varchar,
+      'claimed_verified'::varchar
+    ])
+  );
+
+-- ── 4. create_match_transactions RPC ───────────────
 CREATE OR REPLACE FUNCTION create_match_transactions(
   recovery_data JSONB,
   reward_data JSONB

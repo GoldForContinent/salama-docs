@@ -214,10 +214,11 @@
                                         <th>Documents</th>
                                         <th>Owner</th>
                                         <th>Recovery Fee Paid</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
-                                <tbody id="claimedBody">
-                                    <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--light-text-muted);">Loading...</td></tr>
+                                    <tbody id="claimedBody">
+                                    <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--light-text-muted);">Loading...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -235,6 +236,7 @@
                                 <option value="unclaimed_unverified">Awaiting Delivery</option>
                                 <option value="unclaimed_verified">Received</option>
                                 <option value="claimed">Claimed</option>
+                                <option value="claimed_verified">Claimed (Verified)</option>
                             </select>
                         </div>
                         <div class="filter-group" style="align-self:flex-end;">
