@@ -601,28 +601,51 @@ async function loadUserData() {
                 console.log('✅ Profile found (from cache or DB):', profile);
             }
         } catch (profileError) {
-            console.error('❌ Error loading profile:', profileError);
-            throw profileError;
+            console.error('❌ Error loading profile, using fallback:', profileError);
+            profile = {
+                user_id: user.id,
+                email: user.email,
+                full_name: user.email.split('@')[0],
+                phone: '',
+                county: ''
+            };
         }
 
         currentProfile = profile;
         updateUserUI(user, profile);
         await loadDashboardData();
 
-        // Set a timeout to force show content if loading hangs
+        // Timeout fallback: if profile/header is still showing skeleton after 8s,
+        // force-show it using whatever data we have
         setTimeout(() => {
-            console.log('⏰ Loading timeout reached, forcing content display...');
-            hideSkeleton(elements.statsSkeleton);
-            hideSkeleton(elements.recentReportsSkeleton);
-            showContent(elements.statsGrid);
-            showContent(elements.recentReports);
-        }, 10000); // 10 seconds
+            if (currentProfile) {
+                hideSkeleton(elements.welcomeTitleSkeleton);
+                hideSkeleton(elements.userAvatarSkeleton);
+                hideSkeleton(elements.userDisplayNameSkeleton);
+                hideSkeleton(elements.statsSkeleton);
+                hideSkeleton(elements.recentReportsSkeleton);
+                hideSkeleton(elements.profileSkeleton);
+                showContent(elements.userName);
+                showContent(elements.userDisplayName);
+                showContent(elements.userAvatar);
+                showContent(elements.statsGrid);
+                showContent(elements.recentReports);
+                showContent(elements.profileContent);
+            }
+        }, 10000);
 
     } catch (error) {
         console.error('❌ Error loading user data:', error);
         notificationManager.error('Error loading user data. Please refresh the page.');
 
-        // Force hide skeletons and show basic content even on error
+        // Create a fallback profile from auth data so UI sections don't stay skeleton
+        const fallbackProfile = {
+            full_name: currentUser?.email?.split('@')[0] || 'User',
+            email: currentUser?.email || '',
+            profile_photo: null
+        };
+        currentProfile = fallbackProfile;
+
         console.log('🚨 Force hiding skeletons due to error...');
         hideSkeleton(elements.welcomeTitleSkeleton);
         hideSkeleton(elements.userAvatarSkeleton);
@@ -631,13 +654,15 @@ async function loadUserData() {
         hideSkeleton(elements.profileSkeleton);
         hideSkeleton(elements.recentReportsSkeleton);
 
-        // Show basic content
         showContent(elements.userName);
         showContent(elements.userDisplayName);
         showContent(elements.userAvatar);
         showContent(elements.statsGrid);
         showContent(elements.profileContent);
         showContent(elements.recentReports);
+
+        if (elements.userName) elements.userName.textContent = fallbackProfile.full_name;
+        if (elements.userDisplayName) elements.userDisplayName.textContent = fallbackProfile.full_name;
     }
 }
 
