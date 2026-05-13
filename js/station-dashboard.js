@@ -16,13 +16,19 @@ async function init() {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, role_id, station_id, status, admin_roles(name)')
+        .select('full_name, role_id, station_id, status')
         .eq('user_id', session.user.id)
         .maybeSingle();
 
     if (!profile) return goLogin();
 
-    const roleName = profile.admin_roles?.name;
+    const { data: roleRow } = await supabase
+        .from('admin_roles')
+        .select('name')
+        .eq('id', profile.role_id)
+        .maybeSingle();
+
+    const roleName = roleRow?.name;
     if (roleName !== 'police_admin') {
         alert('Access denied. Police Admin privileges required.');
         return goLogin();

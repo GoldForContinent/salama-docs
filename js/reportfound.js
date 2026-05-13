@@ -1013,12 +1013,22 @@ function setupFormSubmission() {
                     try {
                         const { data: stationAdmins } = await supabase
                             .from('profiles')
-                            .select('user_id, admin_roles(name)')
+                            .select('user_id, role_id')
                             .eq('station_id', formData.stationId)
                             .not('role_id', 'is', null);
 
+                        const { data: policeRole } = await supabase
+                            .from('admin_roles')
+                            .select('id')
+                            .eq('name', 'police_admin')
+                            .maybeSingle();
+
+                        const policeAdminIds = policeRole?.id
+                            ? new Set([policeRole.id])
+                            : new Set();
+
                         const policeAdmins = (stationAdmins || []).filter(
-                            p => p.admin_roles?.name === 'police_admin'
+                            p => policeAdminIds.has(p.role_id)
                         );
 
                         for (const admin of policeAdmins) {

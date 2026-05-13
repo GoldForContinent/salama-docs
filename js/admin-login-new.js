@@ -181,14 +181,20 @@ async function handleLogin(e) {
 async function getUserRole(userId) {
     const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, role_id, station_id, admin_roles(name)')
+        .select('full_name, role_id, station_id')
         .eq('user_id', userId)
         .maybeSingle();
 
     if (!profile || !profile.role_id) return { roleName: null, userName: null, stationId: null };
 
+    const { data: roleRow } = await supabase
+        .from('admin_roles')
+        .select('name')
+        .eq('id', profile.role_id)
+        .maybeSingle();
+
     return {
-        roleName: profile.admin_roles?.name || null,
+        roleName: roleRow?.name || null,
         userName: profile.full_name || 'Admin',
         stationId: profile.station_id || null
     };

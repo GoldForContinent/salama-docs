@@ -1,13 +1,10 @@
 -- ════════════════════════════════════════════════════
--- SALAMA DOCS — Schema Migration (Missing Tables & RPC)
--- Run this entire block in Supabase SQL Editor AFTER
--- database-rls-policies.sql
+-- SALAMA DOCS — Schema Migration (idempotent)
+-- Run this entire block in Supabase SQL Editor
 -- ════════════════════════════════════════════════════
 
 -- ── 0. Auto-create profile on auth signup ──────────
--- This is THE fix for "profile not loading": when Supabase Auth creates a user,
--- this trigger automatically inserts a profiles row (bypasses RLS via SECURITY DEFINER).
--- The name/phone come from user_metadata set during signUp().
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -26,6 +23,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
@@ -45,42 +43,6 @@ CREATE TABLE IF NOT EXISTS recovered_reports (
 CREATE INDEX IF NOT EXISTS idx_recovered_reports_lost ON recovered_reports(lost_report_id);
 CREATE INDEX IF NOT EXISTS idx_recovered_reports_found ON recovered_reports(found_report_id);
 CREATE INDEX IF NOT EXISTS idx_recovered_reports_status ON recovered_reports(status);
-
-ALTER TABLE recovered_reports ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "recovered_reports: users can read own"
-ON recovered_reports FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM reports
-    WHERE (reports.id = recovered_reports.lost_report_id OR reports.id = recovered_reports.found_report_id)
-      AND reports.user_id = auth.uid()
-  )
-);
-
-CREATE POLICY "recovered_reports: system_admin reads all"
-ON recovered_reports FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
-
-CREATE POLICY "recovered_reports: authenticated can insert"
-ON recovered_reports FOR INSERT
-WITH CHECK (auth.uid() IS NOT NULL);
-
-CREATE POLICY "recovered_reports: users can update own related"
-ON recovered_reports FOR UPDATE
-USING (
-  EXISTS (
-    SELECT 1 FROM reports
-    WHERE (reports.id = recovered_reports.lost_report_id OR reports.id = recovered_reports.found_report_id)
-      AND reports.user_id = auth.uid()
-  )
-);
 
 -- ── 2. transactions table ──────────────────────────
 CREATE TABLE IF NOT EXISTS transactions (
@@ -102,34 +64,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(transaction_type);
 CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);
 
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "transactions: users read own"
-ON transactions FOR SELECT
-USING (user_id = auth.uid());
-
-CREATE POLICY "transactions: system_admin reads all"
-ON transactions FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
-
-CREATE POLICY "transactions: authenticated can insert"
-ON transactions FOR INSERT
-WITH CHECK (auth.uid() IS NOT NULL);
-
-CREATE POLICY "transactions: users update own"
-ON transactions FOR UPDATE
-USING (user_id = auth.uid());
-
 -- ── 3. Add claimed_verified to delivery_status ─────
--- Run this AFTER the existing constraint if you already have one.
--- If the constraint already exists, first drop it then recreate:
---   ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_delivery_status_check;
 ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_delivery_status_check;
 ALTER TABLE reports ADD CONSTRAINT reports_delivery_status_check
   CHECK (
@@ -142,6 +77,7 @@ ALTER TABLE reports ADD CONSTRAINT reports_delivery_status_check
   );
 
 -- ── 4. create_match_transactions RPC ───────────────
+DROP FUNCTION IF EXISTS create_match_transactions(jsonb, jsonb);
 CREATE OR REPLACE FUNCTION create_match_transactions(
   recovery_data JSONB,
   reward_data JSONB
