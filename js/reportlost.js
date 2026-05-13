@@ -507,10 +507,10 @@ async function submitReport(formData) {
     const documentPromises = formData.documents.map(doc => 
         supabase.from('report_documents').insert({
             report_id: report.id,
-            document_type: doc.type, // Always use the value key
+            document_type: doc.value,
             document_number: doc.number,
             category: doc.category,
-            is_recovered: false // Ensure this is set
+            is_recovered: false
         })
     );
     
@@ -654,7 +654,9 @@ function reportAnother() {
     window.scrollTo(0, 0);
 }
 
-// Auto-save form data
+// Auto-save form data (persists across page refreshes via localStorage)
+const FORM_DRAFT_KEY = 'salama_lost_report_draft';
+
 function autoSaveForm() {
     const formData = {
         fullName: document.getElementById('full-name')?.value,
@@ -666,35 +668,50 @@ function autoSaveForm() {
         timeline: selectedTimeline
     };
     
-    window.salamaFormDraft = formData;
+    try {
+        localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(formData));
+    } catch (e) {
+        console.warn('Auto-save failed:', e);
+    }
 }
 
 // Load saved form data
 function loadSavedForm() {
-    const savedData = window.salamaFormDraft;
-    if (!savedData) return;
-    
-    document.getElementById('full-name').value = savedData.fullName || '';
-    document.getElementById('phone').value = savedData.phone || '';
-    document.getElementById('email').value = savedData.email || '';
-    document.getElementById('last-seen-location').value = savedData.lastSeenLocation || '';
-    document.getElementById('last-seen-details').value = savedData.lastSeenDetails || '';
-    document.getElementById('additional-info').value = savedData.additionalInfo || '';
-    
-    if (savedData.timeline) {
-        selectedTimeline = savedData.timeline;
-        document.querySelectorAll('.timeline-step').forEach(step => {
-            step.classList.remove('active');
-            if (step.getAttribute('onclick')?.includes(savedData.timeline)) {
-                step.classList.add('active');
-            }
-        });
+    try {
+        const raw = localStorage.getItem(FORM_DRAFT_KEY);
+        if (!raw) return;
+        const savedData = JSON.parse(raw);
+        if (!savedData) return;
+        
+        document.getElementById('full-name').value = savedData.fullName || '';
+        document.getElementById('phone').value = savedData.phone || '';
+        document.getElementById('email').value = savedData.email || '';
+        document.getElementById('last-seen-location').value = savedData.lastSeenLocation || '';
+        document.getElementById('last-seen-details').value = savedData.lastSeenDetails || '';
+        document.getElementById('additional-info').value = savedData.additionalInfo || '';
+        
+        if (savedData.timeline) {
+            selectedTimeline = savedData.timeline;
+            document.querySelectorAll('.timeline-step').forEach(step => {
+                step.classList.remove('active');
+                if (step.getAttribute('data-value') === savedData.timeline ||
+                    step.textContent.trim().toLowerCase() === savedData.timeline) {
+                    step.classList.add('active');
+                }
+            });
+        }
+    } catch (e) {
+        console.warn('Failed to load saved form:', e);
     }
 }
 
 // Clear saved form data
 function clearSavedForm() {
-    window.salamaFormDraft = null;
+    try {
+        localStorage.removeItem(FORM_DRAFT_KEY);
+    } catch (e) {
+        console.warn('Failed to clear saved form:', e);
+    }
 }
 
 // Show validation errors

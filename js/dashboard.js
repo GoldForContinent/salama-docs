@@ -189,17 +189,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         await showSection('dashboard');
         setupReportFilters();
 
-        // Temporarily disable automated matching during initialization
-        // to prevent dashboard loading issues
-        console.log('🔍 Automated matching disabled during initialization to prevent loading issues');
-
-        // Set up periodic automated matching every 30 seconds for testing (change back to 5 minutes in production)
+        // Set up periodic automated matching (every 5 minutes in production)
+        // Only runs if user has at least one report to avoid wasteful queries
         setInterval(async () => {
-            if (typeof window.runAutomatedMatching === 'function') {
-                console.log('🔍 Running periodic automated matching...');
-                await window.runAutomatedMatching();
+            if (typeof window.runAutomatedMatching === 'function' && currentUser) {
+                const { count, error } = await supabase
+                    .from('reports')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id);
+                if (!error && count > 0) {
+                    console.log('🔍 Running periodic automated matching...');
+                    await window.runAutomatedMatching();
+                }
             }
-        }, 30 * 1000); // 30 seconds for testing
+        }, 5 * 60 * 1000);
         
         populateMyReportsSection('all');
 
@@ -555,20 +558,24 @@ async function loadUserData() {
 
         // Notification service is auto-initialized via notifications-unified.js
 
-        // Get user profile with caching
+        // Get user profile - TEMPORARILY BYPASSING CACHE FOR DEBUGGING
         console.log('📋 Loading user profile...');
         let profile;
         try {
-            profile = await getCachedUserProfile(user.id, async () => {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .single();
+            // Direct query without caching for debugging
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
 
-                if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
-                return data;
-            });
+            if (error && error.code !== 'PGRST116') {
+                console.error('❌ Profile query error:', error);
+                throw error;
+            }
+            
+            profile = data;
+            console.log('✅ Profile loaded directly:', profile);
 
             if (!profile) {
                 console.log('📝 Profile not found, creating default profile...');
@@ -1198,12 +1205,19 @@ console.log('🎉 Dashboard JavaScript loaded successfully!');
 // --- BEGIN: Report Management Integration ---
 
 // Automated matching function that runs when dashboard loads
+let _matchingInProgress = false;
 window.runAutomatedMatching = async function() {
+    if (_matchingInProgress) {
+        console.log('⏭️ Matching already in progress, skipping...');
+        return;
+    }
+    _matchingInProgress = true;
     try {
         console.log('🔍 Running automated matching...');
         const { data: reports, error: reportsError } = await supabase
             .from('reports')
-            .select('*, report_documents(*)');
+            .select('*, report_documents(*)')
+            .in('status', ['active', 'potential_match']);
         if (reportsError) {
             console.error('Error fetching reports for matching:', reportsError);
             return;
@@ -1422,6 +1436,8 @@ window.runAutomatedMatching = async function() {
         }
     } catch (error) {
         console.error('❌ Error in automated matching:', error);
+    } finally {
+        _matchingInProgress = false;
     }
 };
 
