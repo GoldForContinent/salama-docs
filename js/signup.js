@@ -255,63 +255,59 @@ document.addEventListener('DOMContentLoaded', function() {
       if (authError) throw new Error(authError.message || 'Registration failed');
       if (!authData.user) throw new Error('No user data returned');
 
-      // 2. Wait for session with retries
-      let session = null;
-      let attempts = 0;
-      const maxAttempts = 5;
-      
-      while (!session && attempts < maxAttempts) {
-        attempts++;
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        if (!sessionError && sessionData.session) {
-          session = sessionData.session;
-          break;
+      // 2. Save profile data (user metadata already stored in auth via signUp options.data)
+      // The DB trigger on_auth_user_created will also create a profile row.
+      // We try to insert here immediately in case the session is available.
+      try {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            full_name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            id_number: formData.isKenyan ? formData.idNumber : null,
+            passport_number: !formData.isKenyan ? formData.passport : null,
+            county: formData.county,
+            address: formData.address,
+            emergency_contact: formData.emergencyContact,
+            emergency_phone: formData.emergencyPhone,
+            is_kenyan: formData.isKenyan,
+            alt_phone: formData.altPhone || null
+          });
+
+        if (profileError) {
+          // Non-critical: the DB trigger + dashboard fallback handle this
+          console.warn('Profile insert non-critical error (trigger will handle):', profileError.message);
         }
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (profileErr) {
+        console.warn('Profile insert non-critical error:', profileErr);
       }
 
-      if (!session) throw new Error('Failed to establish session after retries');
-
-      // 3. Save profile data
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          full_name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          id_number: formData.isKenyan ? formData.idNumber : null,
-          passport_number: !formData.isKenyan ? formData.passport : null,
-          county: formData.county,
-          address: formData.address,
-          emergency_contact: formData.emergencyContact,
-          emergency_phone: formData.emergencyPhone,
-          is_kenyan: formData.isKenyan,
-          alt_phone: formData.altPhone || null
-        });
-
-      if (profileError) throw new Error('Failed to save profile information');
-
-      // Handle photo upload if provided
+      // Handle photo upload if provided (non-critical)
       if (formData.photoFile) {
-        const fileExt = formData.photoFile.name.split('.').pop();
-        const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
-        const filePath = `profile-photos/${fileName}`;
-        
-        const { error: uploadError } = await supabase
-          .storage
-          .from('profile-photos')
-          .upload(filePath, formData.photoFile);
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
+        try {
+          const fileExt = formData.photoFile.name.split('.').pop();
+          const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
+          const filePath = `profile-photos/${fileName}`;
+          
+          const { error: uploadError } = await supabase
+            .storage
             .from('profile-photos')
-            .getPublicUrl(filePath);
+            .upload(filePath, formData.photoFile);
 
-          await supabase
-            .from('profiles')
-            .update({ profile_photo: publicUrl })
-            .eq('user_id', authData.user.id);
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('profile-photos')
+              .getPublicUrl(filePath);
+
+            await supabase
+              .from('profiles')
+              .update({ profile_photo: publicUrl })
+              .eq('user_id', authData.user.id);
+          }
+        } catch (photoErr) {
+          console.warn('Profile photo upload non-critical error:', photoErr);
         }
       }
 

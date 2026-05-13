@@ -602,11 +602,12 @@ async function loadUserData() {
             }
         } catch (profileError) {
             console.error('❌ Error loading profile, using fallback:', profileError);
+            const meta = user.user_metadata || {};
             profile = {
                 user_id: user.id,
                 email: user.email,
-                full_name: user.email.split('@')[0],
-                phone: '',
+                full_name: meta.full_name || user.email.split('@')[0],
+                phone: meta.phone || '',
                 county: ''
             };
         }
@@ -638,10 +639,12 @@ async function loadUserData() {
         console.error('❌ Error loading user data:', error);
         notificationManager.error('Error loading user data. Please refresh the page.');
 
-        // Create a fallback profile from auth data so UI sections don't stay skeleton
+        // Create a fallback profile from auth metadata so UI sections don't stay skeleton
+        const meta = currentUser?.user_metadata || {};
         const fallbackProfile = {
-            full_name: currentUser?.email?.split('@')[0] || 'User',
+            full_name: meta.full_name || currentUser?.email?.split('@')[0] || 'User',
             email: currentUser?.email || '',
+            phone: meta.phone || '',
             profile_photo: null
         };
         currentProfile = fallbackProfile;
@@ -668,7 +671,8 @@ async function loadUserData() {
 
 function updateUserUI(user, profile) {
     console.log('🎨 Updating UI with user data...');
-    const fullName = profile?.full_name || user.email.split('@')[0];
+    const meta = user.user_metadata || {};
+    const fullName = profile?.full_name || meta.full_name || user.email.split('@')[0];
     const avatarUrl = profile?.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
 
         // Hide skeleton elements and show actual content
@@ -691,7 +695,7 @@ function updateUserUI(user, profile) {
     if (elements.userDisplayName) elements.userDisplayName.textContent = fullName;
     if (elements.profileName) elements.profileName.textContent = fullName;
     
-    // Update profile details
+    // Update profile details (with user_metadata fallback from signup)
     if (elements.profileId) {
         elements.profileId.textContent = profile?.id_number || 'Not provided';
         elements.profileId.style.display = 'inline';
@@ -701,7 +705,8 @@ function updateUserUI(user, profile) {
         elements.profileEmail.style.display = 'inline';
     }
     if (elements.profilePhone) {
-        elements.profilePhone.textContent = profile?.phone || 'Not provided';
+        const phone = profile?.phone || meta.phone || 'Not provided';
+        elements.profilePhone.textContent = phone;
         elements.profilePhone.style.display = 'inline';
     }
     if (elements.profileLocation) {

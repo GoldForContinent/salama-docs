@@ -4,6 +4,33 @@
 -- database-rls-policies.sql
 -- ════════════════════════════════════════════════════
 
+-- ── 0. Auto-create profile on auth signup ──────────
+-- This is THE fix for "profile not loading": when Supabase Auth creates a user,
+-- this trigger automatically inserts a profiles row (bypasses RLS via SECURITY DEFINER).
+-- The name/phone come from user_metadata set during signUp().
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.profiles (user_id, full_name, email, phone)
+  VALUES (
+    NEW.id,
+    NEW.raw_user_meta_data ->> 'full_name',
+    NEW.email,
+    NEW.raw_user_meta_data ->> 'phone'
+  )
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_user();
+
 -- ── 1. recovered_reports table ──────────────────────
 CREATE TABLE IF NOT EXISTS recovered_reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
