@@ -155,10 +155,10 @@ async function logout() {
     try {
         localStorage.removeItem('salamaFormDraft');
         await supabase.auth.signOut();
-        window.location.href = 'loginpage.html';
+        window.location.replace('loginpage.html');
     } catch (error) {
         console.error('Error during logout:', error);
-        window.location.href = 'loginpage.html';
+        window.location.replace('loginpage.html');
     }
 }
 
@@ -409,7 +409,7 @@ window.performLogout = async function(redirectUrl) {
         currentUser = null;
         currentProfile = null;
         
-        window.location.href = redirectUrl;
+        window.location.replace(redirectUrl);
     } catch (error) {
         console.error('Logout error:', error);
         notificationManager.error('Error during logout. Please try again.');

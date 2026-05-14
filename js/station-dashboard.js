@@ -7,7 +7,7 @@ let pendingActionReportId = null;
 let pendingActionType = null;
 
 supabase.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_OUT') window.location.href = 'admin-login.html';
+    if (event === 'SIGNED_OUT') window.location.replace('admin-login.html');
 });
 
 async function init() {
@@ -75,7 +75,7 @@ async function init() {
 
 function goLogin() {
     document.getElementById('loadingScreen').style.display = 'none';
-    window.location.href = 'admin-login.html';
+    window.location.replace('admin-login.html');
 }
 
 // ===== OVERVIEW =====
@@ -537,7 +537,7 @@ function setupLogout() {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
         localStorage.removeItem('salamaFormDraft');
         await supabase.auth.signOut();
-        window.location.href = 'admin-login.html';
+        window.location.replace('admin-login.html');
     });
 }
 
@@ -548,7 +548,7 @@ function setupSessionTimeout() {
         clearTimeout(timeout);
         timeout = setTimeout(async () => {
             await supabase.auth.signOut();
-            window.location.href = 'admin-login.html?error=timeout';
+            window.location.replace('admin-login.html?error=timeout');
         }, TIMEOUT_MS);
     }
     ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(ev =>

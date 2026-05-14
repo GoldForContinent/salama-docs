@@ -59,8 +59,11 @@ function serveFile(res, filePath) {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
     const isLoginPage = filePath.endsWith('admin-login.html') || filePath.endsWith('loginpage.html');
+    const isAdminPage = filePath.includes('sysadmin-dashboard') || filePath.includes('station-dashboard') || filePath.includes('dashboard.html');
+    const cacheControl = isAdminPage ? "no-store, no-cache, must-revalidate" : "public, max-age=300";
     res.writeHead(200, {
       "Content-Type": contentType,
+      "Cache-Control": cacheControl,
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": isLoginPage ? "DENY" : "SAMEORIGIN",
       "Referrer-Policy": "strict-origin-when-cross-origin",
