@@ -3,7 +3,24 @@
 -- Run this entire block in Supabase SQL Editor
 -- ════════════════════════════════════════════════════
 
--- ── 0. Auto-create profile on auth signup ──────────
+-- ── 0. Role-lookup helper (bypasses RLS via SECURITY DEFINER) ─
+-- Prevents "infinite recursion detected in policy" errors when
+-- policies on profiles need to check the caller's role.
+CREATE OR REPLACE FUNCTION public.get_my_role_name()
+RETURNS TEXT
+LANGUAGE SQL
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT ar.name
+  FROM profiles p
+  JOIN admin_roles ar ON ar.id = p.role_id
+  WHERE p.user_id = auth.uid()
+  LIMIT 1
+$$;
+
+-- ── 1. Auto-create profile on auth signup ──────────
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger

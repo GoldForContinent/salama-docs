@@ -1,7 +1,24 @@
 -- ════════════════════════════════════════════════════════════════
--- SALAMA DOCS — RLS Policies (idempotent, safe to re-run)
+-- SALAMA DOCS — RLS Policies (no recursion, safe to re-run)
 -- Run the entire block in Supabase SQL Editor
 -- ════════════════════════════════════════════════════════════════
+
+-- ── 0. Role-lookup helper (bypasses RLS via SECURITY DEFINER) ────
+-- Prevents "infinite recursion detected in policy" errors when
+-- policies on profiles need to check the caller's role.
+CREATE OR REPLACE FUNCTION public.get_my_role_name()
+RETURNS TEXT
+LANGUAGE SQL
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT ar.name
+  FROM profiles p
+  JOIN admin_roles ar ON ar.id = p.role_id
+  WHERE p.user_id = auth.uid()
+  LIMIT 1
+$$;
 
 -- ── 1. admin_roles: anyone can read ──────────────────────────
 ALTER TABLE admin_roles ENABLE ROW LEVEL SECURITY;
@@ -19,33 +36,15 @@ CREATE POLICY "stations: anyone can read" ON stations FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "stations: system_admin can insert" ON stations;
 CREATE POLICY "stations: system_admin can insert" ON stations FOR INSERT
-WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+WITH CHECK (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "stations: system_admin can update" ON stations;
 CREATE POLICY "stations: system_admin can update" ON stations FOR UPDATE
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "stations: system_admin can delete" ON stations;
 CREATE POLICY "stations: system_admin can delete" ON stations FOR DELETE
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 -- ── 3. profiles: self read/update, sysadmin reads all ────────
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -56,13 +55,7 @@ USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "profiles: system_admin reads all" ON profiles;
 CREATE POLICY "profiles: system_admin reads all" ON profiles FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "profiles: users update own" ON profiles;
 CREATE POLICY "profiles: users update own" ON profiles FOR UPDATE
@@ -74,13 +67,7 @@ WITH CHECK (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "profiles: system_admin updates all" ON profiles;
 CREATE POLICY "profiles: system_admin updates all" ON profiles FOR UPDATE
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 -- ── 4. reports: users own, police_admin station, sysadmin all ─
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
@@ -91,23 +78,15 @@ USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "reports: system_admin reads all" ON reports;
 CREATE POLICY "reports: system_admin reads all" ON reports FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "reports: police_admin reads own station" ON reports;
 CREATE POLICY "reports: police_admin reads own station" ON reports FOR SELECT
 USING (
-  EXISTS (
+  get_my_role_name() = 'police_admin'
+  AND EXISTS (
     SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid()
-      AND ar.name = 'police_admin'
-      AND p.station_id = reports.station_id
+    WHERE p.user_id = auth.uid() AND p.station_id = reports.station_id
   )
 );
 
@@ -122,24 +101,16 @@ USING (user_id = auth.uid());
 DROP POLICY IF EXISTS "reports: police_admin updates own station" ON reports;
 CREATE POLICY "reports: police_admin updates own station" ON reports FOR UPDATE
 USING (
-  EXISTS (
+  get_my_role_name() = 'police_admin'
+  AND EXISTS (
     SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid()
-      AND ar.name = 'police_admin'
-      AND p.station_id = reports.station_id
+    WHERE p.user_id = auth.uid() AND p.station_id = reports.station_id
   )
 );
 
 DROP POLICY IF EXISTS "reports: system_admin updates all" ON reports;
 CREATE POLICY "reports: system_admin updates all" ON reports FOR UPDATE
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 -- ── 5. report_documents: inherits from reports ────────────────
 ALTER TABLE report_documents ENABLE ROW LEVEL SECURITY;
@@ -156,24 +127,16 @@ USING (
 
 DROP POLICY IF EXISTS "report_documents: system_admin reads all" ON report_documents;
 CREATE POLICY "report_documents: system_admin reads all" ON report_documents FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "report_documents: police_admin reads own station" ON report_documents;
 CREATE POLICY "report_documents: police_admin reads own station" ON report_documents FOR SELECT
 USING (
-  EXISTS (
+  get_my_role_name() = 'police_admin'
+  AND EXISTS (
     SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
     JOIN reports r ON r.id = report_documents.report_id
-    WHERE p.user_id = auth.uid()
-      AND ar.name = 'police_admin'
-      AND p.station_id = r.station_id
+    WHERE p.user_id = auth.uid() AND p.station_id = r.station_id
   )
 );
 
@@ -202,24 +165,16 @@ USING (
 
 DROP POLICY IF EXISTS "finder_info: system_admin reads all" ON finder_info;
 CREATE POLICY "finder_info: system_admin reads all" ON finder_info FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "finder_info: police_admin reads own station" ON finder_info;
 CREATE POLICY "finder_info: police_admin reads own station" ON finder_info FOR SELECT
 USING (
-  EXISTS (
+  get_my_role_name() = 'police_admin'
+  AND EXISTS (
     SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
     JOIN reports r ON r.id = finder_info.report_id
-    WHERE p.user_id = auth.uid()
-      AND ar.name = 'police_admin'
-      AND p.station_id = r.station_id
+    WHERE p.user_id = auth.uid() AND p.station_id = r.station_id
   )
 );
 
@@ -248,30 +203,32 @@ USING (
 
 DROP POLICY IF EXISTS "recovered_reports: system_admin reads all" ON recovered_reports;
 CREATE POLICY "recovered_reports: system_admin reads all" ON recovered_reports FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "recovered_reports: police_admin reads own station" ON recovered_reports;
 CREATE POLICY "recovered_reports: police_admin reads own station" ON recovered_reports FOR SELECT
 USING (
-  EXISTS (
+  get_my_role_name() = 'police_admin'
+  AND EXISTS (
     SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
     JOIN reports r ON r.id = recovered_reports.found_report_id
-    WHERE p.user_id = auth.uid()
-      AND ar.name = 'police_admin'
-      AND p.station_id = r.station_id
+    WHERE p.user_id = auth.uid() AND p.station_id = r.station_id
   )
 );
 
 DROP POLICY IF EXISTS "recovered_reports: authenticated can insert" ON recovered_reports;
 CREATE POLICY "recovered_reports: authenticated can insert" ON recovered_reports FOR INSERT
 WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "recovered_reports: users can update own related" ON recovered_reports;
+CREATE POLICY "recovered_reports: users can update own related" ON recovered_reports FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM reports
+    WHERE (reports.id = recovered_reports.lost_report_id OR reports.id = recovered_reports.found_report_id)
+      AND reports.user_id = auth.uid()
+  )
+);
 
 -- ── 8. transactions: users see own, admins see relevant ──────
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
@@ -289,30 +246,22 @@ USING (
 
 DROP POLICY IF EXISTS "transactions: system_admin reads all" ON transactions;
 CREATE POLICY "transactions: system_admin reads all" ON transactions FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "transactions: authenticated can insert" ON transactions;
 CREATE POLICY "transactions: authenticated can insert" ON transactions FOR INSERT
 WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "transactions: users update own" ON transactions;
+CREATE POLICY "transactions: users update own" ON transactions FOR UPDATE
+USING (user_id = auth.uid());
 
 -- ── 9. audit_logs: sysadmin reads, any authenticated inserts ─
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "audit_logs: system_admin can read" ON audit_logs;
 CREATE POLICY "audit_logs: system_admin can read" ON audit_logs FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "audit_logs: authenticated can insert" ON audit_logs;
 CREATE POLICY "audit_logs: authenticated can insert" ON audit_logs FOR INSERT
@@ -338,24 +287,16 @@ ALTER TABLE verifications ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "verifications: system_admin reads all" ON verifications;
 CREATE POLICY "verifications: system_admin reads all" ON verifications FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name = 'system_admin'
-  )
-);
+USING (get_my_role_name() = 'system_admin');
 
 DROP POLICY IF EXISTS "verifications: police_admin reads own station" ON verifications;
 CREATE POLICY "verifications: police_admin reads own station" ON verifications FOR SELECT
 USING (
-  EXISTS (
+  get_my_role_name() = 'police_admin'
+  AND EXISTS (
     SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
     JOIN reports r ON r.id = verifications.report_id
-    WHERE p.user_id = auth.uid()
-      AND ar.name = 'police_admin'
-      AND p.station_id = r.station_id
+    WHERE p.user_id = auth.uid() AND p.station_id = r.station_id
   )
 );
 
@@ -363,11 +304,7 @@ DROP POLICY IF EXISTS "verifications: police_admin or sysadmin inserts" ON verif
 CREATE POLICY "verifications: police_admin or sysadmin inserts" ON verifications FOR INSERT
 WITH CHECK (
   admin_id = auth.uid()
-  AND EXISTS (
-    SELECT 1 FROM profiles p
-    JOIN admin_roles ar ON ar.id = p.role_id
-    WHERE p.user_id = auth.uid() AND ar.name IN ('police_admin', 'system_admin')
-  )
+  AND get_my_role_name() IN ('police_admin', 'system_admin')
 );
 
 -- ── 12. locker_documents: users manage own ──────────────────

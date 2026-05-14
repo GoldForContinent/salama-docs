@@ -132,13 +132,10 @@ async function handleLogin(e) {
     hideError();
 
     try {
-        console.log('Attempting sign in with email:', email);
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        console.log('Sign in result:', { data, error });
         if (error) { showError('Incorrect email or password.'); return; }
 
         const { roleName, userName, stationId } = await getUserRole(data.user.id);
-        console.log('User role resolved:', { roleName, userName, stationId });
 
         if (!roleName) {
             await supabase.auth.signOut();
@@ -182,28 +179,19 @@ async function handleLogin(e) {
 }
 
 async function getUserRole(userId) {
-    console.log('getUserRole called with userId:', userId);
-
-    const { data: profile, error: profileErr } = await supabase
+    const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, role_id, station_id')
         .eq('user_id', userId)
         .maybeSingle();
 
-    console.log('Profile query result:', { profile, error: profileErr });
+    if (!profile || !profile.role_id) return { roleName: null, userName: null, stationId: null };
 
-    if (!profile || !profile.role_id) {
-        console.warn('Profile not found or has no role_id:', profile);
-        return { roleName: null, userName: null, stationId: null };
-    }
-
-    const { data: roleRow, error: roleErr } = await supabase
+    const { data: roleRow } = await supabase
         .from('admin_roles')
         .select('name')
         .eq('id', profile.role_id)
         .maybeSingle();
-
-    console.log('Role query result:', { roleRow, error: roleErr });
 
     return {
         roleName: roleRow?.name || null,
