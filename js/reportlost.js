@@ -273,12 +273,11 @@ async function handleFormSubmit(e) {
         console.log('❌ Form data collection failed');
         return;
     }
-    console.log('✅ Form data collected:', formData);
+    console.log('✅ Form data collected');
     
     // Ensure timeline is valid
     const allowedTimelines = ['today', 'yesterday', 'week', 'month'];
     if (!allowedTimelines.includes(formData.timeline)) {
-        console.warn('Invalid timeline value:', formData.timeline, 'Defaulting to today');
         formData.timeline = 'today';
     }
     
@@ -293,16 +292,11 @@ async function handleFormSubmit(e) {
     submitBtn.disabled = true;
     
     try {
-        console.log('🔐 Getting current user...');
-        // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
-            console.error('❌ User authentication failed:', userError);
+            console.error('User authentication failed:', userError);
             throw new Error("User not logged in");
         }
-        console.log('✅ User authenticated:', user.email);
-
-        console.log('💾 Submitting report to Supabase...');
         // Submit to Supabase
         const { data: report, error: reportError } = await supabase
             .from('reports')
@@ -359,9 +353,7 @@ async function handleFormSubmit(e) {
             // Don't fail the report creation if notification fails
         }
 
-        console.log('📄 Saving documents...');
         // Save documents
-        console.log('formData.documents:', formData.documents); // DEBUG LOG
         const documentPromises = formData.documents.map(doc => 
             supabase.from('report_documents').insert({
                 report_id: report.id,

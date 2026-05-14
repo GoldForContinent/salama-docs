@@ -535,22 +535,29 @@ function setupTheme() {
 
 function setupLogout() {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        localStorage.removeItem('salamaFormDraft');
         await supabase.auth.signOut();
         window.location.href = 'admin-login.html';
     });
 }
 
-// ===== HTML HELPERS =====
-function loadingRow(cols) {
-    return `<tr><td colspan="${cols}" style="text-align:center;padding:2rem;color:var(--light-text-muted);">Loading...</td></tr>`;
+function setupSessionTimeout() {
+    let timeout;
+    const TIMEOUT_MS = 30 * 60 * 1000;
+    function reset() {
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'admin-login.html?error=timeout';
+        }, TIMEOUT_MS);
+    }
+    ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(ev =>
+        document.addEventListener(ev, reset)
+    );
+    reset();
 }
 
-function emptyRow(cols, msg) {
-    return `<tr><td colspan="${cols}" style="text-align:center;padding:2rem;color:var(--light-text-muted);">${msg}</td></tr>`;
-}
-
-function errorRow(cols, msg) {
-    return `<tr><td colspan="${cols}" style="text-align:center;padding:2rem;color:var(--danger-color);">Error: ${msg || 'Unknown'}</td></tr>`;
-}
-
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+    setupSessionTimeout();
+});

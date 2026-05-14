@@ -153,12 +153,11 @@ function handleSessionExpiry() {
 
 async function logout() {
     try {
-        console.log('🚪 Logging out user...');
+        localStorage.removeItem('salamaFormDraft');
         await supabase.auth.signOut();
         window.location.href = 'loginpage.html';
     } catch (error) {
-        console.error('❌ Error during logout:', error);
-        // Force redirect even if logout fails
+        console.error('Error during logout:', error);
         window.location.href = 'loginpage.html';
     }
 }
@@ -403,17 +402,16 @@ window.closeLogoutModal = function() {
 
 window.performLogout = async function(redirectUrl) {
     try {
+        localStorage.removeItem('salamaFormDraft');
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
         
-        // Clear any stored data
         currentUser = null;
         currentProfile = null;
         
-        // Redirect to specified page
         window.location.href = redirectUrl;
     } catch (error) {
-        console.error('❌ Logout error:', error);
+        console.error('Logout error:', error);
         notificationManager.error('Error during logout. Please try again.');
     }
 };
@@ -541,28 +539,18 @@ function showError(modalId, message) {
 
 async function loadUserData() {
     try {
-        console.log('👤 Loading user data...');
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        console.log('🔍 Auth result:', { user: user?.email, error: authError });
         if (authError) throw authError;
         if (!user) {
-            console.log('🚫 No user found, redirecting to login');
             window.location.href = 'loginpage.html';
             return;
         }
-        console.log('✅ User authenticated:', user.email);
 
         currentUser = user;
-        window.currentUser = user; // Set global user context for payments.js
-        console.log('✅ Current user loaded:', user.email);
+        window.currentUser = user;
 
-        // Notification service is auto-initialized via notifications-unified.js
-
-        // Get user profile - TEMPORARILY BYPASSING CACHE FOR DEBUGGING
-        console.log('📋 Loading user profile...');
         let profile;
         try {
-            // Direct query without caching for debugging
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -570,16 +558,13 @@ async function loadUserData() {
                 .single();
 
             if (error && error.code !== 'PGRST116') {
-                console.error('❌ Profile query error:', error);
+                console.error('Profile query error:', error);
                 throw error;
             }
             
             profile = data;
-            console.log('✅ Profile loaded directly:', profile);
 
             if (!profile) {
-                console.log('📝 Profile not found, creating default profile...');
-                // Create default profile if doesn't exist
                 const { data, error } = await supabase
                     .from('profiles')
                     .insert([{ 
@@ -594,8 +579,6 @@ async function loadUserData() {
 
                 if (error) throw error;
                 profile = data;
-                console.log('✅ Default profile created:', profile);
-                // Invalidate cache so next time it's fresh
                 invalidateUserProfile(user.id);
             } else {
                 console.log('✅ Profile found (from cache or DB):', profile);

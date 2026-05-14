@@ -939,11 +939,10 @@ function setupFormSubmission() {
         
         // Collect form data
         const formData = collectFormData();
-        console.log('📋 Collected form data:', formData);
         
         // Validate required fields
         if (!validateForm(formData)) {
-            console.warn('⚠️ Validation failed', formData);
+            console.warn('⚠️ Validation failed');
             return;
         }
         
@@ -952,7 +951,6 @@ function setupFormSubmission() {
             // 1. Get current user
             const { data: { user }, error: userError } = await supabase.auth.getUser();
             if (userError || !user) throw new Error('User not logged in');
-            console.log('👤 Authenticated user:', user.email);
             
             // 2. Insert the main report (do NOT include finder details)
             const reportInsert = {
@@ -1394,87 +1392,7 @@ function getReadableDocType(type) {
     return docTypeMap[type] || type || 'Unknown Document';
 }
 
-// ===== COMPREHENSIVE DEBUGGING FUNCTIONS =====
-
-// Debug function to check if found reports are being created properly
-window.debugFoundReports = async function() {
-    console.log('🔍 === FOUND REPORTS DEBUG ===');
-    
-    try {
-        // Get current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) {
-            console.error('❌ User not authenticated');
-            return;
-        }
-        
-        console.log('👤 Current user:', user.email);
-        
-        // Check all reports for this user
-        const { data: userReports, error: reportsError } = await supabase
-            .from('reports')
-            .select('*, report_documents(*)')
-            .eq('user_id', user.id);
-            
-        if (reportsError) {
-            console.error('❌ Error fetching user reports:', reportsError);
-            return;
-        }
-        
-        console.log(`📊 Total reports for user: ${userReports.length}`);
-        
-        // Check found reports specifically
-        const foundReports = userReports.filter(r => r.report_type === 'found');
-        const lostReports = userReports.filter(r => r.report_type === 'lost');
-        
-        console.log(`📋 Found reports: ${foundReports.length}`);
-        console.log(`📋 Lost reports: ${lostReports.length}`);
-        
-        // Show details of each found report
-        foundReports.forEach((report, index) => {
-            console.log(`\n📄 Found Report #${index + 1}:`);
-            console.log(`   ID: ${report.id}`);
-            console.log(`   Type: ${report.report_type}`);
-            console.log(`   Status: ${report.status}`);
-            console.log(`   Created: ${report.created_at}`);
-            console.log(`   Documents: ${report.report_documents?.length || 0}`);
-            
-            if (report.report_documents && report.report_documents.length > 0) {
-                report.report_documents.forEach((doc, docIndex) => {
-                    console.log(`     Document ${docIndex + 1}: ${doc.document_type} (${doc.document_number})`);
-                });
-            }
-        });
-        
-        // Check all reports in database (not just user's)
-        const { data: allReports, error: allReportsError } = await supabase
-            .from('reports')
-            .select('*');
-            
-        if (allReportsError) {
-            console.error('❌ Error fetching all reports:', allReportsError);
-        } else {
-            const allFoundReports = allReports.filter(r => r.report_type === 'found');
-            const allLostReports = allReports.filter(r => r.report_type === 'lost');
-            
-            console.log(`\n🌐 Database-wide stats:`);
-            console.log(`   Total found reports: ${allFoundReports.length}`);
-            console.log(`   Total lost reports: ${allLostReports.length}`);
-            
-            // Show status breakdown
-            const statusCounts = {};
-            allReports.forEach(r => {
-                statusCounts[r.status] = (statusCounts[r.status] || 0) + 1;
-            });
-            console.log('   Status breakdown:', statusCounts);
-        }
-        
-        console.log('🔍 === END FOUND REPORTS DEBUG ===');
-        
-    } catch (error) {
-        console.error('❌ Error in debugFoundReports:', error);
-    }
-};
+// ===== END OF REPORT FOUND FORM =====
 
 // Test function to create a found report manually
 window.testCreateFoundReport = async function() {

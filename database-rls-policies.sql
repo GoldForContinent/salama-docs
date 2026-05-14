@@ -253,8 +253,10 @@ CREATE POLICY "transactions: authenticated can insert" ON transactions FOR INSER
 WITH CHECK (auth.uid() IS NOT NULL);
 
 DROP POLICY IF EXISTS "transactions: users update own" ON transactions;
-CREATE POLICY "transactions: users update own" ON transactions FOR UPDATE
-USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "transactions: system_admin updates all" ON transactions;
+CREATE POLICY "transactions: system_admin updates all" ON transactions FOR UPDATE
+USING (get_my_role_name() = 'system_admin');
 
 -- ── 9. audit_logs: sysadmin reads, any authenticated inserts ─
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
@@ -276,7 +278,7 @@ USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "notifications: authenticated can insert" ON notifications;
 CREATE POLICY "notifications: authenticated can insert" ON notifications FOR INSERT
-WITH CHECK (auth.uid() IS NOT NULL);
+WITH CHECK (user_id = auth.uid());
 
 DROP POLICY IF EXISTS "notifications: users update own" ON notifications;
 CREATE POLICY "notifications: users update own" ON notifications FOR UPDATE

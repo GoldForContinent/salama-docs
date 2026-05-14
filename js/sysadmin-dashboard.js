@@ -632,9 +632,29 @@ function setupTheme() {
 
 function setupLogout() {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        localStorage.removeItem('salamaFormDraft');
         await supabase.auth.signOut();
         window.location.href = 'admin-login.html';
     });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+function setupSessionTimeout() {
+    let timeout;
+    const TIMEOUT_MS = 30 * 60 * 1000;
+    function reset() {
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'admin-login.html?error=timeout';
+        }, TIMEOUT_MS);
+    }
+    ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(ev =>
+        document.addEventListener(ev, reset)
+    );
+    reset();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+    setupSessionTimeout();
+});

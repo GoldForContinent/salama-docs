@@ -58,11 +58,15 @@ function serveFile(res, filePath) {
     }
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
+    const isLoginPage = filePath.endsWith('admin-login.html') || filePath.endsWith('loginpage.html');
     res.writeHead(200, {
       "Content-Type": contentType,
       "X-Content-Type-Options": "nosniff",
-      "X-Frame-Options": "SAMEORIGIN",
+      "X-Frame-Options": isLoginPage ? "DENY" : "SAMEORIGIN",
       "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' https://esm.sh https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://zfywzczelvbsoptwrrpj.supabase.co https://*.supabase.co wss://*.supabase.co; frame-src 'none';"
     });
     res.end(data);
   });
