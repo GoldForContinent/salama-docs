@@ -102,7 +102,7 @@ function hideSkeleton(element) {
 }
 
 function showContent(element) {
-    if (element) element.style.display = 'block';
+    if (element) element.style.display = '';
 }
 
 function hideContent(element) {
