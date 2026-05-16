@@ -92,8 +92,11 @@ class UnifiedNotificationSystem {
       <span class="notification-badge" id="topNotificationCount">0</span>
     `;
     bell.addEventListener('click', () => {
-    // Open notifications page instead of modal
-    window.location.href = 'notifications.html';
+    if (typeof window.showSection === 'function') {
+      window.showSection('notifications');
+    } else {
+      window.location.href = 'notifications.html';
+    }
   });
 
     // Add to profile dropdown area

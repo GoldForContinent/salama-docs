@@ -1223,58 +1223,24 @@ window.runAutomatedMatching = async function() {
         const lostReports = reports.filter(r => r.report_type === 'lost');
         const foundReports = reports.filter(r => r.report_type === 'found');
         
-        console.log('📊 Reports found in database:');
-        console.log('Total reports:', reports.length);
-        console.log('Lost reports:', lostReports.length);
-        console.log('Found reports:', foundReports.length);
-        
-        // Log all reports with their documents
-        reports.forEach(report => {
-            console.log(`📋 Report ID: ${report.id}, Type: ${report.report_type}, Status: ${report.status}`);
-            if (report.report_documents && report.report_documents.length > 0) {
-                report.report_documents.forEach(doc => {
-                    console.log(`  📄 Document: ${doc.document_type} (${doc.document_number})`);
-                });
-            } else {
-                console.log(`  ⚠️ No documents attached to this report`);
-            }
-        });
+        console.log(`📊 ${reports.length} reports (${lostReports.length} lost, ${foundReports.length} found)`);
         
         const matches = [];
-        console.log('🔍 Starting detailed matching process...');
 
         for (const lostReport of lostReports) {
-            if (!lostReport.report_documents || lostReport.report_documents.length === 0) {
-                console.log(`⚠️ Lost report ${lostReport.id} has no documents, skipping`);
-                continue;
-            }
+            if (!lostReport.report_documents || lostReport.report_documents.length === 0) continue;
 
             for (const lostDoc of lostReport.report_documents) {
-                console.log(`📋 Checking lost doc: ${lostDoc.document_type} (${lostDoc.document_number}) from report ${lostReport.id}`);
-
                 for (const foundReport of foundReports) {
-                    if (!foundReport.report_documents || foundReport.report_documents.length === 0) {
-                        console.log(`⚠️ Found report ${foundReport.id} has no documents, skipping`);
-                        continue;
-                    }
+                    if (!foundReport.report_documents || foundReport.report_documents.length === 0) continue;
 
                     for (const foundDoc of foundReport.report_documents) {
-                        console.log(`🔍 Comparing:
-                            Lost: "${lostDoc.document_type}" (${lostDoc.document_number}) [Report: ${lostReport.id}]
-                            Found: "${foundDoc.document_type}" (${foundDoc.document_number}) [Report: ${foundReport.id}]`);
-
                         const typeMatch = lostDoc.document_type === foundDoc.document_type;
                         const numberMatch = lostDoc.document_number === foundDoc.document_number;
                         const hasNumbers = lostDoc.document_number && foundDoc.document_number;
 
-                        console.log(`   Type match: ${typeMatch}, Number match: ${numberMatch}, Has numbers: ${hasNumbers}`);
-
                         if (typeMatch && numberMatch && hasNumbers) {
-                            console.log('🎯 MATCH FOUND!', {
-                                lostReport: lostReport.id,
-                                foundReport: foundReport.id,
-                                document: `${lostDoc.document_type} (${lostDoc.document_number})`
-                            });
+                            console.log('🎯 Match:', lostDoc.document_type, lostDoc.document_number);
                             // Check if this match already exists in recovered_reports
                             const { data: existingMatch } = await supabase
                                 .from('recovered_reports')
