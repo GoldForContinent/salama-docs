@@ -1,0 +1,8 @@
+# Environment variables (contains Supabase keys)
+.env
+
+# Generated at build time by generate-config.js
+js/supabase-config.js
+
+# Node
+node_modules/

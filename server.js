@@ -5,6 +5,31 @@ const path = require("path");
 const PORT = 5000;
 const ROOT = __dirname;
 
+// ── Read .env file ──────────────────────────────────────────
+function loadEnv() {
+  const envPath = path.join(ROOT, ".env");
+  try {
+    const content = fs.readFileSync(envPath, "utf8");
+    content.split("\n").forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith("#")) {
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx > 0) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed.slice(eqIdx + 1).trim();
+          if (!process.env[key]) process.env[key] = val;
+        }
+      }
+    });
+  } catch (_) {
+    // .env file is optional — fall back to process.env or hardcoded defaults
+  }
+}
+loadEnv();
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://zfywzczelvbsoptwrrpj.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+
 const MIME_TYPES = {
   ".html": "text/html",
   ".css": "text/css",
@@ -69,7 +94,7 @@ function serveFile(res, filePath) {
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' https://esm.sh https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://zfywzczelvbsoptwrrpj.supabase.co https://*.supabase.co wss://*.supabase.co; frame-src 'none';"
+      "Content-Security-Policy": `default-src 'self'; script-src 'self' https://esm.sh https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' ${SUPABASE_URL} https://*.supabase.co wss://*.supabase.co; frame-src 'none';`
     });
     res.end(data);
   });
@@ -80,6 +105,18 @@ const server = http.createServer((req, res) => {
 
   if (urlPath !== "/" && urlPath.endsWith("/")) {
     urlPath = urlPath.slice(0, -1);
+  }
+
+  // ── Dynamic route: serve Supabase config from environment ──
+  if (urlPath === "/js/supabase-config.js") {
+    res.writeHead(200, {
+      "Content-Type": "application/javascript",
+      "Cache-Control": "no-store"
+    });
+    res.end(`export const supabaseUrl = ${JSON.stringify(SUPABASE_URL)};
+export const supabaseKey = ${JSON.stringify(SUPABASE_ANON_KEY)};
+`);
+    return;
   }
 
   let filePath;
