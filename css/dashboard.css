@@ -493,8 +493,12 @@ body.dark-mode #themeToggleIcon { color: #ffd600 !important; }
   .sidebar.mobile-open { display: flex; }
   #mobileMenuToggle { display: flex !important; }
   .main-content { padding: 14px; }
-  .status-bar { flex-direction: column; gap: 10px; padding: 10px 0; }
-  .welcome-message h1 { font-size: 18px; }
+  .status-bar { flex-direction: row; gap: 8px; padding: 8px 0; }
+  .welcome-message h1 { font-size: 16px; }
+  .welcome-message p { display: none; }
+  #userDisplayName { display: none !important; }
+  .user-profile i.fa-chevron-down { display: none; }
+  #themeToggleBtn { display: none; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stat-card { padding: 12px; }
   .actions-grid { grid-template-columns: 1fr; gap: 10px; }
@@ -514,7 +518,6 @@ body.dark-mode #themeToggleIcon { color: #ffd600 !important; }
   .payment-summary-card { padding: 14px; }
   .pagination-container { flex-direction: column; gap: 0.8rem; }
   .pagination-btn { width: 100%; justify-content: center; }
-  .user-profile i.fa-chevron-down { display: none; }
   .recovered-block { padding: 14px; }
   .doc-image-container { width: 100%; height: auto; max-height: 160px; }
 }

@@ -208,32 +208,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         // === Dark/Light Mode Toggle Logic ===
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeToggleIcon = document.getElementById('themeToggleIcon');
+        const themeDropdownBtn = document.getElementById('themeDropdownBtn');
+        const themeDropdownIcon = document.getElementById('themeDropdownIcon');
         const setTheme = (mode) => {
             if (mode === 'dark') {
                 document.body.classList.add('dark-mode');
-                if (themeToggleIcon) {
-                    themeToggleIcon.classList.remove('fa-moon');
-                    themeToggleIcon.classList.add('fa-sun');
-                }
+                if (themeToggleIcon) themeToggleIcon.className = 'fas fa-sun';
+                if (themeDropdownIcon) themeDropdownIcon.className = 'fas fa-sun';
+                if (themeDropdownBtn) themeDropdownBtn.innerHTML = '<i class="fas fa-sun" id="themeDropdownIcon"></i> Light Mode';
             } else {
                 document.body.classList.remove('dark-mode');
-                if (themeToggleIcon) {
-                    themeToggleIcon.classList.remove('fa-sun');
-                    themeToggleIcon.classList.add('fa-moon');
-                }
+                if (themeToggleIcon) themeToggleIcon.className = 'fas fa-moon';
+                if (themeDropdownIcon) themeDropdownIcon.className = 'fas fa-moon';
+                if (themeDropdownBtn) themeDropdownBtn.innerHTML = '<i class="fas fa-moon" id="themeDropdownIcon"></i> Dark Mode';
             }
         };
-        // Load saved theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) setTheme(savedTheme);
-        // Toggle handler
-        if (themeToggleBtn) {
-            themeToggleBtn.addEventListener('click', () => {
-                const isDark = document.body.classList.toggle('dark-mode');
-                setTheme(isDark ? 'dark' : 'light');
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            });
-        }
+        const toggleTheme = () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            setTheme(isDark ? 'dark' : 'light');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('profileDropdown')?.classList.remove('show');
+        };
+        if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+        if (themeDropdownBtn) themeDropdownBtn.addEventListener('click', toggleTheme);
 
         // === Notification System Initialized ===
         // Notification manager is now global and ready to use

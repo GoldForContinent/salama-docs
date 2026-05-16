@@ -76,6 +76,7 @@
                                 <a href="#" onclick="showSection('profile')"><i class="fas fa-user"></i> My Profile</a>
                                 <a href="#" onclick="openModal('editProfileModal')"><i class="fas fa-edit"></i> Edit Profile</a>
                                 <a href="#" onclick="openModal('changePasswordModal')"><i class="fas fa-key"></i> Change Password</a>
+                                <a href="#" id="themeDropdownBtn"><i class="fas fa-moon" id="themeDropdownIcon"></i> Dark Mode</a>
                                 <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                             </div>
                         </div>
@@ -85,7 +86,10 @@
                 <!-- Statistics Section -->
                 <div class="stats-section">
                     <div class="stats-grid" id="statsGrid">
-                        <!-- Statistics will be populated dynamically -->
+                        <div class="stat-card"><i class="fas fa-search"></i><h3 id="lostReportsCount">0</h3><p>Lost Reports</p></div>
+                        <div class="stat-card"><i class="fas fa-hand-holding-heart"></i><h3 id="foundReportsCount">0</h3><p>Found Reports</p></div>
+                        <div class="stat-card"><i class="fas fa-check-circle"></i><h3 id="completedReportsCount">0</h3><p>Completed</p></div>
+                        <div class="stat-card"><i class="fas fa-undo-alt"></i><h3 id="recoveredReportsCount">0</h3><p>Recovered</p></div>
                     </div>
                     <!-- Statistics Skeleton -->
                     <div class="stats-skeleton" id="statsSkeleton">
