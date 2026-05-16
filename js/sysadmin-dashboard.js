@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { initNotifBell } from './notif.js';
+import { esc } from './sanitize.js';
 
 let currentUser = null;
 let allStations = [];
@@ -219,8 +220,8 @@ async function loadCases() {
         return `
         <tr>
             <td><span style="padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;font-weight:700;background:${r.report_type === 'found' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'};color:${r.report_type === 'found' ? '#059669' : '#dc2626'};">${r.report_type.toUpperCase()}</span></td>
-            <td>${r.full_name}<br><small style="color:var(--light-text-muted);">${r.phone}</small></td>
-            <td style="max-width:200px;white-space:normal;">${docs}</td>
+            <td>${esc(r.full_name)}<br><small style="color:var(--light-text-muted);">${esc(r.phone)}</small></td>
+            <td style="max-width:200px;white-space:normal;">${esc(docs)}</td>
             <td>${station}</td>
             <td>${formatStatus(r.status)}</td>
             <td>${formatDelivery(r.delivery_status)}</td>
@@ -440,14 +441,14 @@ async function searchUsers() {
         const roleBadgeClass = roleName === 'system_admin' ? 'sysadmin' : roleName === 'police_admin' ? 'police' : 'user';
         return `
         <tr>
-            <td><strong>${u.full_name || '—'}</strong></td>
-            <td>${u.email || '—'}</td>
-            <td>${u.phone || '—'}</td>
+            <td><strong>${esc(u.full_name || '—')}</strong></td>
+            <td>${esc(u.email || '—')}</td>
+            <td>${esc(u.phone || '—')}</td>
             <td><span class="badge-role ${roleBadgeClass}">${roleLabel}</span></td>
-            <td>${u.stations?.name || '—'}</td>
-            <td><span style="font-size:0.78rem;color:${u.status === 'active' ? '#059669' : '#dc2626'};">${u.status || 'active'}</span></td>
+            <td>${esc(u.stations?.name || '—')}</td>
+            <td><span style="font-size:0.78rem;color:${u.status === 'active' ? '#059669' : '#dc2626'};">${esc(u.status || 'active')}</span></td>
             <td>
-                <button class="btn-primary" style="padding:0.35rem 0.9rem;font-size:0.8rem;background:rgba(124,58,237,0.12);color:#7c3aed;" onclick="openRoleModal('${u.user_id}', '${u.full_name || ''}', '${u.email || ''}', '${roleName}', '${u.station_id || ''}')">
+                <button class="btn-primary" style="padding:0.35rem 0.9rem;font-size:0.8rem;background:rgba(124,58,237,0.12);color:#7c3aed;" onclick="openRoleModal('${u.user_id}')">
                     <i class="fas fa-user-edit"></i> Role
                 </button>
             </td>
@@ -455,11 +456,22 @@ async function searchUsers() {
     }).join('');
 }
 
-window.openRoleModal = async function (userId, name, email, currentRole, currentStationId) {
+window.openRoleModal = async function (userId) {
+    const { data: u } = await supabase
+        .from('profiles')
+        .select('full_name, email, role_id, station_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (!u) return;
+
+    const currentRole = roleMap[u.role_id] || 'user';
+    const displayName = esc(u.full_name || u.email || 'User');
+
     document.getElementById('roleUserId').value = userId;
     document.getElementById('roleModalUserInfo').innerHTML = `
-        <strong>${name || email}</strong><br>
-        <small style="color:var(--light-text-muted);">${email}</small>
+        <strong>${displayName}</strong><br>
+        <small style="color:var(--light-text-muted);">${esc(u.email || '')}</small>
     `;
     document.getElementById('roleSelect').value = currentRole === 'user' ? '' : currentRole;
 
@@ -471,7 +483,7 @@ window.openRoleModal = async function (userId, name, email, currentRole, current
         const opt = document.createElement('option');
         opt.value = s.id;
         opt.textContent = `${s.name} (${s.county})`;
-        if (s.id === currentStationId) opt.selected = true;
+        if (s.id === u.station_id) opt.selected = true;
         stationSelect.appendChild(opt);
     });
 

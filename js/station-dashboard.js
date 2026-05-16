@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { initNotifBell, sendNotif } from './notif.js';
+import { esc } from './sanitize.js';
 
 let currentUser = null;
 let currentStation = null;
@@ -136,7 +137,7 @@ async function loadRecentActivity() {
                 <i class="fas fa-${icon}"></i>
             </div>
             <div class="activity-body">
-                <p><strong>${r.full_name}</strong> — ${docName}</p>
+                <p><strong>${esc(r.full_name)}</strong> — ${esc(docName)}</p>
                 <small>${label} · ${new Date(r.updated_at).toLocaleString('en-KE')}</small>
             </div>
         </div>`;
@@ -184,10 +185,10 @@ async function loadPending() {
         return `
         <tr>
             <td>${new Date(r.created_at).toLocaleDateString('en-KE')}</td>
-            <td><strong>${finder?.finder_name || r.full_name}</strong></td>
-            <td>${finder?.finder_phone || r.phone}</td>
-            <td style="max-width:180px;white-space:normal;">${docs}</td>
-            <td>${r.location_description}</td>
+            <td><strong>${esc(finder?.finder_name || r.full_name)}</strong></td>
+            <td>${esc(finder?.finder_phone || r.phone)}</td>
+            <td style="max-width:180px;white-space:normal;">${esc(docs)}</td>
+            <td>${esc(r.location_description)}</td>
             <td>
                 <button class="action-btn receive" onclick="triggerAction('${r.id}', 'receive')">
                     <i class="fas fa-box-open"></i> Mark as Received
@@ -233,9 +234,9 @@ async function loadReceived() {
         return `
         <tr>
             <td>${new Date(r.updated_at).toLocaleDateString('en-KE')}</td>
-            <td>${finder}</td>
-            <td style="max-width:180px;white-space:normal;">${docs}</td>
-            <td>${ownerName}</td>
+            <td>${esc(finder)}</td>
+            <td style="max-width:180px;white-space:normal;">${esc(docs)}</td>
+            <td>${esc(ownerName)}</td>
             <td>${matched
                 ? '<span style="padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;background:rgba(16,185,129,0.12);color:#059669;font-weight:600;">Owner Found</span>'
                 : '<span style="padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;background:rgba(245,158,11,0.12);color:#d97706;font-weight:600;">Searching</span>'
@@ -287,9 +288,9 @@ async function loadClaimed() {
         return `
         <tr>
             <td>${new Date(r.updated_at).toLocaleDateString('en-KE')}</td>
-            <td>${finder}</td>
-            <td style="max-width:180px;white-space:normal;">${docs}</td>
-            <td>${ownerName}</td>
+            <td>${esc(finder)}</td>
+            <td style="max-width:180px;white-space:normal;">${esc(docs)}</td>
+            <td>${esc(ownerName)}</td>
             <td>${feePaid}</td>
             <td><span class="status-badge status-${r.delivery_status?.replace(/_/g, '-')}">${dm.label}</span></td>
         </tr>`;
@@ -331,8 +332,8 @@ async function loadAll(deliveryFilter = '') {
         <tr>
             <td>${new Date(r.created_at).toLocaleDateString('en-KE')}</td>
             <td><span style="padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;background:rgba(16,185,129,0.12);color:#059669;font-weight:700;">FOUND</span></td>
-            <td>${r.full_name}</td>
-            <td style="max-width:180px;white-space:normal;">${docs}</td>
+            <td>${esc(r.full_name)}</td>
+            <td style="max-width:180px;white-space:normal;">${esc(docs)}</td>
             <td>${formatReportStatus(r.status)}</td>
             <td><span class="status-badge status-${r.delivery_status?.replace(/_/g, '-')}">${dm.label}</span></td>
         </tr>`;
