@@ -599,25 +599,6 @@ async function loadUserData() {
         updateUserUI(user, profile);
         await loadDashboardData();
 
-        // Timeout fallback: if profile/header is still showing skeleton after 8s,
-        // force-show it using whatever data we have
-        setTimeout(() => {
-            if (currentProfile) {
-                hideSkeleton(elements.welcomeTitleSkeleton);
-                hideSkeleton(elements.userAvatarSkeleton);
-                hideSkeleton(elements.userDisplayNameSkeleton);
-                hideSkeleton(elements.statsSkeleton);
-                hideSkeleton(elements.recentReportsSkeleton);
-                hideSkeleton(elements.profileSkeleton);
-                showContent(elements.userName);
-                showContent(elements.userDisplayName);
-                showContent(elements.userAvatar);
-                showContent(elements.statsGrid);
-                showContent(elements.recentReports);
-                showContent(elements.profileContent);
-            }
-        }, 10000);
-
     } catch (error) {
         console.error('❌ Error loading user data:', error);
         notificationManager.error('Error loading user data. Please refresh the page.');
@@ -1044,16 +1025,14 @@ async function loadDashboardData() {
             return;
         }
 
-        // Skip automated matching here - it's already run during initialization
         console.log('📋 Loading user reports and documents...');
         const { reports } = await loadUserReportsAndDocuments();
         console.log('📊 Reports loaded:', reports?.length || 0);
 
         updateDashboardStats(reports);
         loadRecentActivity(reports.slice(0, 3));
-        await updateRecoveredCount(); // Call updateRecoveredCount after loading reports
+        await updateRecoveredCount(reports);
 
-        // Hide skeleton elements and show actual content
         console.log('🎨 Updating UI...');
         hideSkeleton(elements.statsSkeleton);
         hideSkeleton(elements.recentReportsSkeleton);
@@ -1085,9 +1064,11 @@ function updateDashboardStats(reports) {
     updateStat('recoveredReportsCount', recoveredCount);
 }
 
-async function updateRecoveredCount() {
-    // Get all reports for the current user
-    const { reports } = await loadUserReportsAndDocuments();
+async function updateRecoveredCount(reports) {
+    if (!reports) {
+        const result = await loadUserReportsAndDocuments();
+        reports = result.reports;
+    }
     const myLostIds = reports.filter(r => r.user_id === currentUser.id && r.report_type === 'lost').map(r => r.id);
     const myFoundIds = reports.filter(r => r.user_id === currentUser.id && r.report_type === 'found').map(r => r.id);
     // Fetch all recovered reports where user is lost or found owner
@@ -1548,10 +1529,8 @@ async function populateMyReportsSection(filter = 'all', page = 0) {
     if (filter === 'recovered') {
         let recoveredRows = [];
         if (currentUser) {
-            // Get all lost and found report IDs for this user
             const myLostIds = reports.filter(r => r.user_id === currentUser.id && r.report_type === 'lost').map(r => r.id);
             const myFoundIds = reports.filter(r => r.user_id === currentUser.id && r.report_type === 'found').map(r => r.id);
-            // Fetch all recovered reports where user is lost or found owner
             const { data: recLost } = await supabase
                 .from('recovered_reports')
                 .select('*')
@@ -1565,12 +1544,15 @@ async function populateMyReportsSection(filter = 'all', page = 0) {
                 ...(recFound || [])
             ];
         }
-        if (recoveredRows.length === 0) {
+        const totalRecovered = recoveredRows.length;
+        const recoveredOffset = page * PAGE_SIZE;
+        const pagedRecovered = recoveredRows.slice(recoveredOffset, recoveredOffset + PAGE_SIZE);
+        const hasMoreRecovered = recoveredOffset + PAGE_SIZE < totalRecovered;
+        if (pagedRecovered.length === 0) {
             container.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">No recovered reports found.</p>';
             return;
         }
         
-        // OPTIMIZATION: Batch fetch all lost and found reports instead of N+1 queries
         const lostReportIds = recoveredRows.map(r => r.lost_report_id).filter(Boolean);
         const foundReportIds = recoveredRows.map(r => r.found_report_id).filter(Boolean);
         
@@ -1584,11 +1566,9 @@ async function populateMyReportsSection(filter = 'all', page = 0) {
             .select('*, report_documents(*)')
             .in('id', foundReportIds.length ? foundReportIds : ['00000000-0000-0000-0000-000000000000']);
         
-        // Create maps for O(1) lookup
         const lostReportMap = new Map((allLostReports || []).map(r => [r.id, r]));
         const foundReportMap = new Map((allFoundReports || []).map(r => [r.id, r]));
         
-        // Batch fetch all transactions for payment status checks
         const allReportIds = [...lostReportIds, ...foundReportIds];
         const { data: allTransactions } = await supabase
             .from('transactions')
@@ -1603,12 +1583,10 @@ async function populateMyReportsSection(filter = 'all', page = 0) {
             transactionMap.get(tx.report_id).push(tx);
         });
         
-        for (const rec of recoveredRows) {
-            // Get reports from maps (O(1) lookup)
+        for (const rec of pagedRecovered) {
             const lostReport = lostReportMap.get(rec.lost_report_id);
             const foundReport = foundReportMap.get(rec.found_report_id);
             
-            // Prefer the found document for display, fallback to lost
             let doc = null;
             if (foundReport && foundReport.report_documents && foundReport.report_documents.length > 0) {
                 doc = foundReport.report_documents[0];
@@ -1624,20 +1602,17 @@ async function populateMyReportsSection(filter = 'all', page = 0) {
             let rewardAmount = foundReport && foundReport.reward_amount ? foundReport.reward_amount : 100;
             let claimRewardBtn = '';
             
-            // Check if payment has been made (from pre-fetched transactions)
             let isPaid = false;
             if (isLostOwner && lostReport) {
                 const txs = transactionMap.get(lostReport.id) || [];
                 isPaid = txs.some(tx => tx.transaction_type === 'recovery' && tx.status === 'completed');
             }
             
-            // Show Claim Reward button for finder if not already claimed and status is claimable
             if (isFoundOwner && (rec.status === 'recovered' || rec.status === 'potential_match') && !rec.reward_claimed) {
                 claimRewardBtn = `<button onclick="window.showClaimRewardModal('${foundReport.id}', ${rewardAmount})" class="action-btn btn-warning" style="margin-top:12px;background:linear-gradient(90deg,#10b981 60%,#ffd600 100%);color:#222;font-weight:700;font-size:1.1em;box-shadow:0 2px 8px rgba(16,185,129,0.12);border:none;display:flex;align-items:center;gap:8px;">
                     <i class='fas fa-gift' style='color:#fff;font-size:1.2em;'></i> Claim Reward (KSh ${rewardAmount})
                 </button>`;
             }
-            // Defensive recovery fee fallback
             const recoveryFee = (typeof lostReport.recovery_fee === 'number' && !isNaN(lostReport.recovery_fee))
                 ? lostReport.recovery_fee
                 : 200;
@@ -1677,6 +1652,10 @@ async function populateMyReportsSection(filter = 'all', page = 0) {
                 ${claimRewardBtn}
             </div>
             `;
+        }
+        if (totalRecovered > PAGE_SIZE) {
+            const paginationDiv = createPaginationControls(page, totalRecovered, hasMoreRecovered, filter);
+            container.appendChild(paginationDiv);
         }
         return;
     }
@@ -1961,143 +1940,7 @@ recoveredStyle.textContent = `
 `;
 document.head.appendChild(recoveredStyle);
 
-// Add test and debug functions
-window.testRecoveredReport = async function() {
-    if (!currentUser) {
-        alert('Please log in first');
-        return;
-    }
-    
-    // Get user's reports
-    const { reports } = await loadUserReportsAndDocuments();
-    const lostReports = reports.filter(r => r.report_type === 'lost' && r.status === 'active');
-    const foundReports = reports.filter(r => r.report_type === 'found' && r.status === 'active');
-    
-    if (lostReports.length === 0 || foundReports.length === 0) {
-        alert('You need at least one lost and one found report to test');
-        return;
-    }
-    
-    // Create a test recovered report
-    const { data, error } = await supabase.from('recovered_reports').insert({
-        lost_report_id: lostReports[0].id,
-        found_report_id: foundReports[0].id,
-        status: 'recovered'
-    });
-    
-    if (error) {
-        alert('Error creating test recovered report: ' + error.message);
-    } else {
-        alert('Test recovered report created! Check the Recovered tab.');
-        populateMyReportsSection('recovered');
-    }
-};
 
-window.debugRecoveredReports = async function() {
-    if (!currentUser) {
-        alert('Please log in first');
-        return;
-    }
-    
-    // Check if we can access recovered_reports
-    const { data, error } = await supabase.from('recovered_reports').select('*');
-    
-    if (error) {
-        alert('Error accessing recovered_reports: ' + error.message);
-    } else {
-        alert('Found ' + (data?.length || 0) + ' recovered reports in database');
-        console.log('Recovered reports:', data);
-    }
-};
-
-/**
- * Simulate a match between a lost and found report.
- * @param {string} lostReportId - The ID of the lost report.
- * @param {string} foundReportId - The ID of the found report.
- */
-window.simulatePotentialMatch = async function(lostReportId, foundReportId) {
-    try {
-        // 1. Update both reports to potential_match
-        let { error: lostError } = await supabase
-            .from('reports')
-            .update({ status: 'potential_match' })
-            .eq('id', lostReportId);
-        let { error: foundError } = await supabase
-            .from('reports')
-            .update({ status: 'potential_match' })
-            .eq('id', foundReportId);
-
-        if (lostError || foundError) {
-            alert('Error updating report statuses');
-            return;
-        }
-
-        // 2. Insert into recovered_reports
-        const { data, error } = await supabase
-            .from('recovered_reports')
-            .insert({
-                lost_report_id: lostReportId,
-                found_report_id: foundReportId,
-                status: 'recovered'
-            });
-
-        if (error) {
-            alert('Error creating recovered report: ' + error.message);
-            return;
-        }
-
-        alert('Potential match created! Both reports are now in potential_match status and recovered_reports row created.');
-        // Optionally refresh the dashboard
-        populateMyReportsSection('recovered');
-        await updateRecoveredCount(); // Update count after simulating match
-    } catch (err) {
-        alert('Unexpected error: ' + err.message);
-    }
-};
-
-/**
- * Frontend matching function that finds lost and found reports with the same document type and number,
- * updates both to 'potential_match', and inserts a row in recovered_reports.
- */
-window.matchReports = async function() {
-    try {
-        // Get all reports
-        const { data: reports } = await supabase.from('reports').select('*');
-        
-        // Find matching lost and found reports
-        const matches = reports.filter(r1 => reports.some(r2 => 
-            r1.report_type !== r2.report_type && 
-            r1.document_type === r2.document_type && 
-            r1.document_number === r2.document_number
-        ));
-        
-        // Update reports to potential_match and insert into recovered_reports
-        for (const match of matches) {
-            const otherReport = reports.find(r => 
-                r.report_type !== match.report_type && 
-                r.document_type === match.document_type && 
-                r.document_number === match.document_number
-            );
-            
-            if (otherReport) {
-                await supabase.from('reports').update({ status: 'potential_match' }).eq('id', match.id);
-                await supabase.from('reports').update({ status: 'potential_match' }).eq('id', otherReport.id);
-                
-                await supabase.from('recovered_reports').insert({
-                    lost_report_id: match.report_type === 'lost' ? match.id : otherReport.id,
-                    found_report_id: match.report_type === 'found' ? match.id : otherReport.id,
-                    status: 'recovered'
-                });
-            }
-        }
-        
-        notificationManager.success('Matching complete! Check the Recovered tab.');
-        populateMyReportsSection('recovered');
-        await updateRecoveredCount(); // Update count after matching
-    } catch (err) {
-        alert('Unexpected error: ' + err.message);
-    }
-};
 
 // --- Status Transition Functions ---
 
@@ -2539,51 +2382,7 @@ window.forceCompleteMatching = async function() {
   }
 };
 
-// Debug function to check the state of matches and transactions
-window.debugMatchingState = async function() {
-  try {
-    console.log('🔍 === DEBUGGING MATCHING STATE ===');
-    
-    // Check all recovered reports
-    const { data: recoveredReports, error: recoveredError } = await supabase
-      .from('recovered_reports')
-      .select('*, lost_report:lost_report_id(*), found_report:found_report_id(*)')
-      .eq('status', 'recovered');
-    
-    if (recoveredError) {
-      console.error('Error fetching recovered reports:', recoveredError);
-      return;
-    }
-    
-    console.log(`📊 Found ${recoveredReports.length} recovered reports`);
-    
-    for (const recovered of recoveredReports) {
-      console.log(`\n📋 Recovered Report ID: ${recovered.id}`);
-      console.log(`   Lost Report: ${recovered.lost_report_id}`);
-      console.log(`   Found Report: ${recovered.found_report_id}`);
-      
-      // Check transactions for this match
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select('*')
-        .or(`report_id.eq.${recovered.lost_report_id},report_id.eq.${recovered.found_report_id}`);
-      
-      if (transactions && transactions.length > 0) {
-        console.log(`   ✅ Has ${transactions.length} transactions`);
-        transactions.forEach(tx => {
-          console.log(`      - ${tx.transaction_type}: ${tx.amount} (${tx.status})`);
-        });
-      } else {
-        console.log(`   ❌ Missing transactions`);
-      }
-    }
-    
-    console.log('\n🔍 === END DEBUGGING ===');
-    
-  } catch (error) {
-    console.error('❌ Error in debugMatchingState:', error);
-  }
-};
+
 
 // Function to remove duplicate transactions
 window.removeDuplicateTransactions = async function() {
@@ -2913,97 +2712,7 @@ function getNotificationIcon(type) {
   return icons[type] || icons.default;
 }
 
-// Function to clear all data for fresh testing
-window.clearAllData = async function() {
-  try {
-    console.log('🗑️ === CLEARING ALL DATA FOR FRESH TESTING ===');
-    
-    // Confirm with user
-    const confirmed = confirm('⚠️ WARNING: This will delete ALL data from all tables!\n\nThis includes:\n- All reports (lost and found)\n- All report documents\n- All recovered reports\n- All transactions\n- All notifications\n\nAre you sure you want to continue?');
-    
-    if (!confirmed) {
-      console.log('❌ Data clearing cancelled by user');
-      return;
-    }
-    
-    console.log('🔄 Starting data deletion...');
-    
-    // Delete in the correct order to avoid foreign key constraints
-    const tablesToDelete = [
-      'transactions',
-      'recovered_reports', 
-      'report_documents',
-      'reports',
-      'notifications'
-    ];
-    
-    for (const table of tablesToDelete) {
-      try {
-        console.log(`🗑️ Deleting from ${table}...`);
-        const { error } = await supabase
-          .from(table)
-          .delete()
-          .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
-        
-        if (error) {
-          console.error(`❌ Error deleting from ${table}:`, error);
-        } else {
-          console.log(`✅ Successfully cleared ${table}`);
-        }
-      } catch (tableError) {
-        console.error(`❌ Exception deleting from ${table}:`, tableError);
-      }
-    }
-    
-    console.log('🎉 All data cleared successfully!');
-    console.log('🔄 Refreshing dashboard...');
-    
-    // Refresh the dashboard
-    if (typeof window.populateMyReportsSection === 'function') {
-      window.populateMyReportsSection('all');
-    }
-    
-    // Refresh payment section
-    refreshPaymentSection();
-    
-    // Show success notification
-    notificationManager.success('All data cleared successfully! You can now test fresh.');
-    
-  } catch (error) {
-    console.error('❌ Error in clearAllData:', error);
-    notificationManager.error('Error clearing data: ' + error.message);
-  }
-};
 
-// Function to check current data counts
-window.checkDataCounts = async function() {
-  try {
-    console.log('📊 === CHECKING CURRENT DATA COUNTS ===');
-    
-    const tables = ['reports', 'report_documents', 'recovered_reports', 'transactions', 'notifications'];
-    
-    for (const table of tables) {
-      try {
-        const { count, error } = await supabase
-          .from(table)
-          .select('*', { count: 'exact', head: true });
-        
-        if (error) {
-          console.error(`❌ Error counting ${table}:`, error);
-        } else {
-          console.log(`📊 ${table}: ${count} records`);
-        }
-      } catch (tableError) {
-        console.error(`❌ Exception counting ${table}:`, tableError);
-      }
-    }
-    
-    console.log('📊 === END DATA COUNT CHECK ===');
-    
-  } catch (error) {
-    console.error('❌ Error in checkDataCounts:', error);
-  }
-};
 
 // Polished Image Viewer Popup
 window.openImageViewer = function(imageUrl, documentType) {
