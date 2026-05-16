@@ -26,7 +26,6 @@ const roleConfig = {
 };
 
 async function initLoginPage() {
-    setupTheme();
     setupPasswordToggle();
     setupRoleToggle();
     setupFormSubmission();
@@ -68,17 +67,6 @@ function activateRole(role) {
             features[i].querySelector('i').className = 'fas ' + f.icon;
             features[i].querySelector('span').textContent = f.label;
         }
-    });
-}
-
-function setupTheme() {
-    const toggle = document.getElementById('themeToggle');
-    if (!toggle) return;
-    const saved = localStorage.getItem('theme') || 'light';
-    if (saved === 'dark') document.body.classList.add('dark-mode');
-    toggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
     });
 }
 

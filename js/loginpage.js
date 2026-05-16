@@ -1,9 +1,5 @@
-// Import Supabase client
 import { supabase } from './supabase.js'
 
-
-// DOM Elements
-const themeToggle = document.getElementById('themeToggle');
 const togglePassword = document.querySelector('#togglePassword');
 const passwordInput = document.getElementById('password');
 const loginForm = document.getElementById('loginForm');
@@ -117,14 +113,5 @@ continueBtn.addEventListener('click', () => {
   window.location.href = 'dashboard.html';
 });
 
-// 5. THEME TOGGLE (OPTIONAL BUT INCLUDED)
-themeToggle.addEventListener('click', function() {
-  document.body.classList.toggle('dark-mode');
-  localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-});
 
-// Initialize theme
-if (localStorage.getItem('darkMode') === 'true') {
-  document.body.classList.add('dark-mode');
-}
 
