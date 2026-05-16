@@ -6,3 +6,6 @@ js/supabase-config.js
 
 # Node
 node_modules/
+
+# Windows artifact from shell redirect
+NUL
