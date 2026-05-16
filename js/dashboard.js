@@ -464,6 +464,11 @@ async function showSection(sectionName) {
         if (sectionName === 'payments' && window.renderPaymentTable) {
             window.renderPaymentTable();
         }
+
+        // If Notifications section, populate the list
+        if (sectionName === 'notifications') {
+            populateDashboardNotifications();
+        }
     } else {
         console.warn(`⚠️ Section ${sectionName}-section not found`);
     }
@@ -2243,6 +2248,27 @@ async function refreshPaymentSection() {
       await window.renderPaymentTable();
     }
   }
+}
+
+function populateDashboardNotifications() {
+  const container = document.getElementById('notificationsList');
+  if (!container) return;
+
+  const notifs = window.unifiedNotifications?.notifications || [];
+  if (notifs.length === 0) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:#888;"><i class="fas fa-bell" style="font-size:48px;opacity:0.4;margin-bottom:16px;display:block;"></i><p>No notifications yet</p></div>';
+    return;
+  }
+
+  container.innerHTML = notifs.map(n => `
+    <div class="notification-item" style="padding:16px;border-bottom:1px solid #e5e7eb;display:flex;gap:12px;align-items:flex-start;background:${n.status === 'unread' ? '#f0fdf4' : 'transparent'};">
+      <i class="fas fa-${n.type === 'success' ? 'check-circle' : n.type === 'warning' ? 'exclamation-triangle' : n.type === 'error' ? 'exclamation-circle' : 'info-circle'}" style="color:${n.type === 'success' ? '#10b981' : n.type === 'warning' ? '#f59e0b' : n.type === 'error' ? '#ef4444' : '#3b82f6'};font-size:18px;margin-top:2px;"></i>
+      <div style="flex:1;">
+        <p style="margin:0 0 4px 0;font-size:14px;color:#333;">${n.message}</p>
+        <small style="color:#999;">${new Date(n.created_at).toLocaleDateString()}</small>
+      </div>
+    </div>
+  `).join('');
 }
 
 // Function to create missing transactions for existing matches
