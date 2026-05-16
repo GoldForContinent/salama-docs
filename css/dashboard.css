@@ -499,8 +499,7 @@ body.dark-mode #themeToggleIcon { color: #ffd600 !important; }
   #userDisplayName { display: none !important; }
   .user-profile i.fa-chevron-down { display: none; }
   #themeToggleBtn { display: none; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-card { padding: 12px; }
+  .stats-section { display: none; }
   .actions-grid { grid-template-columns: 1fr; gap: 10px; }
   .action-card { padding: 14px; }
   .action-card i { font-size: 28px; }
